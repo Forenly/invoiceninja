@@ -131,6 +131,7 @@ class Blockonomics implements LivewireMethodInterface
     public function paymentResponse(PaymentResponseRequest $request)
     {
         $request->validate([
+            'payment_hash' => ['required'],
             'amount' => ['required'],
             'currency' => ['required'],
             'txid' => ['required'],
@@ -145,72 +146,66 @@ class Blockonomics implements LivewireMethodInterface
         ]);
 
         try {
-            $data = [];
             $fiat_amount = round(($request->btc_price * $request->btc_amount / 100000000), 2);
-            $data['amount'] = $fiat_amount;
-            $data['payment_method_id'] = $request->payment_method_id;
-            $data['payment_type'] = PaymentType::CRYPTO;
-            $data['gateway_type_id'] = GatewayType::CRYPTO;
+
+            $data = [
+                'amount' => $fiat_amount,
+                'payment_method_id' => $request->payment_method_id,
+                'payment_type' => PaymentType::CRYPTO,
+                'gateway_type_id' => GatewayType::CRYPTO,
+            ];
 
             // Append a random value to the transaction reference for test payments
             // to prevent duplicate entries in the database.
-            // This ensures the payment hashed_id remains unique.
             $testTxid = $this->test_txid;
             $data['transaction_reference'] = ($request->txid === $testTxid)
                 ? $request->txid . bin2hex(random_bytes(16))
                 : $request->txid;
 
-            $statusId = Payment::STATUS_PENDING;
+            // Determine payment status
+            $statusId = match($request->status) {
+                2 => Payment::STATUS_COMPLETED,
+                default => Payment::STATUS_PENDING
+            };
 
-            switch ($request->status) {
-                case 0:
-                    $statusId = Payment::STATUS_PENDING;
-                    break;
-                case 1:
-                    $statusId = Payment::STATUS_PENDING;
-                    break;
-                case 2:
-                    $statusId = Payment::STATUS_COMPLETED;
-                    break;
-                default:
-                    $statusId = Payment::STATUS_PENDING;
+            // Get payment hash and invoice before creating payment
+            $payment_hash = PaymentHash::where('hash', $request->payment_hash)->firstOrFail();
+            $invoice = $payment_hash->fee_invoice ?? $payment_hash->paymentable;
+
+            if (!$invoice) {
+                throw new PaymentFailed('No invoice found for payment hash');
             }
 
+            // Store original invoice state for pending payments
+            $original_balance = $invoice->balance;
+            $original_status = $invoice->status_id;
+
+            // Create the payment - let InvoiceNinja handle the initial processing
             $payment = $this->blockonomics->createPayment($data, $statusId);
             $payment->private_notes = "{$request->btc_address} - {$request->btc_amount}";
             $payment->save();
 
-            // InvoiceNinja has a bug where it marks invoices as "Paid" even for pending payments
-            // We need to manually override this behavior
-            $payment_hash = PaymentHash::where('hash', $request->payment_hash)->firstOrFail();
-            $invoice = $payment_hash->fee_invoice;
+            // Alternative: Get invoice from payment after creation
+            $invoice = $invoice ?? $payment->invoices()->first();
 
-            if ($invoice) {
-                if ($request->status == 2) {
-                    // Payment confirmed - set proper status
-                    // Use invoice->amount (total) instead of balance (remaining after payment)
-                    $invoice_total = $invoice->amount;
+            // Refresh invoice to get InvoiceNinja's automatic updates
+            $invoice->refresh();
 
-                    if ($fiat_amount >= $invoice_total) {
-                        $invoice->status_id = Invoice::STATUS_PAID;
-                    } else {
-                        $invoice->status_id = Invoice::STATUS_PARTIAL;
-                        // Manually set balance for partial payments to fix InvoiceNinja's calculation bug
-                        $invoice->balance = $invoice_total - $fiat_amount;
-                    }
+            // Handle invoice status based on payment confirmation
+            if ($request->status == 2) {
+                // Payment is confirmed - let InvoiceNinja's natural flow work
+                // Just ensure status is correct based on balance
+                if ($invoice->balance <= 0) {
+                    $invoice->status_id = Invoice::STATUS_PAID;
                 } else {
-                    // Payment pending - override InvoiceNinja's automatic calculation
-                    // and keep invoice as sent until payment is actually confirmed
-                    $invoice->status_id = Invoice::STATUS_SENT;
-                    // For pending payments, set balance to show the remaining amount after this payment
-                    $invoice_total = $invoice->amount;
-                    $invoice->balance = $invoice_total - $fiat_amount;
+                    $invoice->status_id = Invoice::STATUS_PARTIAL;
                 }
-
                 $invoice->save();
-
-                // Force InvoiceNinja to recalculate balance and amounts properly
-                $invoice->refresh();
+            } else {
+                // Payment is pending - revert InvoiceNinja's automatic changes
+                $invoice->status_id = $original_status ?: Invoice::STATUS_SENT;
+                $invoice->balance = $original_balance;
+                $invoice->save();
             }
 
             SystemLogger::dispatch(
@@ -226,8 +221,13 @@ class Blockonomics implements LivewireMethodInterface
 
         } catch (\Throwable $e) {
             $blockonomics = $this->blockonomics;
-            PaymentFailureMailer::dispatch($blockonomics->client, $blockonomics->payment_hash->data, $blockonomics->client->company, $request->amount);
-            throw new PaymentFailed('Error during Blockonomics payment : ' . $e->getMessage());
+            PaymentFailureMailer::dispatch(
+                $blockonomics->client,
+                $blockonomics->payment_hash->data,
+                $blockonomics->client->company,
+                $request->amount
+            );
+            throw new PaymentFailed('Error during Blockonomics payment: ' . $e->getMessage());
         }
     }
 

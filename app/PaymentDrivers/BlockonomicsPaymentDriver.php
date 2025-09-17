@@ -21,6 +21,7 @@ use App\Models\GatewayType;
 use App\Models\PaymentHash;
 use App\Models\PaymentType;
 use App\Utils\Traits\MakesHash;
+use App\Jobs\Util\SystemLogger;
 use App\Exceptions\PaymentFailed;
 use Illuminate\Support\Facades\Http;
 use App\PaymentDrivers\Blockonomics\Blockonomics;
@@ -117,43 +118,129 @@ class BlockonomicsPaymentDriver extends BaseDriver
                 ->first();
 
         // If payment doesn't exist yet, let paymentResponse handle creation
-        if (!$payment || $payment->status_id == Payment::STATUS_COMPLETED) {
-            return response()->json([], 200);
+        if (!$payment) {
+            return response()->json(['message' => 'Payment not found'], 200);
         }
 
-        $statusId = ((int) $status === 2)
-            ? Payment::STATUS_COMPLETED
-            : Payment::STATUS_PENDING;
+        // If payment is already completed, no need to process again
+        if ($payment->status_id == Payment::STATUS_COMPLETED) {
+            return response()->json(['message' => 'Payment already completed'], 200);
+        }
 
-        if ($payment->status_id !== $statusId) {
-            $payment->status_id = $statusId;
-            $payment->save();
+        // Only process confirmed payments (status 2)
+        if ((int) $status !== 2) {
+            return response()->json(['message' => 'Only confirmed payments processed'], 200);
+        }
 
-            // Handle invoice logic
-            if ($payment_hash = PaymentHash::where('payment_id', $payment->id)->first()) {
-                if ($invoice = $payment_hash->fee_invoice) {
-                    if ($statusId === Payment::STATUS_COMPLETED) {
-                        $invoice_total = $invoice->amount;
-                        $invoice->status_id = ($payment->amount >= $invoice_total)
-                            ? Invoice::STATUS_PAID
-                            : Invoice::STATUS_PARTIAL;
-                        $invoice->save();
+        // Update payment to completed
+        $payment->status_id = Payment::STATUS_COMPLETED;
+        $payment->save();
 
-                        // Recalculate for partial payments
-                        if ($payment->amount < $invoice_total) {
-                            $invoice->refresh();
-                            $invoice->calc()->getInvoice();
-                        }
-                    } else {
-                        // Payment reverted to pending
-                        $invoice->status_id = Invoice::STATUS_SENT;
-                        $invoice->save();
-                    }
-                }
+        // Find the associated invoice using multiple methods for reliability
+        $invoice = null;
+
+        // Method 1: Through payment hash (most reliable)
+        if ($payment_hash = PaymentHash::where('payment_id', $payment->id)->first()) {
+            $invoice = $payment_hash->fee_invoice ?? $payment_hash->paymentable;
+        }
+
+        // Method 2: Direct relationship (fallback)
+        if (!$invoice) {
+            $invoice = $payment->invoices()->first();
+        }
+
+        if (!$invoice) {
+            return response()->json(['message' => 'No associated invoice found'], 200);
+        }
+
+        // Store original balance for logging
+        $original_balance = $invoice->balance;
+
+        // Debug: Log current payment-invoice relationship
+        $payment_invoices = $payment->invoices;
+        $invoice_payments = $invoice->payments;
+
+        SystemLogger::dispatch(
+            [
+                'debug' => 'payment_invoice_relationship',
+                'payment_id' => $payment->id,
+                'payment_amount' => $payment->amount,
+                'payment_status' => $payment->status_id,
+                'invoice_id' => $invoice->id,
+                'invoice_balance_before' => $original_balance,
+                'invoice_amount' => $invoice->amount,
+                'payment_invoices_count' => $payment_invoices->count(),
+                'invoice_payments_count' => $invoice_payments->count(),
+                'invoice_paid_to_date' => $invoice->paid_to_date ?? 'null',
+            ],
+            SystemLog::CATEGORY_GATEWAY_RESPONSE,
+            SystemLog::EVENT_GATEWAY_SUCCESS,
+            SystemLog::TYPE_BLOCKONOMICS,
+            $payment->client ?? $company->clients()->first(),
+            $company,
+        );
+
+        // Ensure the payment is properly linked to the invoice
+        if (!$payment->invoices()->where('invoices.id', $invoice->id)->exists()) {
+            // Manually attach the payment to the invoice if not linked
+            $payment->invoices()->attach($invoice->id, [
+                'amount' => $payment->amount,
+                'refunded' => 0,
+            ]);
+        }
+
+        // Force InvoiceNinja to recalculate everything
+        $invoice = $invoice->calc()->getInvoice();
+        $invoice->service()->markPaid()->save();
+
+        // Alternative approach - manually update if calc() doesn't work
+        if ($invoice->balance == $original_balance) {
+            // Calc didn't work, do manual calculation
+            $total_payments = $invoice->payments()
+                ->where('status_id', Payment::STATUS_COMPLETED)
+                ->sum('payments.amount');
+
+            $invoice->balance = $invoice->amount - $total_payments;
+            $invoice->paid_to_date = $total_payments;
+
+            // Set correct status
+            if ($invoice->balance <= 0) {
+                $invoice->status_id = Invoice::STATUS_PAID;
+            } else {
+                $invoice->status_id = Invoice::STATUS_PARTIAL;
             }
+
+            $invoice->save();
         }
 
-        return response()->json([], 200);
+        // Log the successful payment confirmation
+        SystemLogger::dispatch(
+            [
+                'payment_id' => $payment->id,
+                'invoice_id' => $invoice->id,
+                'status_change' => 'confirmed',
+                'balance_before' => $original_balance,
+                'balance_after' => $invoice->balance,
+                'webhook_data' => [
+                    'txid' => $txid,
+                    'value' => $value,
+                    'status' => $status,
+                    'addr' => $addr
+                ]
+            ],
+            SystemLog::CATEGORY_GATEWAY_RESPONSE,
+            SystemLog::EVENT_GATEWAY_SUCCESS,
+            SystemLog::TYPE_BLOCKONOMICS,
+            $payment->client ?? $company->clients()->first(),
+            $company,
+        );
+
+        return response()->json([
+            'message' => 'Payment confirmed successfully',
+            'payment_id' => $payment->id,
+            'invoice_status' => $invoice->status_id,
+            'invoice_balance' => $invoice->balance
+        ], 200);
     }
 
     public function refund(Payment $payment, $amount, $return_client_response = false)
