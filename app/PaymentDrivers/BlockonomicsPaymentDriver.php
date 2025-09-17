@@ -192,14 +192,32 @@ class BlockonomicsPaymentDriver extends BaseDriver
         // Force InvoiceNinja to recalculate the invoice balance and amounts
         $invoice = $invoice->calc()->getInvoice();
 
-        // If calc() didn't update the balance properly, do manual calculation
-        if ($invoice->balance == $original_balance) {
-            // Manual calculation approach
-            $total_payments = $invoice->payments()
-                ->where('status_id', Payment::STATUS_COMPLETED)
-                ->sum('payments.amount');
+        // Debug: Check if calc() worked properly
+        $total_payments = $invoice->payments()
+            ->where('status_id', Payment::STATUS_COMPLETED)
+            ->sum('payments.amount');
 
-            $invoice->balance = $invoice->amount - $total_payments;
+        $expected_balance = $invoice->amount - $total_payments;
+
+        // If calc() didn't update the balance properly, do manual calculation
+        if ($invoice->balance != $expected_balance) {
+            SystemLogger::dispatch(
+                [
+                    'debug' => 'manual_balance_calculation',
+                    'invoice_balance_from_calc' => $invoice->balance,
+                    'expected_balance' => $expected_balance,
+                    'total_payments' => $total_payments,
+                    'invoice_amount' => $invoice->amount,
+                ],
+                SystemLog::CATEGORY_GATEWAY_RESPONSE,
+                SystemLog::EVENT_GATEWAY_SUCCESS,
+                SystemLog::TYPE_BLOCKONOMICS,
+                $payment->client ?? $company->clients()->first(),
+                $company,
+            );
+
+            // Manual calculation - this will handle negative balances correctly
+            $invoice->balance = $expected_balance;
             $invoice->paid_to_date = $total_payments;
         }
 
