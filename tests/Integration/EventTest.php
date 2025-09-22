@@ -707,6 +707,10 @@ class EventTest extends TestCase
     {
         $this->withoutMiddleware(PasswordProtection::class);
 
+        $u = \App\Models\User::where('email','bob1@good.ole.boys.com')->cursor()->each(function($user) {
+            $user->account->forceDelete();
+        });
+
         Event::fake();
 
         $data = [
@@ -772,8 +776,6 @@ class EventTest extends TestCase
             'X-API-PASSWORD' => 'ALongAndBriliantPassword',
         ])->postJson('/api/v1/users/bulk?action=delete', $data)
         ->assertStatus(200);
-
-
 
 
         Event::assertDispatched(UserWasCreated::class);

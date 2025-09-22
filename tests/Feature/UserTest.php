@@ -73,7 +73,7 @@ class UserTest extends TestCase
         $user = User::factory()->create([
             'account_id' => $account->id,
             'confirmation_code' => 'xyz123',
-            'email' => $this->faker->unique()->safeEmail(),
+            'email' => \Illuminate\Support\Str::random(32)."@example.com",
         ]);
 
         $user->password = \Illuminate\Support\Facades\Hash::make('ALongAndBriliantPassword');
@@ -204,7 +204,7 @@ class UserTest extends TestCase
 
         $data = $user->toArray();
 
-        $data['email'] = $this->faker->unique()->safeEmail();
+        $data['email'] = \Illuminate\Support\Str::random(32)."@example.com";
         unset($data['password']);
 
         $response = $this->withHeaders([
@@ -357,7 +357,7 @@ class UserTest extends TestCase
         $user = User::factory()->create([
             'account_id' => $account->id,
             'confirmation_code' => 'xyz123',
-            'email' => $this->faker->unique()->safeEmail(),
+            'email' => \Illuminate\Support\Str::random(32)."@example.com",
             'password' => \Illuminate\Support\Facades\Hash::make('ALongAndBriliantPassword'),
         ]);
 

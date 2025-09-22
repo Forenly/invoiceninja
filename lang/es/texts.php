@@ -5614,6 +5614,13 @@ $lang = array(
     'tax_nexus' => 'Nexo fiscal',
     'tax_period_report' => 'Informe del período impositivo',
     'creator' => 'Creado por',
+    'ses_topic_arn_help' => 'El tema SES (opcional, solo para seguimiento de webhooks)',
+    'ses_region_help' => 'La región de AWS, es decir, us-east-1',
+    'ses_secret_key' => 'Clave secreta de SES',
+    'ses_access_key' => 'ID de clave de acceso de SES',
+    'activity_151' => 'El cliente :notes se fusionó con :client por :user',
+    'activity_152' => 'El proveedor :notes se fusionó con :vendor por :user',
+    'activity_153' => 'Cliente :notes purgado por :user',
 );
 
 return $lang;

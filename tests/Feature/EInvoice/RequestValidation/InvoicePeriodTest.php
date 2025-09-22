@@ -113,7 +113,7 @@ class InvoicePeriodTest extends TestCase
 
         $arr = $response->json();
 
-        nlog($arr);
+        // nlog($arr);
         $response->assertStatus(422);
 
 

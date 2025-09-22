@@ -512,7 +512,19 @@ class TaskController extends BaseController
 
         $ids = $request->input('ids');
 
-        $tasks = Task::withTrashed()->whereIn('id', $this->transformKeys($ids))->company()->get();
+        $tasks = Task::withTrashed()->whereIn('id', $this->transformKeys($ids))->company();
+
+        $_tasks = (clone $tasks);
+
+        if ($request->action == 'bulk_update' && $user->can('edit', $_tasks->first())) {
+
+            $this->task_repo->bulkUpdate($tasks, $request->column, $request->new_value);
+
+            return $this->listResponse(Task::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());
+
+        }
+
+        $tasks = $tasks->get();
 
         if ($action == 'template' && $user->can('view', $tasks->first())) {
 

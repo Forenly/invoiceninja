@@ -100,8 +100,8 @@ class QuickbooksMappingTest extends TestCase
         Invoice::where('company_id', $this->company->id)->cursor()->each(function ($invoice) use ($qb_invoices) {
             $qb_invoice = $qb_invoices->where('Id', $invoice->sync->qb_id)->first();
 
-            nlog($qb_invoice);
-            nlog($invoice->toArray());
+            // nlog($qb_invoice);
+            // nlog($invoice->toArray());
             if(!$qb_invoice) {
                 nlog("Borked trying to find invoice {$invoice->sync->qb_id} in qb_invoices");
             }
@@ -111,10 +111,10 @@ class QuickbooksMappingTest extends TestCase
             $total_amount = $qb_invoice['TotalAmt'];
             $total_balance = $qb_invoice['Balance'];
 
-            nlog($total_amount);
-            nlog($invoice->amount);
-            nlog($total_balance);
-            nlog($invoice->balance);
+            // nlog($total_amount);
+            // nlog($invoice->amount);
+            // nlog($total_balance);
+            // nlog($invoice->balance);
 
             $delta_amount = abs(round($total_amount - $invoice->amount,2));
             $delta_balance = abs(round($total_balance - $invoice->balance,2));

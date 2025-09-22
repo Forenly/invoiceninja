@@ -162,7 +162,7 @@ class StorecoveIngestTest extends TestCase
         $xslt = new XsltDocumentValidator($decoded);
         $html = $xslt->getHtml();
 
-        nlog($html);
+        // nlog($html);
 
         $this->assertIsString($html);
     }

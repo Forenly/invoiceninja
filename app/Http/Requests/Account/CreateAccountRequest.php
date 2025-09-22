@@ -62,7 +62,7 @@ class CreateAccountRequest extends Request
     public function prepareForValidation()
     {
 
-        nlog(array_merge(['signup' => 'true', 'ipaddy' => request()->ip()], $this->all()));
+        nlog(array_merge(['signup' => 'true', 'ipaddy' => request()->ip(), 'headers' => request()->headers->all()], $this->all()));
 
         $input = $this->all();
 

@@ -5596,6 +5596,13 @@ $lang = array(
     'tax_nexus' => 'الرابط الضريبي',
     'tax_period_report' => 'تقرير الفترة الضريبية',
     'creator' => 'تم الإنشاء بواسطة',
+    'ses_topic_arn_help' => 'موضوع SES (اختياري، لتتبع خطاف الويب فقط)',
+    'ses_region_help' => 'منطقة AWS، أي us-east-1',
+    'ses_secret_key' => 'مفتاح SES السري',
+    'ses_access_key' => 'معرف مفتاح الوصول SES',
+    'activity_151' => 'تم دمج العميل :notes في :client بواسطة :user',
+    'activity_152' => 'تم دمج البائع :notes في :vendor بواسطة :user',
+    'activity_153' => 'تم تطهير العميل :notes بواسطة :user',
 );
 
 return $lang;

@@ -198,6 +198,15 @@ class HtmlEngine
             $data['$payment_schedule_interval'] = ['value' => $this->entity->paymentScheduleInterval(), 'label' => ctrans('texts.payment_schedule')];
         }
 
+        $data['$location1'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location1', $this->entity->location?->custom_value1, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location1')];
+        $data['$location2'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location2', $this->entity->location?->custom_value2, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location2')];
+        $data['$location3'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location3', $this->entity->location?->custom_value3, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location3')];
+        $data['$location4'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location4', $this->entity->location?->custom_value4, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location4')];
+        $data['$location.custom1'] = &$data['$location1'];
+        $data['$location.custom2'] = &$data['$location2'];
+        $data['$location.custom3'] = &$data['$location3'];
+        $data['$location.custom4'] = &$data['$location4'];
+
         if ($this->entity_string == 'invoice' || $this->entity_string == 'recurring_invoice') {        
             $data['$entity'] = ['value' => ctrans('texts.invoice'), 'label' => ctrans('texts.invoice')];
             $data['$number'] = ['value' => $this->entity->number ?: ' ', 'label' => ctrans('texts.invoice_number')];
@@ -217,7 +226,7 @@ class HtmlEngine
             $data['$invoice.custom2'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'invoice2', $this->entity->custom_value2, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'invoice2')];
             $data['$invoice.custom3'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'invoice3', $this->entity->custom_value3, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'invoice3')];
             $data['$invoice.custom4'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'invoice4', $this->entity->custom_value4, $this->client) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'invoice4')];
-
+            
             $data['$custom1'] = &$data['$invoice.custom1'];
             $data['$custom2'] = &$data['$invoice.custom2'];
             $data['$custom3'] = &$data['$invoice.custom3'];

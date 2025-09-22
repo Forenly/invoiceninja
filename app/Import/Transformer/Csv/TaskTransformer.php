@@ -101,7 +101,7 @@ class TaskTransformer extends BaseTransformer
             return '';
         }
 
-        return [$start_date, $end_date, $notes, $is_billable];
+        return [(int)$start_date, (int)$end_date, (string)$notes, (bool)$is_billable];
     }
 
     private function resolveStartDate($item)
@@ -117,8 +117,21 @@ class TaskTransformer extends BaseTransformer
 
             return $stub_start_date->timestamp;
         } catch (\Exception $e) {
+
             nlog("fall back failed too" . $e->getMessage());
+            
             // return $this->stubbed_timestamp;
+        }
+
+
+        
+        try {
+            $stub_start_date = \Carbon\Carbon::parse(str_replace('/', '-', $stub_start_date));
+            $this->stubbed_timestamp = $stub_start_date->timestamp;
+
+            return $stub_start_date->timestamp;
+        } catch (\Exception $e) {
+            nlog("str replace fall back failed too" . $e->getMessage());
         }
 
 
@@ -145,7 +158,7 @@ class TaskTransformer extends BaseTransformer
             $stub_end_date = \Carbon\Carbon::parse($stub_end_date);
 
             if ($stub_end_date->timestamp == $this->stubbed_timestamp) {
-                $this->stubbed_timestamp;
+                
                 return $this->stubbed_timestamp;
             }
 
@@ -156,6 +169,25 @@ class TaskTransformer extends BaseTransformer
 
             // return $this->stubbed_timestamp;
         }
+
+
+
+        try {
+
+            $stub_end_date = \Carbon\Carbon::parse(str_replace('/', '-', $stub_end_date));
+
+            if ($stub_end_date->timestamp == $this->stubbed_timestamp) {
+                return $this->stubbed_timestamp;
+            }
+
+            $this->stubbed_timestamp = $stub_end_date->timestamp;
+            return $stub_end_date->timestamp;
+        } catch (\Exception $e) {
+            nlog($e->getMessage());
+
+            // return $this->stubbed_timestamp;
+        }
+
 
 
 

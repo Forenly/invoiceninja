@@ -69,6 +69,16 @@ class Project extends BaseModel
     use Filterable;
     use Searchable;
 
+    /**
+     * Get the index name for the model.
+     *
+     * @return string
+     */
+    public function searchableAs(): string
+    {
+        return 'projects_v2';
+    }
+
     protected $fillable = [
         'name',
         'client_id',
@@ -106,8 +116,8 @@ class Project extends BaseModel
             'id' => (string)$this->company->db.":".$this->id,
             'name' => ctrans('texts.project') . " " . $this->number . ' | ' . $this->name .  " | " . $this->client->present()->name(),
             'hashed_id' => $this->hashed_id,
-            'number' => $this->number,
-            'is_deleted' => $this->is_deleted,
+            'number' => (string)$this->number,
+            'is_deleted' => (bool)$this->is_deleted,
             'task_rate' => (float) $this->task_rate,
             'budgeted_hours' => (float) $this->budgeted_hours,
             'due_date' => $this->due_date,

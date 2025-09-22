@@ -42,6 +42,8 @@ class ZugferdEDocument extends AbstractService
 
     private ?string $exemption_reason_code = null;
 
+    private ?string $temp_file_path = null;
+
     /**
      * __construct
      *
@@ -91,6 +93,7 @@ class ZugferdEDocument extends AbstractService
             ->setLineItems()            // 4. Then line items
             ->setCustomSurcharges()     // 4a. Surcharges
             ->setDocumentSummation();   // 5. Finally document summation
+            // ->setAdditionalReferencedDocument();   // 6. Additional referenced document
 
         return $this;
 
@@ -121,6 +124,37 @@ class ZugferdEDocument extends AbstractService
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge4 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge4;
             $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"],null,null,null,null,null,null, ctrans('texts.surcharge'));
         }
+
+        return $this;
+    }
+    
+    /**
+     * setAdditionalReferencedDocument
+     *
+     * circular reference causing the file to never be created.
+     * PDF => xml => PDF => xml
+     * 
+     * Need to abstract the insertion of the base64 document into the XML.
+     * 
+     * @return self
+     */
+    private function setAdditionalReferencedDocument(): self
+    {
+        if($this->document->client->getSetting('merge_e_invoice_to_pdf')) {
+            return $this;
+        }
+
+        $invitation = $this->document->invitations()->first();
+        $pdf = (new \App\Jobs\Entity\CreateRawPdf($invitation))->handle();
+        $file_name = $this->document->numberFormatter().'.pdf';
+
+        $this->temp_file_path = \App\Utils\TempFile::filePath($pdf, $file_name);
+        
+        $this->xdocument->addDocumentInvoiceSupportingDocumentWithFile(
+            $this->document->number,
+            $this->temp_file_path,
+            $file_name,
+        );
 
         return $this;
     }
@@ -249,7 +283,14 @@ class ZugferdEDocument extends AbstractService
 
     public function getXml(): string
     {
-        return $this->xdocument->getContent();
+        $xml = $this->xdocument->getContent();
+
+        //used if we are embedding the document within the PDF
+        if($this->temp_file_path){
+            unlink($this->temp_file_path);
+        }
+
+        return $xml;
     }
 
     private function bootFlags(): self

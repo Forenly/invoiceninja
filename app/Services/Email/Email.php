@@ -78,6 +78,9 @@ class Email implements ShouldQueue
     /** Brevo endpoint */
     protected ?string $client_brevo_secret = null;
 
+    /** SES api key */
+    protected ?string $client_ses_secret = null;
+
     /** Default mailer */
     private string $mailer = 'default';
 
@@ -263,10 +266,8 @@ class Email implements ShouldQueue
      */
     public function email()
     {
-
         /* Init the mailer*/
         $mailer = Mail::mailer($this->mailer);
-
 
         /* Additional configuration if using a client third party mailer */
         if ($this->client_postmark_secret) {
@@ -279,6 +280,10 @@ class Email implements ShouldQueue
 
         if ($this->client_brevo_secret) {
             $mailer->brevo_config($this->client_brevo_secret);
+        }
+
+        if ($this->client_ses_secret) {
+            $mailer->ses_config($this->email_object->settings->ses_access_key, $this->email_object->settings->ses_secret_key, $this->email_object->settings->ses_region, $this->email_object->settings->ses_topic_arn);
         }
 
         /* Attempt the send! */
@@ -463,7 +468,7 @@ class Email implements ShouldQueue
         }
 
         /* GMail users are uncapped */
-        if (in_array($this->email_object->settings->email_sending_method, ['gmail', 'office365', 'client_postmark', 'client_mailgun', 'client_brevo'])) {
+        if (in_array($this->email_object->settings->email_sending_method, ['gmail', 'office365', 'client_postmark', 'client_mailgun', 'client_brevo', 'client_ses'])) {
             return false;
         }
 
@@ -532,6 +537,20 @@ class Email implements ShouldQueue
         return false;
     }
 
+    private function setHostedSesMailer()
+    {
+                
+        if (property_exists($this->email_object->settings, 'email_from_name') && strlen($this->email_object->settings->email_from_name) > 1) {
+            $email_from_name = $this->email_object->settings->email_from_name;
+        } else {
+            $email_from_name = $this->company->present()->name();
+        }
+
+        $this->mailable
+            ->from(config('services.ses.from.address'), $email_from_name);
+
+    }
+
     private function setHostedMailgunMailer()
     {
 
@@ -555,7 +574,7 @@ class Email implements ShouldQueue
     {
 
         /** Force free/trials onto specific mail driver */
-        if ($this->email_object->settings->email_sending_method == 'default' && (!$this->company->account->isPaid() || $this->company->account->isNewHostedAccount())) {
+        if (Ninja::isHosted() &&$this->email_object->settings->email_sending_method == 'default' && (!$this->company->account->isPaid() || $this->company->account->isNewHostedAccount())) {
             $this->mailer = 'mailgun';
             $this->setHostedMailgunMailer();
             return $this;
@@ -601,6 +620,10 @@ class Email implements ShouldQueue
                 $this->mailer = 'mailgun';
                 $this->setHostedMailgunMailer();
                 return $this;
+            case 'ses':
+                $this->mailer = 'ses';
+                $this->setHostedSesMailer();
+                return $this;
             case 'gmail':
                 $this->mailer = 'gmail';
                 $this->setGmailMailer();
@@ -621,6 +644,10 @@ class Email implements ShouldQueue
             case 'client_brevo':
                 $this->mailer = 'brevo';
                 $this->setBrevoMailer();
+                return $this;
+            case 'client_ses':
+                $this->mailer = 'ses';
+                $this->setSesMailer();
                 return $this;
             case 'smtp':
                 $this->mailer = 'smtp';
@@ -700,6 +727,8 @@ class Email implements ShouldQueue
 
         $this->client_brevo_secret = null;
 
+        $this->client_ses_secret = null;
+
         //always dump the drivers to prevent reuse
         app('mail.manager')->forgetMailers();
     }
@@ -764,6 +793,21 @@ class Email implements ShouldQueue
         $this->mailable
             ->from($sending_email, $sending_user);
     }
+
+    private function setSesMailer()
+    {
+
+        $this->client_ses_secret = 'true';
+
+        $user = $this->resolveSendingUser();
+    
+        $sending_user = (isset($this->email_object->settings->email_from_name) && strlen($this->email_object->settings->email_from_name) > 2) ? $this->email_object->settings->email_from_name : $user->name();
+
+        $this->mailable
+            ->from($this->email_object->settings->ses_from_address, $sending_user);
+
+    }
+
     /**
      * Configures Brevo using client supplied secret
      * as the Mailer

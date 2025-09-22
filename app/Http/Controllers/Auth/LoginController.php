@@ -329,8 +329,6 @@ class LoginController extends BaseController
             Auth::login($existing_login_user, false);
             /** @var \App\Models\User $user */
 
-            // $user = auth()->user();
-
             $existing_login_user->update([
                 'oauth_user_id' => $user->id,
                 'oauth_provider_id' => $provider,

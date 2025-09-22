@@ -96,10 +96,10 @@ class MapSettings extends AbstractService
         })->toArray();
 
     }
-    private function handleLanguage(string $language_id): string
+    private function handleLanguage(?string $language_id): string
     {
         /** @var \App\Models\Language $language */
-        $language = app('languages')->firstWhere('id', $language_id);
+        $language = app('languages')->firstWhere('id', $language_id ?? '1');
         return $language->name;
     }
 

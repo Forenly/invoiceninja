@@ -179,6 +179,15 @@ class VendorHtmlEngine
         $data['$subtotal'] = ['value' => Number::formatMoney($this->entity_calc->getSubTotal(), $this->vendor) ?: '&nbsp;', 'label' => ctrans('texts.subtotal')];
         $data['$gross_subtotal'] = ['value' => Number::formatMoney($this->entity_calc->getGrossSubTotal(), $this->vendor) ?: '&nbsp;', 'label' => ctrans('texts.subtotal')];
 
+        $data['$location1'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location1', $this->entity->location?->custom_value1, $this->vendor) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location1')];
+        $data['$location2'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location2', $this->entity->location?->custom_value2, $this->vendor) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location2')];
+        $data['$location3'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location3', $this->entity->location?->custom_value3, $this->vendor) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location3')];
+        $data['$location4'] = ['value' => $this->helpers->formatCustomFieldValue($this->company->custom_fields, 'location4', $this->entity->location?->custom_value4, $this->vendor) ?: ' ', 'label' => $this->helpers->makeCustomField($this->company->custom_fields, 'location4')];
+        $data['$location.custom1'] = &$data['$location1'];
+        $data['$location.custom2'] = &$data['$location2'];
+        $data['$location.custom3'] = &$data['$location3'];
+        $data['$location.custom4'] = &$data['$location4'];
+
         if ($this->entity->uses_inclusive_taxes) {
             $data['$net_subtotal'] = ['value' => Number::formatMoney(($this->entity_calc->getSubTotal() - $this->entity->total_taxes - $this->entity_calc->getTotalDiscount()), $this->vendor) ?: '&nbsp;', 'label' => ctrans('texts.net_subtotal')];
         } else {

@@ -514,3 +514,7 @@ Route::get('/health', function () {
         'message' => 'API is healthy',
     ]);
 })->middleware('throttle:20,1');
+
+Route::get('/api/v1/signup/protect', function () {
+    return response()->json(['status' => 'ok']);
+})->middleware('throttle:10,1');

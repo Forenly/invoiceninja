@@ -5622,6 +5622,19 @@ $lang = array(
     'activity_151' => 'Client :notes merged into :client by :user',
     'activity_152' => 'Vendor :notes merged into :vendor by :user',
     'activity_153' => 'Client :notes purged by :user',
+    'lifecycle' => 'Lifecycle',
+    'order_columns' => 'Order Columns',
+    'topic_arn' => 'Topic ARN',
+    'lang_Catalan' => 'Catalan',
+    'lang_Afrikaans' => 'Afrikaans',
+    'lang_Indonesian' => 'Indonesian',
+    'replaced' => 'Replaced',
+    'ses_from_address' => 'SES From Address',
+    'ses_from_address_help' => 'The Sending Email Address, must be verified in AWS',
+    'unauthorized_action' => 'You are not authorized to perform this action',
+    'einvoice_received_subject' => 'E-Invoice/s Received',
+    'einvoice_received_body' => 'You have received :count new E-Invoice/s.<br><br>Login to view.',
+
 );
 
 return $lang;

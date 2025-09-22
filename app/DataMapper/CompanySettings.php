@@ -534,8 +534,10 @@ class CompanySettings extends BaseSettings
     public string $ses_access_key = '';
     public string $ses_region = '';
     public string $ses_topic_arn = '';
+    public string $ses_from_address = '';
 
     public static $casts = [
+        'ses_from_address' => 'string',
         'ses_topic_arn' => 'string',
         'ses_secret_key' => 'string',
         'ses_access_key' => 'string',
