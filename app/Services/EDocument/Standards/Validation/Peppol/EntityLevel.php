@@ -63,7 +63,7 @@ class EntityLevel
     private array $client_fields = [
         'address1',
         'city',
-        // 'state',
+        'state',
         'postal_code',
         'country_id',
     ];
@@ -192,15 +192,17 @@ class EntityLevel
 
         foreach ($this->client_fields as $field) {
 
-            if ($this->validString($client->{$field})) {
-                continue;
-            }
-
             if ($field == 'country_id' && $client->country_id >= 1) {
                 continue;
             }
 
-            $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
+            if(in_array($field, ['address1', 'address2', 'city', 'state', 'postal_code']) && strlen($client->address1 ?? '') < 2){
+                $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
+            }
+
+            if ($this->validString($client->{$field})) {
+                continue;
+            }
 
         }
 
