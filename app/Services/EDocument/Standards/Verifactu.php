@@ -204,7 +204,7 @@ class Verifactu extends AbstractService
         $nif = $log->nif;
         $invoiceNumber = $log->invoice_number;
         $date = $log->date->format('d-m-Y');
-        $total = round($log->invoice->amount, 2);
+        $total = (string)round($log->invoice->amount, 2);
         
         $url = sprintf(
             $this->aeat_client->base_qr_url,
@@ -212,9 +212,8 @@ class Verifactu extends AbstractService
             urlencode($nif),
             urlencode($invoiceNumber),
             urlencode($date),
-            urlencode((string) $total)
+            urlencode($total)
         );
-
 
         $result = Builder::create()
             ->writer(new PngWriter())
