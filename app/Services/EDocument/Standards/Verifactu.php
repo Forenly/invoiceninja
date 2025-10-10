@@ -14,13 +14,20 @@ namespace App\Services\EDocument\Standards;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Product;
+use BaconQrCode\Writer;
 use App\Models\VerifactuLog;
 use App\Helpers\Invoice\Taxer;
 use App\DataMapper\Tax\BaseRule;
 use App\Services\AbstractService;
 use App\Helpers\Invoice\InvoiceSum;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
 use App\Utils\Traits\NumberFormatter;
+use Endroid\QrCode\Encoding\Encoding;
+use BaconQrCode\Renderer\ImageRenderer;
 use App\Helpers\Invoice\InvoiceSumInclusive;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use App\Services\EDocument\Standards\Verifactu\AeatClient;
 use App\Services\EDocument\Standards\Verifactu\RegistroAlta;
 use App\Services\EDocument\Standards\Verifactu\Models\Desglose;
@@ -29,6 +36,8 @@ use App\Services\EDocument\Standards\Verifactu\Models\RegistroAnterior;
 use App\Services\EDocument\Standards\Verifactu\Models\SistemaInformatico;
 use App\Services\EDocument\Standards\Verifactu\Models\PersonaFisicaJuridica;
 use App\Services\EDocument\Standards\Verifactu\Models\Invoice as VerifactuInvoice;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Label\Font\OpenSans;
 
 class Verifactu extends AbstractService
 {
@@ -199,13 +208,45 @@ class Verifactu extends AbstractService
         $total = round($log->invoice->amount, 2);
         
         $url = sprintf(
-            'https://www.agenciatributaria.gob.es/verifactu?csv=%s&nif=%s&num=%s&fecha=%s&importe=%s',
+            'https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?csv=%s&nif=%s&num=%s&fecha=%s&importe=%s',
             urlencode($csv),
             urlencode($nif),
             urlencode($invoiceNumber),
             urlencode($date),
-            urlencode($total)
+            urlencode((string) $total)
         );
+
+
+        $result = Builder::create()
+            ->writer(new PngWriter())
+            ->data($url)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(ErrorCorrectionLevel::Medium) // AEAT: level M or higher
+            ->size(300) // AEAT minimum recommended: 30x30 mm ≈ 300px @ 254 DPI
+            ->margin(10)
+            ->labelText('VERI*FACTU')
+            ->labelFont(new OpenSans(14))
+            ->build();
+
+        // header('Content-Type: ' . $result->getMimeType());
+        return $result->getString();
+
+        // try {
+        //     $renderer = new ImageRenderer(
+        //         new RendererStyle(200),
+        //         new SvgImageBackEnd()
+        //     );
+        //     $writer = new Writer($renderer);
+
+        //     $qr = $writer->writeString($this->encodeMessage(), 'utf-8');
+
+        //     return htmlspecialchars("<svg viewBox='0 0 200 200' width='200' height='200' x='0' y='0' xmlns='http://www.w3.org/2000/svg'>
+        //   <rect x='0' y='0' width='100%'' height='100%' />{$qr}</svg>");
+
+        // } catch (\Throwable $e) {
+        //     nlog("EPC QR failure => ".$e->getMessage());
+        //     return '';
+        // }
 
     }
 

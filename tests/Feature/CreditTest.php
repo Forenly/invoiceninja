@@ -90,11 +90,11 @@ class CreditTest extends TestCase
         $this->assertEquals(0, $i->balance);
         $this->assertEquals(100, $i->amount);
 
-
         $credit_array = $i->withoutRelations()->toArray();
         $credit_array['invoice_id'] = $i->hashed_id;
         $credit_array['client_id'] = $c->hashed_id;
-        
+        unset($credit_array['backup']);
+
         $response = $this->withHeaders([
                     'X-API-SECRET' => config('ninja.api_secret'),
                     'X-API-TOKEN' => $this->token,
@@ -216,7 +216,7 @@ class CreditTest extends TestCase
         $credit_array = $i->withoutRelations()->toArray();
         $credit_array['invoice_id'] = $i->hashed_id;
         $credit_array['client_id'] = $c->hashed_id;
-        
+        unset($credit_array['backup']);
         $response = $this->withHeaders([
                     'X-API-SECRET' => config('ninja.api_secret'),
                     'X-API-TOKEN' => $this->token,
@@ -416,6 +416,7 @@ class CreditTest extends TestCase
         $credit_array = $i->withoutRelations()->toArray();
         $credit_array['invoice_id'] = $i->hashed_id;
         $credit_array['client_id'] = $c->hashed_id;
+        unset($credit_array['backup']);
         
         $ii = new InvoiceItem();
         $ii->cost = 50;
@@ -498,6 +499,8 @@ class CreditTest extends TestCase
         $credit_array = $i->withoutRelations()->toArray();
         $credit_array['invoice_id'] = $i->hashed_id;
         $credit_array['client_id'] = $c->hashed_id;
+
+        unset($credit_array['backup']);
         
         $ii = new InvoiceItem();
         $ii->cost = 100;
