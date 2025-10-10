@@ -1,40 +1,31 @@
-    RecurringInvoiceRequest:
+    PurchaseOrderRequest:
       required:
-        - client_id
+        - vendor_id
         - date
         - due_date
-        - frequency_id
       properties:
-        client_id:
-          description: 'The hashed ID of the client'
+        vendor_id:
+          description: 'The hashed ID of the vendor'
           type: string
           example: 'D2J234DFA'
         date:
-          description: 'Recurring invoice date'
+          description: 'Purchase order date'
           type: string
           format: date
           example: '2024-01-01'
         due_date:
-          description: 'Due date for the recurring invoice'
+          description: 'Due date for the purchase order'
           type: string
           format: date
           example: '2024-01-31'
-        frequency_id:
-          description: 'Frequency ID for recurring invoice'
-          type: string
-          example: '1'
-        remaining_cycles:
-          description: 'Number of remaining cycles'
-          type: string
-          example: '5'
         private_notes:
-          description: 'Private notes for the recurring invoice'
+          description: 'Private notes for the purchase order'
           type: string
-          example: 'Internal notes about this recurring invoice'
+          example: 'Internal notes about this purchase order'
         public_notes:
-          description: 'Public notes for the recurring invoice'
+          description: 'Public notes for the purchase order'
           type: string
-          example: 'Thank you for your business!'
+          example: 'Please deliver to our warehouse'
         custom_value1:
           description: 'Custom field value 1'
           type: string
@@ -53,22 +44,22 @@
           example: 'Custom value 4'
         line_items:
           type: array
-          description: 'Array of line items for the recurring invoice'
+          description: 'Array of line items for the purchase order'
           items:
             type: object
             properties:
               quantity:
                 type: number
-                example: 1
+                example: 10
               cost:
                 type: number
-                example: 14.00
+                example: 25.00
               product_key:
                 type: string
-                example: 'sku_4_u'
+                example: 'PROD_001'
               notes:
                 type: string
-                example: 'The actual product description'
+                example: 'Office supplies'
               discount:
                 type: number
                 example: 0
@@ -77,10 +68,10 @@
                 example: true
               tax_name1:
                 type: string
-                example: ''
+                example: 'Sales Tax'
               tax_rate1:
                 type: number
-                example: 0
+                example: 8.5
               tax_name2:
                 type: string
                 example: ''
@@ -98,16 +89,16 @@
                 example: '0'
               custom_value1:
                 type: string
-                example: 'https://picsum.photos/200'
+                example: 'Department: IT'
               custom_value2:
                 type: string
-                example: '94'
+                example: 'Priority: High'
               custom_value3:
                 type: string
-                example: 'Alias vel eveniet.'
+                example: 'Approved by Manager'
               custom_value4:
                 type: string
-                example: 'Iusto aut quis qui.'
+                example: 'Budget Code: IT-2024'
               type_id:
                 type: string
                 example: '1'

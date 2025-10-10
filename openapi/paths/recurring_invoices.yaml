@@ -145,6 +145,13 @@
         - $ref: "#/components/parameters/X-API-TOKEN"
         - $ref: "#/components/parameters/X-Requested-With"
         - $ref: "#/components/parameters/include"
+      requestBody:
+        description: Recurring invoice object that needs to be added to the company
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurringInvoiceRequest'
       x-codeSamples:
       - lang: php
         label: php
@@ -222,12 +229,6 @@
                 }
               ]
             }'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RecurringInvoiceRequest"
       responses:
         200:
           description: "Returns the saved RecurringInvoice object"

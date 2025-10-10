@@ -1,38 +1,29 @@
-    RecurringInvoiceRequest:
+    QuoteRequest:
       required:
         - client_id
         - date
         - due_date
-        - frequency_id
       properties:
         client_id:
           description: 'The hashed ID of the client'
           type: string
           example: 'D2J234DFA'
         date:
-          description: 'Recurring invoice date'
+          description: 'Quote date'
           type: string
           format: date
           example: '2024-01-01'
         due_date:
-          description: 'Due date for the recurring invoice'
+          description: 'Due date for the quote'
           type: string
           format: date
           example: '2024-01-31'
-        frequency_id:
-          description: 'Frequency ID for recurring invoice'
-          type: string
-          example: '1'
-        remaining_cycles:
-          description: 'Number of remaining cycles'
-          type: string
-          example: '5'
         private_notes:
-          description: 'Private notes for the recurring invoice'
+          description: 'Private notes for the quote'
           type: string
-          example: 'Internal notes about this recurring invoice'
+          example: 'Internal notes about this quote'
         public_notes:
-          description: 'Public notes for the recurring invoice'
+          description: 'Public notes for the quote'
           type: string
           example: 'Thank you for your business!'
         custom_value1:
@@ -53,7 +44,7 @@
           example: 'Custom value 4'
         line_items:
           type: array
-          description: 'Array of line items for the recurring invoice'
+          description: 'Array of line items for the quote'
           items:
             type: object
             properties:

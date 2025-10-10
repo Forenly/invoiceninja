@@ -256,15 +256,19 @@ class EntityLevel implements EntityLevelInterface
 
         }
 
+        nlog($company->getSetting('classification'));
+        nlog($company->getSetting('id_number'));
+        nlog($company->getSetting('vat_number'));
+        
         //If not an individual, you MUST have a VAT number
-        if ($company->getSetting('classification') != 'individual' && !$this->validString($company->getSetting('vat_number'))) {
-            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
-        } elseif ($company->getSetting('classification') == 'individual' && !$this->validString($company->getSetting('id_number'))) {
+        if ($company->getSetting('classification') == 'individual' && !$this->validString($company->getSetting('id_number'))) {
             $errors[] = ['field' => 'id_number', 'label' => ctrans("texts.id_number")];
+        }elseif(!$this->validString($company->getSetting('vat_number'))) {
+            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
         }
 
         if(!$this->isValidSpanishVAT($company->getSetting('vat_number'))) {
-            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
+            $errors[] = ['field' => 'vat_number', 'label' => 'número de IVA no válido'];
         }
 
         return $errors;
