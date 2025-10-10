@@ -131,7 +131,7 @@ class RegistroAlta
 
         /** The business entity that is issuing the invoice */
         $emisor = new PersonaFisicaJuridica();
-        $emisor->setNif($this->company->settings->vat_number)
+        $emisor->setNif(substr($this->company->settings->vat_number, 0, 9))
                 ->setNombreRazon($this->invoice->company->present()->name());
 
         /** The business entity (Client) that is receiving the invoice */
