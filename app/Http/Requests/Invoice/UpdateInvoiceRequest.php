@@ -98,6 +98,14 @@ class UpdateInvoiceRequest extends Request
         return $rules;
     }
 
+    public function withValidator($validator)
+    {
+        if($this->invoice->company->verifactuEnabled() && $this->invoice->status_id !== \App\Models\Invoice::STATUS_DRAFT){
+            $validator->errors()->add('status_id', ctrans('texts.locked_invoice'));
+        }
+    }
+
+
     public function prepareForValidation()
     {
         

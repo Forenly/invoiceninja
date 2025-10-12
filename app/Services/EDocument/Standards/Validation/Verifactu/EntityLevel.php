@@ -98,8 +98,13 @@ class EntityLevel implements EntityLevelInterface
 
         }
 
-        $_invoice = (new \App\Services\EDocument\Standards\Verifactu\RegistroAlta($invoice))->run()->getInvoice();
-        $xml = $_invoice->toXmlString();
+        $_invoice = (new \App\Services\EDocument\Standards\Verifactu\RegistroAlta($invoice))->run();
+                
+        if($invoice->amount < 0) {
+            $_invoice = $_invoice->setRectification();
+        }
+        
+        $xml = $_invoice->getInvoice()->toXmlString();
 
         $xslt = new \App\Services\EDocument\Standards\Validation\VerifactuDocumentValidator($xml);
         $xslt->validate();

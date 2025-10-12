@@ -289,7 +289,6 @@ class RegistroAlta
         $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
 
         //need to harvest the parent invoice!!
-
         $_i = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
 
         if(!$_i) {
