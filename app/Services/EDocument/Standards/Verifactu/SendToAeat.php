@@ -125,10 +125,24 @@ class SendToAeat implements ShouldQueue
             $invoice->saveQuietly();
         }
 
-        /** Check if we have emailed the invoice to the end client - if not - do it now! */
-
+        
         $this->writeActivity($invoice, $response['success'] ? Activity::VERIFACTU_INVOICE_SENT : Activity::VERIFACTU_INVOICE_SENT_FAILURE, $message);
         $this->systemLog($invoice, $response, $response['success'] ? SystemLog::EVENT_VERIFACTU_SUCCESS : SystemLog::EVENT_VERIFACTU_FAILURE, SystemLog::TYPE_VERIFACTU_INVOICE);
+
+        /** Check if we have emailed the invoice to the end client - if not - do it now! */
+        $invoice->invitations()
+                ->where('email_error', 'primed') // This is a special flag for AEAT submission
+                ->whereHas('contact', function($query) {
+                    $query->where(function ($sq){
+                        $sq->whereNotNull('email')
+                        ->orWhere('email', '!=', '');
+                    })->where('is_locked', false)
+                    ->withoutTrashed();
+                })->each(function($invitation) {
+                    $invitation->invoice->service()->sendEmail($invitation->contact);
+                    $invitation->email_error = '';
+                    $invitation->saveQuietly();
+                });
 
     }
 
