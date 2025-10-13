@@ -102,7 +102,7 @@ class SendToAeat implements ShouldQueue
         $invoice = $invoice->fresh();
 
         /** Return Early if we have already sent the invoice to the end client */
-        if(strlen($invoice->backup->guid) >= 1) {
+        if(strlen($invoice->backup->guid) >= 1 || $invoice->is_deleted) {
             return;
         }
 

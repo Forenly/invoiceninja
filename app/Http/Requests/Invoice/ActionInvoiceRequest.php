@@ -13,7 +13,6 @@
 namespace App\Http\Requests\Invoice;
 
 use App\Http\Requests\Request;
-use App\Http\ValidationRules\Invoice\RestoreDisabledRule;
 use App\Utils\Traits\Invoice\ActionsInvoice;
 use App\Utils\Traits\MakesHash;
 
@@ -27,7 +26,7 @@ class ActionInvoiceRequest extends Request
      *
      * @return bool
      */
-    private $error_msg;
+    // private $error_msg;
 
     // private $invoice;
 
@@ -39,36 +38,38 @@ class ActionInvoiceRequest extends Request
     public function rules()
     {
         return [
-            'action' => ['required', new RestoreDisabledRule()],
+            'action' => ['required'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+
+        $validator->after(function ($validator) {
+
+            if($this->invoice->company->verifactuEnabled()){
+
+                if($this->action == 'delete' && $this->invoice->status_id != \App\Models\Invoice::STATUS_DRAFT){
+                    $validator->errors()->add('action', ctrans('texts.locked_invoice'));
+                }
+            }
+
+            if (! $this->invoiceDeletable($this->invoice)) {
+                $validator->errors()->add('action', 'This invoice cannot be deleted');
+            }elseif (! $this->invoiceCancellable($this->invoice)) {
+                $validator->errors()->add('action', 'This invoice cannot be cancelled');
+            }elseif (! $this->invoiceReversable($this->invoice)) {
+                $validator->errors()->add('action', 'This invoice cannot be reversed');
+            }
+        });
+        
     }
 
     public function prepareForValidation()
     {
         $input = $this->all();
 
-        if ($this->action) {
-            $input['action'] = $this->action;
-        } elseif (! array_key_exists('action', $input)) {
-            $this->error_msg = 'Action is a required field';
-        } elseif (! $this->invoiceDeletable($this->invoice)) {
-            unset($input['action']);
-            $this->error_msg = 'This invoice cannot be deleted';
-        } elseif (! $this->invoiceCancellable($this->invoice)) {
-            unset($input['action']);
-            $this->error_msg = 'This invoice cannot be cancelled';
-        } elseif (! $this->invoiceReversable($this->invoice)) {
-            unset($input['action']);
-            $this->error_msg = 'This invoice cannot be reversed';
-        }
-
         $this->replace($input);
     }
 
-    public function messages()
-    {
-        return [
-            'action' => $this->error_msg,
-        ];
-    }
 }

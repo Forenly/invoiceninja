@@ -12,13 +12,16 @@
 
 namespace App\Http\Requests\Invoice;
 
+use App\Models\Invoice;
 use App\Http\Requests\Request;
+use App\Utils\Traits\Invoice\ActionsInvoice;
+use App\Utils\Traits\MakesHash;
 use App\Exceptions\DuplicatePaymentException;
-use App\Http\ValidationRules\Invoice\RestoreDisabledRule;
-use Illuminate\Validation\Rule;
 
 class BulkInvoiceRequest extends Request
 {
+    use ActionsInvoice;
+    use MakesHash;
     public function authorize(): bool
     {
         return true;
@@ -30,7 +33,7 @@ class BulkInvoiceRequest extends Request
         $user = auth()->user();
 
         return [
-            'action' => ['required', 'bail','string', new RestoreDisabledRule()],
+            'action' => ['required', 'bail','string'],
             'ids' => ['required', 'bail', 'array'],
             'email_type' => 'sometimes|in:reminder1,reminder2,reminder3,reminder_endless,custom1,custom2,custom3,invoice,quote,credit,payment,payment_partial,statement,purchase_order',
             'template' => 'sometimes|string',
@@ -38,6 +41,39 @@ class BulkInvoiceRequest extends Request
             'send_email' => 'sometimes|bool',
             'subscription_id' => 'sometimes|string',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $action = $this->input('action');
+        
+        $validator->after(function ($validator) use ($user, $action) {
+            Invoice::withTrashed()
+                ->whereIn('id', $this->transformKeys($this->input('ids', [])))
+                ->where('company_id', $user->company()->id)
+                ->cursor()
+                ->each(function ($invoice) use ($validator, $action) {
+                    
+                    if($invoice->company->verifactuEnabled()){
+                        if($action == 'delete' && $invoice->status_id != \App\Models\Invoice::STATUS_DRAFT){
+                            $validator->errors()->add('action', ctrans('texts.locked_invoice'));
+                        }
+                        if($action == 'restore'){
+                            $validator->errors()->add('action', ctrans('texts.restore_disabled_verifactu'));
+                        }
+                    }
+
+                    if ($action ==  'delete' &&! $this->invoiceDeletable($invoice)) {
+                        $validator->errors()->add('action', 'This invoice cannot be deleted');
+                    }elseif ($action == 'cancel' && ! $this->invoiceCancellable($invoice)) {
+                        $validator->errors()->add('action', 'This invoice cannot be cancelled');
+                    }elseif ($action == 'reverse' && ! $this->invoiceReversable($invoice)) {
+                        $validator->errors()->add('action', 'This invoice cannot be reversed');
+                    }
+                });
+        });
     }
 
     public function prepareForValidation()

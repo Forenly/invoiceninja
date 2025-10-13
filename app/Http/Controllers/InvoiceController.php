@@ -604,12 +604,10 @@ class InvoiceController extends BaseController
 
         if (in_array($action, ['email','send_email'])) {
 
-            $invoice = $invoices->first();
-
             $invoices->filter(function ($invoice) use ($user) {
                 return $user->can('edit', $invoice);
             })->each(function ($invoice) use ($user, $request) {
-                $invoice->service()->sendEmail(email_type: $request->input('email_type', $invoice->calculateTemplate('invoice')));
+                $invoice->service()->markSent()->sendEmail(email_type: $request->input('email_type', $invoice->calculateTemplate('invoice')));
             });
 
             return $this->listResponse(Invoice::withTrashed()->whereIn('id', $this->transformKeys($ids))->company());

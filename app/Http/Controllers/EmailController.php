@@ -75,7 +75,7 @@ class EmailController extends BaseController
         /** Force AEAT Submission */
         if($company->verifactuEnabled() && ($entity_obj instanceof Invoice) && $entity_obj->backup->guid == "") {
             $entity_obj->invitations()->update(['email_error' => 'primed']); // Flag the invitations as primed for AEAT submission
-            $entity_obj->service()->sendVerifactu();
+            $entity_obj->service()->markSent()->sendVerifactu();
             return $this->itemResponse($entity_obj->fresh());
         }
 

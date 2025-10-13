@@ -249,7 +249,7 @@ class InvoiceService
 
         $this->invoice = (new MarkInvoiceDeleted($this->invoice))->run();
 
-        if($this->invoice->company->verifactuEnabled()) {
+        if($this->invoice->company->verifactuEnabled() && $this->invoice->backup->guid != '') {
             $this->cancelVerifactu();
         }
 

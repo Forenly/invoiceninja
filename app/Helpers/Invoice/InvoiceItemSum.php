@@ -220,8 +220,62 @@ class InvoiceItemSum
         return $this;
     }
 
+    private function handleIrpf($item): self
+    {
+
+        $custom_fields = $this->invoice->company->custom_fields;
+
+        $total = $item->tax_amount;
+
+        if(isset($custom_fields->surcharge1) && $custom_fields->surcharge1 == 'IRPF'){ 
+            $this->invoice->custom_surcharge1 = $total;
+        }
+        elseif(isset($custom_fields->surcharge2) && $custom_fields->surcharge2 == 'IRPF'){ 
+            $this->invoice->custom_surcharge2 = $total;
+        }
+        elseif(isset($custom_fields->surcharge3) && $custom_fields->surcharge3 == 'IRPF'){ 
+            $this->invoice->custom_surcharge3 = $total;
+        }
+        elseif(isset($custom_fields->surcharge4) && $custom_fields->surcharge4 == 'IRPF'){ 
+            $this->invoice->custom_surcharge4 = $total;
+        }
+        else{
+
+            if(!isset($custom_fields->surcharge2)){
+                $custom_fields->surcharge2 = 'IRPF';
+                $this->invoice->company->custom_fields = $custom_fields;
+                $this->invoice->custom_surcharge2 = $total;
+                $this->invoice->push();
+            }
+            elseif(!isset($custom_fields->surcharge3)){
+                $custom_fields->surcharge3 = 'IRPF';//@phpstan-ignore-line
+                $this->invoice->company->custom_fields = $custom_fields;
+                $this->invoice->custom_surcharge3 = $total;
+                $this->invoice->push();
+            }
+            elseif(!isset($custom_fields->surcharge4)){
+                $custom_fields->surcharge4 = 'IRPF';//@phpstan-ignore-line
+                $this->invoice->company->custom_fields = $custom_fields;
+                $this->invoice->custom_surcharge4 = $total;
+                $this->invoice->push();
+            }
+            else {
+                $custom_fields->surcharge1 = 'IRPF';//@phpstan-ignore-line
+                $this->invoice->company->custom_fields = $custom_fields;
+                $this->invoice->custom_surcharge1 = $total;
+                $this->invoice->push();
+            }
+        }
+
+        return $this;
+    }
+
     private function push(): self
     {
+        if($this->invoice->company->verifactuEnabled() && stripos($this->item->tax_name1, 'irpf') !== false) {
+            return $this->handleIrpf($this->item);
+        }
+
         $this->sub_total += round($this->getLineTotal(), $this->currency->precision);
 
         $this->gross_sub_total += $this->getGrossLineTotal();
@@ -295,6 +349,7 @@ class InvoiceItemSum
      */
     private function calcTaxes()
     {
+
         if ($this->calc_tax) {
             $this->calcTaxesAutomatically();
         }

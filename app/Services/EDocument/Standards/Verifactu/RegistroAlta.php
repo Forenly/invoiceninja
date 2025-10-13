@@ -55,6 +55,8 @@ class RegistroAlta
 
     private string $current_timestamp;
 
+    private float $irpf_total = 0;
+
     private array $impuesto_codes = [
         '01' => 'IVA (Impuesto sobre el Valor Añadido)', // Value Added Tax - Standard Spanish VAT
         '02' => 'IPSI (Impuesto sobre la Producción, los Servicios y la Importación)', // Production, Services and Import Tax - Ceuta and Melilla
@@ -124,7 +126,7 @@ class RegistroAlta
             ->setTipoFactura('F1') //invoice type
             ->setDescripcionOperacion('Alta')// It IS! manadatory - max chars 500
             ->setCuotaTotal($this->invoice->total_taxes) //total taxes
-            ->setImporteTotal($this->invoice->amount) //total invoice amount
+            ->setImporteTotal($this->invoice->amount - $this->calculateWithholding()) //total invoice amount
             ->setFechaHoraHusoGenRegistro($this->current_timestamp) //creation/submission timestamp
             ->setTipoHuella('01') //sha256
             ->setHuella('PLACEHOLDER_HUELLA');
@@ -282,6 +284,24 @@ class RegistroAlta
         return $this;
     }
 
+    private function calculateWithholding(): float
+    {
+        if($this->invoice->custom_surcharge1 < 0 && stripos($this->invoice->company->custom_fields->surcharge1, 'IRPF') !== false) {
+            return $this->invoice->custom_surcharge1;
+        }
+        elseif($this->invoice->custom_surcharge2 < 0 && stripos($this->invoice->company->custom_fields->surcharge2, 'IRPF') !== false) {
+            return $this->invoice->custom_surcharge2;
+        }
+        elseif($this->invoice->custom_surcharge3 < 0 && stripos($this->invoice->company->custom_fields->surcharge3, 'IRPF') !== false) {
+            return $this->invoice->custom_surcharge3;
+        }
+        elseif($this->invoice->custom_surcharge4 < 0 && stripos($this->invoice->company->custom_fields->surcharge4, 'IRPF') !== false) {
+            return $this->invoice->custom_surcharge4;
+        }
+
+        return 0;
+    }
+
     public function setRectification(): self
     {
 
@@ -289,6 +309,7 @@ class RegistroAlta
         $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
 
         //need to harvest the parent invoice!!
+
         $_i = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
 
         if(!$_i) {
