@@ -109,6 +109,11 @@ class HandleCancellation extends AbstractService
             $replicated_invoice->balance = 0;
             $replicated_invoice->paid_to_date = 0;
 
+            $replicated_invoice->custom_surcharge1 = $this->invoice->custom_surcharge1 * -1;
+            $replicated_invoice->custom_surcharge2 = $this->invoice->custom_surcharge2 * -1;
+            $replicated_invoice->custom_surcharge3 = $this->invoice->custom_surcharge3 * -1;
+            $replicated_invoice->custom_surcharge4 = $this->invoice->custom_surcharge4 * -1;
+
             $items = $replicated_invoice->line_items;
 
             foreach($items as &$item) {

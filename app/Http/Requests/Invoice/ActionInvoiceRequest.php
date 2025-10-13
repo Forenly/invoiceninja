@@ -54,11 +54,11 @@ class ActionInvoiceRequest extends Request
                 }
             }
 
-            if (! $this->invoiceDeletable($this->invoice)) {
+            if ($this->action == 'delete' && ! $this->invoiceDeletable($this->invoice)) {
                 $validator->errors()->add('action', 'This invoice cannot be deleted');
-            }elseif (! $this->invoiceCancellable($this->invoice)) {
+            }elseif ($this->action == 'cancel' && ! $this->invoiceCancellable($this->invoice)) {
                 $validator->errors()->add('action', 'This invoice cannot be cancelled');
-            }elseif (! $this->invoiceReversable($this->invoice)) {
+            }elseif ($this->action == 'reverse' && ! $this->invoiceReversable($this->invoice)) {
                 $validator->errors()->add('action', 'This invoice cannot be reversed');
             }
         });
@@ -69,6 +69,8 @@ class ActionInvoiceRequest extends Request
     {
         $input = $this->all();
 
+        $input['action'] = $this->route('action');
+        
         $this->replace($input);
     }
 

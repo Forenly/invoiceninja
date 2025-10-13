@@ -258,6 +258,7 @@ trait MockAccountData
         $settings->use_credits_payment = 'always';
         $settings->timezone_id = '1';
         $settings->entity_send_time = 0;
+        $settings->e_invoice_type = 'EN16931';
 
         $this->company->track_inventory = true;
         $this->company->settings = $settings;

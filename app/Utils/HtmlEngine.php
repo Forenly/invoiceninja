@@ -826,7 +826,7 @@ class HtmlEngine
     {
         $verifactu_log = ($this->entity instanceof \App\Models\Invoice) ? $this->entity->verifactu_logs()->orderBy('id','desc')->first() : null;
 
-        if(!$verifactu_log) {
+        if(!$verifactu_log || $this->entity->status_id == \App\Models\Invoice::STATUS_DRAFT) {
             return '';
         }
 

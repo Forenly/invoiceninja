@@ -423,23 +423,27 @@ class InvoiceItemSum
 
                 $tax_component = 0;
 
-                if ($this->invoice->custom_surcharge1) {
+                $amount = 0;
+
+                if ($this->invoice->custom_surcharge1 && stripos($this->invoice->company->custom_fields?->surcharge1 ?? '', 'IRPF') === false) {
                     $tax_component += round($this->invoice->custom_surcharge1 * ($tax['percentage'] / 100), 2);
+                    $amount += $this->invoice->custom_surcharge1;
                 }
 
-                if ($this->invoice->custom_surcharge2) {
+                if ($this->invoice->custom_surcharge2 && stripos($this->invoice->company->custom_fields?->surcharge2 ?? '', 'IRPF') === false) {
                     $tax_component += round($this->invoice->custom_surcharge2 * ($tax['percentage'] / 100), 2);
+                    $amount += $this->invoice->custom_surcharge2;
                 }
 
-                if ($this->invoice->custom_surcharge3) {
+                if ($this->invoice->custom_surcharge3 && stripos($this->invoice->company->custom_fields?->surcharge3 ?? '', 'IRPF') === false) {
                     $tax_component += round($this->invoice->custom_surcharge3 * ($tax['percentage'] / 100), 2);
+                    $amount += $this->invoice->custom_surcharge3;
                 }
 
-                if ($this->invoice->custom_surcharge4) {
+                if ($this->invoice->custom_surcharge4 && stripos($this->invoice->company->custom_fields?->surcharge4 ?? '', 'IRPF') === false) {
                     $tax_component += round($this->invoice->custom_surcharge4 * ($tax['percentage'] / 100), 2);
+                    $amount += $this->invoice->custom_surcharge4;
                 }
-
-                $amount = $this->invoice->custom_surcharge4 + $this->invoice->custom_surcharge3 + $this->invoice->custom_surcharge2 + $this->invoice->custom_surcharge1;
 
                 if ($tax_component > 0) {
                     $this->groupTax($tax['name'], $tax['percentage'], $tax_component, $amount, $tax['tax_id']);
