@@ -56,22 +56,14 @@ class BulkInvoiceRequest extends Request
                 ->cursor()
                 ->each(function ($invoice) use ($validator, $action) {
                     
-                    if($invoice->company->verifactuEnabled()){
-                        if($action == 'delete' && $invoice->status_id != \App\Models\Invoice::STATUS_DRAFT){
-                            $validator->errors()->add('action', ctrans('texts.locked_invoice'));
-                        }
-
-                        if($action == 'restore' && $invoice->is_deleted){
-                            $validator->errors()->add('action', ctrans('texts.restore_disabled_verifactu'));
-                        }
-                    }
-
                     if ($action ==  'delete' &&! $this->invoiceDeletable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be deleted');
                     }elseif ($action == 'cancel' && ! $this->invoiceCancellable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be cancelled');
                     }elseif ($action == 'reverse' && ! $this->invoiceReversable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be reversed');
+                    }elseif($action == 'restore' && ! $this->invoiceRestorable($invoice)) {
+                        $validator->errors()->add('action', 'This invoice cannot be restored');
                     }
                 });
         });

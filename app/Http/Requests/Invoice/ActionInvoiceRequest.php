@@ -53,8 +53,9 @@ class ActionInvoiceRequest extends Request
                 $validator->errors()->add('action', 'This invoice cannot be cancelled');
             }elseif ($this->action == 'reverse' && ! $this->invoiceReversable($this->invoice)) {
                 $validator->errors()->add('action', 'This invoice cannot be reversed');
+            }elseif($this->action == 'restore' && ! $this->invoiceRestorable($this->invoice)) {
+                $validator->errors()->add('action', 'This invoice cannot be restored');
             }
-
         });
         
     }

@@ -23,7 +23,6 @@ trait ActionsInvoice
             return true;
         }
         elseif($invoice->company->verifactuEnabled()) {
-            nlog("verifactuEnabled");
             return false;
         }
 
@@ -31,6 +30,19 @@ trait ActionsInvoice
             return true;
         
         return false;
+    }
+
+    public function invoiceRestorable($invoice): bool
+    {
+        if($invoice->company->verifactuEnabled() && !$invoice->is_deleted && $invoice->deleted_at) {
+            return true;
+        }
+        elseif($invoice->company->verifactuEnabled()) {
+            return false;
+        }
+
+        return !is_null($invoice->deleted_at);
+        
     }
 
     public function invoiceCancellable($invoice): bool
