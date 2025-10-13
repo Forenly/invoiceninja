@@ -23,16 +23,13 @@ trait ActionsInvoice
             return true;
         }
         elseif($invoice->company->verifactuEnabled()) {
+            nlog("verifactuEnabled");
             return false;
         }
 
-        if ($invoice->status_id <= Invoice::STATUS_SENT &&
-            $invoice->is_deleted == false &&
-            $invoice->deleted_at == null &&
-            $invoice->balance == 0) {
+        if (!$invoice->is_deleted)
             return true;
-        }
-
+        
         return false;
     }
 

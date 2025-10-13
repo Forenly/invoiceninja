@@ -826,12 +826,9 @@ class HtmlEngine
     {
         $verifactu_log = ($this->entity instanceof \App\Models\Invoice) ? $this->entity->verifactu_logs()->orderBy('id','desc')->first() : null;
 
-        if(!$verifactu_log || ( ($this->entity instanceof \App\Models\Invoice) && $this->entity->backup->guid == '')) {
-    nlog("returning empty qr code");
+        if(($this->entity instanceof \App\Models\Invoice) && $this->entity->backup->guid == '') {
             return '';
         }
-
-        nlog("returning qr code");
 
         $qr_code = (new Verifactu($this->entity))->calculateQrCode($verifactu_log);
 

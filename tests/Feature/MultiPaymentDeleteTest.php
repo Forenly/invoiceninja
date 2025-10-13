@@ -350,6 +350,10 @@ sleep(1);
             'X-API-TOKEN' => $token->token,
         ])->post('/api/v1/invoices/bulk?action=delete', $data);
 
+        $this->assertFalse($invoice->company->verifactuEnabled());
+        
+        $response->assertStatus(200);
+
         $this->assertEquals(0, $invoice->fresh()->balance);
         $this->assertEquals(0, $invoice->client->fresh()->balance);
         $this->assertEquals(0, $invoice->client->fresh()->paid_to_date);
