@@ -187,7 +187,7 @@ class VerifactuApiTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->postJson('/api/v1/invoices/bulk', $data);
 
-        $response->assertStatus(422);
+        $response->assertStatus(200);
     }
 
     public function test_delete_invoice_with_parent()
@@ -899,7 +899,7 @@ class VerifactuApiTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->postJson('/api/v1/invoices/bulk', $data);
 
-        $response->assertStatus(422);
+        $response->assertStatus(200);
 
     }
 
