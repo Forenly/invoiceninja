@@ -41,7 +41,7 @@ class RegistroAlta
 
     private Company $company;
 
-    private InvoiceSum | InvoiceSumInclusive $calc;
+    public InvoiceSum | InvoiceSumInclusive $calc;
 
     private VerifactuInvoice $v_invoice;
 

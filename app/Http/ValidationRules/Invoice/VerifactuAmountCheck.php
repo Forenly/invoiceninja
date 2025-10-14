@@ -39,69 +39,34 @@ class VerifactuAmountCheck implements ValidationRule
 
         $company = $user->company();
 
-        if ($company->verifactuEnabled()) { // Company level check if Verifactu is enabled
+        if ($company->verifactuEnabled() && isset($this->input['modified_invoice_id'])) { // Company level check if Verifactu is enabled
             
-            $client = Client::withTrashed()->find($this->input['client_id']);
-
-            $invoice = false;
-            $child_invoices = false;
-            $child_invoice_totals = 0;
-            $child_invoice_count = 0;
-
-            if(isset($this->input['modified_invoice_id'])) {
-                $invoice = Invoice::withTrashed()->where('id', $this->decodePrimaryKey($this->input['modified_invoice_id']))->company()->firstOrFail();
+            $invoice = Invoice::withTrashed()->where('id', $this->decodePrimaryKey($this->input['modified_invoice_id']))->company()->firstOrFail();
                 
-                if ($invoice->backup->adjustable_amount <= 0) {
-                    $fail("Invoice already credited in full");
-                }
-                
-                $child_invoices = Invoice::withTrashed()
-                                    ->whereIn('id', $this->transformKeys($invoice->backup->child_invoice_ids->toArray()))
-                                    ->get();
-
-                $child_invoice_totals = round($child_invoices->sum('amount'), 2);
-                $child_invoice_count = $child_invoices->count();
-
+            if(!$invoice) {
+                $fail("Invoice not found");
+            }
+            elseif ($invoice->backup->adjustable_amount <= 0) {
+                $fail("Invoice already credited in full");
             }
 
-            $items = collect($this->input['line_items'])->map(function ($item) use($company){
+            \DB::connection(config('database.default'))->beginTransaction();
 
-                $discount = $item['discount'] ?? 0;
-                $is_amount_discount = $this->input['is_amount_discount'] ?? true;
+                $array_data = request()->all();
+                unset($array_data['client_id']);
 
-                if(!$is_amount_discount && $discount > 0) {
-                    $discount = $item['quantity'] * $item['cost'] * ($discount / 100);
-                }
+                $invoice->fill($array_data);
+                // $invoice->line_items = $line_items;
+                $total = $invoice->calc()->getTotal();
 
-                $line_total = ($item['quantity'] * $item['cost']) - $discount;
-
-                if(!$company->settings->inclusive_taxes) {
-                    $tax = ($item['tax_rate1'] ?? 0) + ($item['tax_rate2'] ?? 0) + ($item['tax_rate3'] ?? 0);
-                    $tax_amount = $line_total * ($tax / 100);
-                    $line_total += $tax_amount;
-                }
-
-                return $line_total;
-            });
-
-            $total_discount = $this->input['discount'] ?? 0;
-            $is_amount_discount = $this->input['is_amount_discount'] ?? true;
-
-            if(!$is_amount_discount) {
-                $total_discount = $items->sum() * ($total_discount / 100);
-            }
-
-            $total = $items->sum() - $total_discount;
-
-            if($total > 0 && $invoice) {
+            \DB::connection(config('database.default'))->rollBack();
+    
+            if($total > 0) {
                 $fail("Only negative invoices can be linked to existing invoices {$total}");
             }
-            elseif($total < 0 && !$invoice) {
-                $fail("Negative invoices {$total} can only be linked to existing invoices");
-            }
-            elseif($invoice && ($total + $child_invoice_totals + $invoice->amount) < 0) {
-                $total_adjustments = $total + $child_invoice_totals;
-                $fail("Total Adjustment {$total_adjustments} cannot exceed the original invoice amount {$invoice->amount}");
+            elseif(abs($total) > $invoice->backup->adjustable_amount) {
+                $total = abs($total);
+                $fail("Total Adjustment {$total} cannot exceed the remaining invoice amount {$invoice->backup->adjustable_amount}");
             }
         }
 

@@ -714,7 +714,7 @@ class InvoiceService
         /** New Invoice - F1 Type */
         if($new_model && $this->invoice->amount >= 0) {
             $this->invoice->backup->document_type = 'F1';
-            $this->invoice->backup->adjustable_amount = $this->invoice->amount; // <- Amount available to be adjusted
+            // $this->invoice->backup->adjustable_amount = $this->invoice->amount; // <- Amount available to be adjusted
             $this->invoice->backup->parent_invoice_number = $this->invoice->number;
             $this->invoice->saveQuietly();
         }
@@ -728,7 +728,7 @@ class InvoiceService
             }
 
             $modified_invoice->backup->child_invoice_ids->push($this->invoice->hashed_id);
-            $modified_invoice->backup->adjustable_amount += $this->invoice->amount; // <-- We reduce the adjustable amount by the amount of the new invoice
+            // $modified_invoice->backup->adjustable_amount += $this->invoice->amount; // <-- We reduce the adjustable amount by the amount of the new invoice
             $modified_invoice->save();
 
             $this->markSent();

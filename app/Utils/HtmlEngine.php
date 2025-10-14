@@ -826,7 +826,7 @@ class HtmlEngine
     {
         $verifactu_log = ($this->entity instanceof \App\Models\Invoice) ? $this->entity->verifactu_logs()->orderBy('id','desc')->first() : null;
 
-        if(($this->entity instanceof \App\Models\Invoice) && $this->entity->backup->guid == '') {
+        if((!$verifactu_log || !($this->entity instanceof \App\Models\Invoice)) && strlen($this->entity->backup->guid ?? '') < 2) {
             return '';
         }
 

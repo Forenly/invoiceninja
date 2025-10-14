@@ -41,6 +41,17 @@ class CanGenerateModificationInvoice implements ValidationRule
 
         $invoice = Invoice::withTrashed()->find($this->decodePrimaryKey($value));
         
+        \DB::connection(config('database.default'))->beginTransaction();
+
+            $array_data = request()->all();
+            unset($array_data['client_id']);
+            $invoice->fill($array_data);
+            $total = $invoice->calc()->getTotal();
+
+        \DB::connection(config('database.default'))->rollBack();
+
+        nlog("total: " . $total);
+        nlog("adjustable_amount: " . $invoice->backup->adjustable_amount);
         if (is_null($invoice)) {
             $fail("Factura no encontrada."); // Invoice not found
         } elseif($invoice->is_deleted) {
@@ -55,6 +66,8 @@ class CanGenerateModificationInvoice implements ValidationRule
             $fail("No se puede crear una factura de rectificación para una factura cancelada."); // Cannot create a rectification invoice for a cancelled invoice
         } elseif($invoice->status_id === Invoice::STATUS_REVERSED) {
             $fail("No se puede crear una factura de rectificación para una factura revertida."); // Cannot create a rectification invoice for a reversed invoice
+        } elseif($invoice->backup->adjustable_amount < abs($total)){
+            $fail("El importe de la factura de rectificación no puede ser mayor al importe de la factura original."); // The rectification invoice amount cannot be greater than the original invoice amount
         }
         // } elseif ($invoice->status_id !== Invoice::STATUS_SENT) {
         //     $fail("Cannot create a modification invoice.");

@@ -11,44 +11,32 @@
 
 namespace App\Services\EDocument\Standards;
 
-use App\Models\Company;
 use App\Models\Invoice;
-use App\Models\Product;
-use BaconQrCode\Writer;
 use App\Models\VerifactuLog;
-use App\Helpers\Invoice\Taxer;
-use App\DataMapper\Tax\BaseRule;
 use App\Services\AbstractService;
-use App\Helpers\Invoice\InvoiceSum;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
-use App\Utils\Traits\NumberFormatter;
 use Endroid\QrCode\Encoding\Encoding;
-use BaconQrCode\Renderer\ImageRenderer;
-use App\Helpers\Invoice\InvoiceSumInclusive;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use App\Services\EDocument\Standards\Verifactu\AeatClient;
 use App\Services\EDocument\Standards\Verifactu\RegistroAlta;
-use App\Services\EDocument\Standards\Verifactu\Models\Desglose;
-use App\Services\EDocument\Standards\Verifactu\Models\Encadenamiento;
-use App\Services\EDocument\Standards\Verifactu\Models\RegistroAnterior;
-use App\Services\EDocument\Standards\Verifactu\Models\SistemaInformatico;
-use App\Services\EDocument\Standards\Verifactu\Models\PersonaFisicaJuridica;
 use App\Services\EDocument\Standards\Verifactu\Models\Invoice as VerifactuInvoice;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Label\Font\OpenSans;
-
+use App\Utils\Traits\MakesHash;
 class Verifactu extends AbstractService
 {
 
+    use MakesHash;
+    
     private AeatClient $aeat_client;
 
     private string $soapXml;
     
     //store the current document state
     private VerifactuInvoice $_document;
-    
+
+    private RegistroAlta $registro_alta;
+
     //store the current huella
     private string $_huella;
 
@@ -71,13 +59,15 @@ class Verifactu extends AbstractService
 
         $i_logs = $this->invoice->verifactu_logs;
 
-        $document = (new RegistroAlta($this->invoice))->run();
+        $registro_alta = (new RegistroAlta($this->invoice))->run();
         
         if($this->invoice->amount < 0) {
-            $document = $document->setRectification();
+            $registro_alta = $registro_alta->setRectification();
         }
         
-        $document = $document->getInvoice();
+        $this->registro_alta = $registro_alta;
+
+        $document = $registro_alta->getInvoice();
     
         //keep this state for logging later on successful send
         $this->_document = $document;
@@ -200,6 +190,9 @@ class Verifactu extends AbstractService
     public function calculateQrCode(VerifactuLog $log)
     {
 
+        nlog($log->toArray());
+
+        try{
         $csv = $log->status;
         $nif = $log->nif;
         $invoiceNumber = $log->invoice_number;
@@ -228,6 +221,10 @@ class Verifactu extends AbstractService
 
         return $result->getString();
 
+        } catch (\Exception $e) {
+            nlog($e->getMessage());
+            return '';
+        }
     }
 
     public function send(string $soapXml): array
@@ -237,6 +234,19 @@ class Verifactu extends AbstractService
         $response =  $this->aeat_client->send($soapXml);
 
         if($response['success'] || $response['status'] == 'ParcialmenteCorrecto'){
+
+            if($this->invoice->backup->document_type == 'F1'){
+                $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
+                $this->invoice->saveQuietly();
+            }
+            elseif(in_array($this->invoice->backup->document_type,['R1','R2'])){
+                $_parent = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
+                if($_parent){
+                    $_parent->backup->adjustable_amount += $this->registro_alta->calc->getTotal();
+                    $_parent->saveQuietly();
+                }
+            }
+
             $this->writeLog($response);
         }
 

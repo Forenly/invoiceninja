@@ -12,7 +12,6 @@
 namespace App\Services\EDocument\Standards\Verifactu;
 
 use Mail;
-use App\Utils\Ninja;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Activity;
@@ -20,9 +19,6 @@ use App\Models\SystemLog;
 use App\Libraries\MultiDB;
 use Illuminate\Bus\Queueable;
 use App\Jobs\Util\SystemLogger;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 use App\Repositories\ActivityRepository;
 use Illuminate\Queue\InteractsWithQueue;
@@ -30,6 +26,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Services\EDocument\Standards\Verifactu;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
+use App\Utils\Traits\MakesHash;
 
 class SendToAeat implements ShouldQueue
 {
@@ -37,6 +34,7 @@ class SendToAeat implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use MakesHash;
 
     public $tries = 5;
 
@@ -174,7 +172,8 @@ class SendToAeat implements ShouldQueue
 
         if($response['success']) {
             //if successful, we need to pop this invoice from the child array of the parent invoice!
-            $parent = Invoice::withTrashed()->find($invoice->backup->parent_invoice_id);
+            nlog("searching for parent invoice ".$invoice->backup->parent_invoice_id);
+            $parent = Invoice::withTrashed()->find($this->decodePrimaryKey($invoice->backup->parent_invoice_id));
             
             if($parent) {
                 $parent->backup->child_invoice_ids = $parent->backup->child_invoice_ids->reject(fn($id) => $id === $invoice->hashed_id);
