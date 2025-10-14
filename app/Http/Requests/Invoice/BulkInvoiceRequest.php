@@ -33,7 +33,7 @@ class BulkInvoiceRequest extends Request
         $user = auth()->user();
 
         return [
-            'action' => ['required', 'bail','string'],
+            'action' => ['required', 'bail', 'string'],
             'ids' => ['required', 'bail', 'array'],
             'email_type' => 'sometimes|in:reminder1,reminder2,reminder3,reminder_endless,custom1,custom2,custom3,invoice,quote,credit,payment,payment_partial,statement,purchase_order',
             'template' => 'sometimes|string',
@@ -58,12 +58,14 @@ class BulkInvoiceRequest extends Request
                     
                     if ($action ==  'delete' &&! $this->invoiceDeletable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be deleted');
-                    }elseif ($action == 'cancel' && ! $this->invoiceCancellable($invoice)) {
+                    } elseif ($action == 'cancel' && ! $this->invoiceCancellable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be cancelled');
-                    }elseif ($action == 'reverse' && ! $this->invoiceReversable($invoice)) {
+                    } elseif ($action == 'reverse' && ! $this->invoiceReversable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be reversed');
-                    }elseif($action == 'restore' && ! $this->invoiceRestorable($invoice)) {
+                    } elseif($action == 'restore' && ! $this->invoiceRestorable($invoice)) {
                         $validator->errors()->add('action', 'This invoice cannot be restored');
+                    } elseif($action == 'mark_paid' && ! $this->invoicePayable($invoice)) {
+                        $validator->errors()->add('action', 'This invoice cannot be marked as paid');
                     }
                 });
         });

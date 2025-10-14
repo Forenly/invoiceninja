@@ -16,6 +16,15 @@ use App\Models\Invoice;
 
 trait ActionsInvoice
 {
+
+    public function invoicePayable($invoice): bool
+    {
+        if($invoice->company->verifactuEnabled() && $invoice->amount < 0) {
+            return false;
+        }
+        return $invoice->isPayable();
+    }
+    
     public function invoiceDeletable($invoice): bool
     {
         //Cancelled invoices are not deletable if verifactu is enabled
