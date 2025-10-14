@@ -94,6 +94,152 @@ class VerifactuApiTest extends TestCase
 
     }
 
+
+    public function test_staged_full_cancellation_generates_correct_status()
+    {
+        $settings = $this->company->settings;
+        $settings->e_invoice_type = 'VERIFACTU';
+        $settings->is_locked = 'when_sent';
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $invoice = $this->buildData();
+
+        $item = new InvoiceItem();
+        $item->quantity = 1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 100;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $invoice->line_items = [$item];
+        $invoice->discount = 0;
+        $invoice->is_amount_discount = false;
+
+        $repo = new InvoiceRepository();
+        $invoice = $repo->save($invoice->toArray(), $invoice);
+
+        $invoice = $invoice->service()->markSent()->save();
+
+        //check the state for an original invoice
+        $this->assertEquals('F1', $invoice->backup->document_type);
+        $this->assertEquals(121, $invoice->backup->adjustable_amount);
+        $this->assertCount(0, $invoice->backup->child_invoice_ids);
+        $this->assertEquals(106, $invoice->amount);
+
+        $item = new InvoiceItem();
+        $item->quantity = -1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 50;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $data = $invoice->toArray();
+        $data['modified_invoice_id'] = $invoice->hashed_id;
+        $data['client_id'] = $this->client->hashed_id;
+        $data['line_items'] = [$item];
+        unset($data['number']);
+        $data['backup'] = null;
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices', $data);
+
+        $response->assertStatus(200);
+
+        $invoice = $invoice->fresh();
+
+        $this->assertEquals(Invoice::STATUS_SENT, $invoice->status_id);
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices', $data);
+
+        $response->assertStatus(200);
+
+        $invoice = $invoice->fresh();
+
+        $child_invoices = Invoice::withTrashed()
+        ->whereIn('id', $this->transformKeys($invoice->backup->child_invoice_ids->toArray()))
+        ->get();
+
+        $child_invoice_amounts = $child_invoices->sum('backup.adjustable_amount');
+
+        $this->assertCount(2, $invoice->backup->child_invoice_ids);
+        $this->assertEquals(Invoice::STATUS_CANCELLED, $invoice->status_id);
+        
+    }
+
+
+    public function test_cancellation_generates_correct_status()
+    {
+        $settings = $this->company->settings;
+        $settings->e_invoice_type = 'VERIFACTU';
+        $settings->is_locked = 'when_sent';
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $invoice = $this->buildData();
+
+        $item = new InvoiceItem();
+        $item->quantity = 1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 100;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $invoice->line_items = [$item];
+        $invoice->discount = 0;
+        $invoice->is_amount_discount = false;
+
+        $repo = new InvoiceRepository();
+        $invoice = $repo->save($invoice->toArray(), $invoice);
+
+        $invoice = $invoice->service()->markSent()->save();
+
+        //check the state for an original invoice
+        $this->assertEquals('F1', $invoice->backup->document_type);
+        $this->assertEquals(121, $invoice->backup->adjustable_amount);
+        $this->assertCount(0, $invoice->backup->child_invoice_ids);
+        $this->assertEquals(106, $invoice->amount);
+
+
+        $data = [
+            'action' => 'cancel',
+            'ids' => [$invoice->hashed_id]
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices/bulk', $data);
+
+        $response->assertStatus(200);
+        
+        $arr = $response->json();
+
+        $invoice = $invoice->fresh();
+
+        $this->assertEquals(Invoice::STATUS_CANCELLED, $invoice->status_id);
+    }
+
+
     public function test_backup_object_state()
     {
         $settings = $this->company->settings;

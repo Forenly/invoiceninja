@@ -728,8 +728,6 @@ class InvoiceService
                 throw new \Exception('Modified invoice not found');
             }
 
-            nlog("invoice amount: " . $this->invoice->amount);
-            nlog("modified invoice amount: " . $modified_invoice->amount);
             if(\App\Utils\BcMath::lessThan(abs($this->invoice->amount), $modified_invoice->amount)) {
                 $document_type = 'R1'; // <- If The adjustment amount is less than the original invoice amount, we are doing a partial rectification
             }
@@ -755,7 +753,8 @@ class InvoiceService
                                         ->get()
                                         ->sum('backup.adjustable_amount');
 
-            if(\App\Utils\BcMath::equal(($modified_invoice->amount + $child_invoice_amounts), 0)) {
+            //@modified->amount may not have the correct totals due to IRPF.
+            if(\App\Utils\BcMath::greaterThan(abs($child_invoice_amounts), $modified_invoice->amount)) {
                 $modified_invoice->status_id = Invoice::STATUS_CANCELLED;
                 $modified_invoice->saveQuietly();
             }
