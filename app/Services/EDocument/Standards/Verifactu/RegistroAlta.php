@@ -32,6 +32,7 @@ use App\Services\EDocument\Standards\Verifactu\Models\RegistroAnterior;
 use App\Services\EDocument\Standards\Verifactu\Models\SistemaInformatico;
 use App\Services\EDocument\Standards\Verifactu\Models\PersonaFisicaJuridica;
 use App\Services\EDocument\Standards\Verifactu\Models\Invoice as VerifactuInvoice;
+use App\Utils\BcMath;
 
 class RegistroAlta
 {
@@ -323,16 +324,24 @@ class RegistroAlta
     public function setRectification(): self
     {
 
-        $this->v_invoice->setTipoFactura('R2');
-        $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
+        $document_type = 'R2';
 
         //need to harvest the parent invoice!!
-
         $_i = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
 
         if(!$_i) {
             throw new \Exception('Parent invoice not found');
         }
+
+        nlog("invoice amount: " . $this->invoice->amount);
+        nlog("parent invoice amount: " . $_i->amount);
+        
+        if(BcMath::lessThan(abs($this->invoice->amount), $_i->amount)) {
+            $document_type = 'R1';
+        }
+
+        $this->v_invoice->setTipoFactura($document_type);
+        $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
 
         // Set up rectified invoice information
         $facturasRectificadas = [
@@ -345,8 +354,8 @@ class RegistroAlta
 
         $this->v_invoice->setFacturasRectificadas($facturasRectificadas);
 
-        $this->invoice->backup->document_type = 'R2';
-        $this->invoice->save();
+        $this->invoice->backup->document_type = $document_type;
+        $this->invoice->saveQuietly();
         
         return $this;
     }

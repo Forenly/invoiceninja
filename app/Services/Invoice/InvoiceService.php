@@ -714,31 +714,36 @@ class InvoiceService
         /** New Invoice - F1 Type */
         if($new_model && $this->invoice->amount >= 0) {
             $this->invoice->backup->document_type = 'F1';
-            // $this->invoice->backup->adjustable_amount = $this->invoice->amount; // <- Amount available to be adjusted
+            $this->invoice->backup->adjustable_amount = $this->invoice->amount; // <- Amount available to be adjusted
             $this->invoice->backup->parent_invoice_number = $this->invoice->number;
             $this->invoice->saveQuietly();
         }
         elseif(isset($invoice_array['modified_invoice_id'])) {
             $document_type = 'R2'; // <- Default to R2 type
 
-            /** was it a partial or FULL rectification? */
+            /** Was it a partial or FULL rectification? */
             $modified_invoice = Invoice::withTrashed()->find($this->decodePrimaryKey($invoice_array['modified_invoice_id']));
-            if(\App\Utils\BcMath::equal($this->invoice->amount, $modified_invoice->amount)) {
+
+            nlog("invoice amount: " . $this->invoice->amount);
+            nlog("modified invoice amount: " . $modified_invoice->amount);
+            if(\App\Utils\BcMath::lessThan(abs($this->invoice->amount), $modified_invoice->amount)) {
                 $document_type = 'R1'; // <- If The adjustment amount is less than the original invoice amount, we are doing a partial rectification
             }
 
             $modified_invoice->backup->child_invoice_ids->push($this->invoice->hashed_id);
-            // $modified_invoice->backup->adjustable_amount += $this->invoice->amount; // <-- We reduce the adjustable amount by the amount of the new invoice
             $modified_invoice->save();
 
             $this->markSent();
             //Update the client balance by the delta amount from the previous invoice to this one.
             $this->invoice->backup->parent_invoice_id = $modified_invoice->hashed_id;
             $this->invoice->backup->document_type = $document_type;
+            // $this->invoice->backup->adjustable_amount = $this->invoice->amount; // <- Amount available to be adjusted
+            
+            $this->invoice->backup->adjustable_amount = (new \App\Services\EDocument\Standards\Verifactu($this->invoice))->run()->registro_alta->calc->getTotal();
             $this->invoice->backup->parent_invoice_number = $modified_invoice->number;
             $this->invoice->saveQuietly();
 
-            $this->invoice->client->service()->updateBalance(round(($this->invoice->amount - $modified_invoice->amount), 2));
+            $this->invoice->client->service()->updateBalance(round($this->invoice->amount, 2));
             $this->sendVerifactu();
         }
 

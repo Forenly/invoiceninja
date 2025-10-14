@@ -21,6 +21,7 @@ class Invoice extends BaseXmlModel implements XmlModelInterface
 {
     // Constants for invoice types
     public const TIPO_FACTURA_NORMAL = 'F1';
+    public const TIPO_FACTURA_RECTIFICATIVA_PARTIAL = 'R1';
     public const TIPO_FACTURA_RECTIFICATIVA = 'R2';
     public const TIPO_FACTURA_SUSTITUIDA = 'F3';
     
@@ -588,16 +589,16 @@ class Invoice extends BaseXmlModel implements XmlModelInterface
             throw new \InvalidArgumentException('Missing required field: DescripcionOperacion');
         }
         
-        if ($this->tipoFactura !== self::TIPO_FACTURA_RECTIFICATIVA && $this->cuotaTotal < 0) {
+        if (!in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL, self::TIPO_FACTURA_RECTIFICATIVA]) && $this->cuotaTotal < 0) {
             throw new \InvalidArgumentException('Missing required field: CuotaTotal');
         }
         
-        if ($this->tipoFactura !== self::TIPO_FACTURA_RECTIFICATIVA && $this->importeTotal < 0) {
+        if (!in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL, self::TIPO_FACTURA_RECTIFICATIVA]) && $this->importeTotal < 0) {
             throw new \InvalidArgumentException('Missing required field: ImporteTotal');
         }
         
         // Specific validation for R1 invoices
-        if ($this->tipoFactura === self::TIPO_FACTURA_RECTIFICATIVA) {
+        if (in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL, self::TIPO_FACTURA_RECTIFICATIVA])) {
             if ($this->tipoRectificativa === null) {
                 throw new \InvalidArgumentException('Missing required field: TipoRectificativa');
             }
@@ -829,7 +830,7 @@ class Invoice extends BaseXmlModel implements XmlModelInterface
 
 
         // 7. ImporteRectificacion (only for R1 invoices with proper structure)
-        if (in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA, self::TIPO_FACTURA_SUSTITUIDA]) && $this->importeRectificacion !== null) {
+        if (in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL, self::TIPO_FACTURA_RECTIFICATIVA, self::TIPO_FACTURA_SUSTITUIDA]) && $this->importeRectificacion !== null) {
             $importeRectificacionElement = $this->createElement($doc, 'ImporteRectificacion');
             
             // Add BaseRectificada

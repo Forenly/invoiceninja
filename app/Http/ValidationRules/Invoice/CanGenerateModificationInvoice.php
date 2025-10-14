@@ -19,6 +19,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
  * Class CanGenerateModificationInvoice.
+ * @deprecated
  */
 class CanGenerateModificationInvoice implements ValidationRule
 {
@@ -50,8 +51,6 @@ class CanGenerateModificationInvoice implements ValidationRule
 
         \DB::connection(config('database.default'))->rollBack();
 
-        nlog("total: " . $total);
-        nlog("adjustable_amount: " . $invoice->backup->adjustable_amount);
         if (is_null($invoice)) {
             $fail("Factura no encontrada."); // Invoice not found
         } elseif($invoice->is_deleted) {

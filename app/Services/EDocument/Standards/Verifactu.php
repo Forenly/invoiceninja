@@ -35,7 +35,7 @@ class Verifactu extends AbstractService
     //store the current document state
     private VerifactuInvoice $_document;
 
-    private RegistroAlta $registro_alta;
+    public RegistroAlta $registro_alta;
 
     //store the current huella
     private string $_huella;
@@ -235,17 +235,21 @@ class Verifactu extends AbstractService
 
         if($response['success'] || $response['status'] == 'ParcialmenteCorrecto'){
 
-            if($this->invoice->backup->document_type == 'F1'){
-                $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
-                $this->invoice->saveQuietly();
-            }
-            elseif(in_array($this->invoice->backup->document_type,['R1','R2'])){
-                $_parent = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
-                if($_parent){
-                    $_parent->backup->adjustable_amount += $this->registro_alta->calc->getTotal();
-                    $_parent->saveQuietly();
-                }
-            }
+            // if($this->invoice->backup->document_type == 'F1'){
+            //     $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
+            //     $this->invoice->saveQuietly();
+            // }
+            // elseif(in_array($this->invoice->backup->document_type, ['R1','R2'])){
+            //     // $_parent = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
+            //     // if($_parent){
+            //     //     $_parent->backup->adjustable_amount += $this->registro_alta->calc->getTotal();
+            //     //     $_parent->saveQuietly();
+            //     // }
+            //     $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
+            //     $this->invoice->saveQuietly();
+
+            //     //@todo calculate if the invoice has been fully cancelled, if it has tag it as CANCELLED
+            // }
 
             $this->writeLog($response);
         }

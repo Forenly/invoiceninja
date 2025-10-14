@@ -94,6 +94,135 @@ class VerifactuApiTest extends TestCase
 
     }
 
+    public function test_backup_object_state()
+    {
+        $settings = $this->company->settings;
+        $settings->e_invoice_type = 'VERIFACTU';
+        $settings->is_locked = 'when_sent';
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $invoice = $this->buildData();
+
+        $item = new InvoiceItem();
+        $item->quantity = 1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 100;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $invoice->line_items = [$item];
+        $invoice->discount = 0;
+        $invoice->is_amount_discount = false;
+
+        $repo = new InvoiceRepository();
+        $invoice = $repo->save($invoice->toArray(), $invoice);
+
+        $invoice = $invoice->service()->markSent()->save();
+
+        nlog($invoice->toArray());
+
+        //check the state for an original invoice
+        $this->assertEquals('F1', $invoice->backup->document_type);
+        $this->assertEquals(121, $invoice->backup->adjustable_amount);
+        $this->assertCount(0, $invoice->backup->child_invoice_ids);
+        $this->assertEquals(106, $invoice->amount);
+
+
+        $item = new InvoiceItem();
+        $item->quantity = -1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 50;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $data = $invoice->toArray();
+        $data['modified_invoice_id'] = $invoice->hashed_id;
+        $data['client_id'] = $this->client->hashed_id;
+        $data['line_items'] = [$item];
+        unset($data['number']);
+        $data['backup'] = null;
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices', $data);
+
+        $response->assertStatus(200);
+
+        $arr = $response->json();
+
+        $invoice = Invoice::find($this->decodePrimaryKey($arr['data']['id']));
+
+        //Create a partial cancellation for half of the invoice value
+        $this->assertEquals('R1', $invoice->backup->document_type);
+        $this->assertEquals(-60.5, $invoice->backup->adjustable_amount);
+        $this->assertEquals(-53, $invoice->amount);
+        $this->assertEquals(Invoice::STATUS_SENT, $invoice->status_id);
+
+
+        //Test Validation to catch illegal cancellation amounts
+        $item = new InvoiceItem();
+        $item->quantity = -1;
+        $item->product_key = 'product_1';
+        $item->notes = 'Product 1';
+        $item->cost = 51;
+        $item->discount = 0;
+        $item->tax_rate1 = 21;
+        $item->tax_name1 = 'IVA';
+        $item->tax_name2 = 'IRPF';
+        $item->tax_rate2 = -15;
+
+        $data = $invoice->toArray();
+        $data['modified_invoice_id'] = $invoice->hashed_id;
+        $data['client_id'] = $this->client->hashed_id;
+        $data['line_items'] = [$item];
+        unset($data['number']);
+        $data['backup'] = null;
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices', $data);
+
+        $response->assertStatus(422);
+
+         //Test Validation to catch illegal cancellation amounts
+         $item = new InvoiceItem();
+         $item->quantity = 1;
+         $item->product_key = 'product_1';
+         $item->notes = 'Product 1';
+         $item->cost = 51;
+         $item->discount = 0;
+         $item->tax_rate1 = 21;
+         $item->tax_name1 = 'IVA';
+         $item->tax_name2 = 'IRPF';
+         $item->tax_rate2 = -15;
+ 
+         $data = $invoice->toArray();
+         $data['modified_invoice_id'] = $invoice->hashed_id;
+         $data['client_id'] = $this->client->hashed_id;
+         $data['line_items'] = [$item];
+         unset($data['number']);
+         $data['backup'] = null;
+ 
+         $response = $this->withHeaders([
+             'X-API-SECRET' => config('ninja.api_secret'),
+             'X-API-TOKEN' => $this->token,
+         ])->postJson('/api/v1/invoices', $data);
+ 
+         $response->assertStatus(422);
+    }
+
     public function test_delete_validation_for_parent_fails_correctly()
     {
 
@@ -223,7 +352,7 @@ class VerifactuApiTest extends TestCase
 
         $arr = $response->json();
 
-        $this->assertEquals('R2', $arr['data']['backup']['document_type']);
+        $this->assertEquals('R1', $arr['data']['backup']['document_type']);
         $this->assertEquals($invoice->hashed_id, $arr['data']['backup']['parent_invoice_id']);
         
         $invoice = $invoice->fresh();
@@ -375,7 +504,15 @@ class VerifactuApiTest extends TestCase
         $data['verifactu_modified'] = true;
         $data['modified_invoice_id'] = $invoice->hashed_id;
         $data['number'] = null;
-        $data['discount'] = 120;
+        
+        $data['line_items'] = [[
+            'quantity' => -1,
+            'cost' => 50,
+            'discount' => 0,
+            'tax_rate1' => 21,
+            'tax_name1' => 'IVA',
+        ]];
+
         $data['is_amount_discount'] = true;
 
         $response = $this->withHeaders([
@@ -383,8 +520,18 @@ class VerifactuApiTest extends TestCase
             'X-API-TOKEN' => $this->token,
         ])->postJson('/api/v1/invoices', $data);
 
-        $response->assertStatus(422);
+        $response->assertStatus(200);
 
+        $arr = $response->json();
+
+        $_i = Invoice::find($this->decodePrimaryKey($arr['data']['id']));
+        nlog($_i->toArray());
+
+        $this->assertEquals('R1', $arr['data']['backup']['document_type']);
+        $this->assertEquals($invoice->hashed_id, $arr['data']['backup']['parent_invoice_id']);
+
+        $this->assertEquals(-60.5, $arr['data']['backup']['adjustable_amount']);
+        $this->assertEquals(-60.5, $arr['data']['amount']);
     }
 
 
