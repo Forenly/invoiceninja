@@ -1350,11 +1350,9 @@ class VerifactuApiTest extends TestCase
         ])->putJson('/api/v1/companies/'.$this->company->hashed_id, $this->company->toArray())
         ->assertStatus(200);
 
-
         $settings = $this->company->settings;
         $settings->e_invoice_type = 'Facturae_3.2.2';
         $this->company->settings = $settings;
-
 
         $response = $this->withHeaders([
             'X-API-SECRET' => config('ninja.api_secret'),

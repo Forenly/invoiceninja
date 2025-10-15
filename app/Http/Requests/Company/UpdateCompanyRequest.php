@@ -214,6 +214,10 @@ class UpdateCompanyRequest extends Request
                 }
             }
 
+            if($this->company->getSetting('e_invoice_type') == 'VERIFACTU') {
+                $settings['e_invoice_type'] = 'VERIFACTU';
+            }
+
         }
 
         if(isset($settings['e_invoice_type']) && $settings['e_invoice_type'] == 'VERIFACTU' && $this->company->verifactuEnabled()) {
