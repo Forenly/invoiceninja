@@ -214,11 +214,11 @@ class UpdateCompanyRequest extends Request
                 }
             }
 
-            if($this->company->verifactuEnabled()) {
-                $settings['lock_invoices'] = 'when_sent';
-                $settings['e_invoice_type'] = 'VERIFACTU';
-            }
-            
+        }
+
+        if($this->company->verifactuEnabled()) {
+            $settings['lock_invoices'] = 'when_sent';
+            $settings['e_invoice_type'] = 'VERIFACTU';
         }
 
         if (isset($settings['email_style_custom'])) {

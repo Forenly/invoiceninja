@@ -949,9 +949,9 @@ if ($this->destinatarios !== null && count($this->destinatarios) > 0) {
             // Restore previous error handling setting
             libxml_use_internal_errors($previousErrorSetting);
             libxml_clear_errors();
-
             
         }
+
     }
 
     public function toSoapEnvelope(): string

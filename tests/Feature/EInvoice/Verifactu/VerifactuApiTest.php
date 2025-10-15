@@ -95,6 +95,57 @@ class VerifactuApiTest extends TestCase
     }
 
 
+    public function test_update_company_settings_with_locked_invoices()
+    {
+        $settings = $this->company->settings;
+        $settings->e_invoice_type = 'VERIFACTU';
+        $settings->lock_invoices = 'when_sent';
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+
+        $settings->lock_invoices = 'off';
+        $data = $this->company->toArray();
+        $data['settings'] = (array) $settings;
+        
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->putJson('/api/v1/companies/'.$this->company->hashed_id, $data);
+
+        $response->assertStatus(200);
+
+        $this->company = $this->company->fresh();
+        $this->assertEquals('when_sent', $this->company->settings->lock_invoices);
+    }
+
+    public function test_store_client_with_locked_invoices()
+    {
+        $settings = $this->company->settings;
+        $settings->e_invoice_type = 'VERIFACTU';
+        $settings->lock_invoices = 'when_sent';
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+
+        $data = [
+            'name' => 'A loyal Client',
+            'settings' => [
+                'lock_invoices' => 'off'
+            ]
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
+
+        $response->assertStatus(422);
+
+    }
+    
     public function test_staged_full_cancellation_generates_correct_status()
     {
         $settings = $this->company->settings;
