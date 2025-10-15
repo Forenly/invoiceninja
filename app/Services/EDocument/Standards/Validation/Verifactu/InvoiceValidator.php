@@ -139,8 +139,8 @@ class InvoiceValidator
         $errors = [];
 
         // Check for required fields based on invoice type
-        if ($invoice->getTipoFactura() === 'R2' && !$invoice->getTipoRectificativa()) {
-            $errors[] = "Rectification invoices (R2) must specify TipoRectificativa";
+        if (in_array($invoice->getTipoFactura(), ['R1','R2']) && !$invoice->getTipoRectificativa()) {
+            $errors[] = "Rectification invoices (R1/R2) must specify TipoRectificativa";
         }
 
         // Check for simplified invoice requirements

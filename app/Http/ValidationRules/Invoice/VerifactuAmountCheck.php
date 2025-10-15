@@ -76,7 +76,8 @@ class VerifactuAmountCheck implements ValidationRule
                 $fail("Invoice already credited in full");
             }
 
-            \DB::connection(config('database.default'))->beginTransaction();
+            // \DB::connection(config('database.default'))->beginTransaction();
+
 
                 $array_data = request()->all();
                 unset($array_data['client_id']);
@@ -84,7 +85,7 @@ class VerifactuAmountCheck implements ValidationRule
                 $invoice->fill($array_data);
                 
                 /** Calculate the gross total of the cancellation invoice. */
-                $total = $invoice->calc()->getTotal();
+                // $total = $invoice->calc()->getTotal();
 
                 // $items = $array_data['line_items'];
 
@@ -106,10 +107,12 @@ class VerifactuAmountCheck implements ValidationRule
 
                 // $invoice->line_items = $items;
             
-                // /** Total WITHOUT IRPF */
-                // $ex_iprf_total = $invoice->calc()->getTotal();
+                /** Total WITHOUT IRPF */
+                $total = $invoice->calc()->getTotal();
 
-            \DB::connection(config('database.default'))->rollBack();
+                $invoice->refresh();
+
+            // \DB::connection(config('database.default'))->rollBack();
     
             if($total > 0) {
                 $fail("Only negative invoices can rectify a invoice.");
@@ -119,18 +122,18 @@ class VerifactuAmountCheck implements ValidationRule
             $adjustable_amount = $invoice->backup->adjustable_amount - $child_invoices_sum;
 
             /** The client facing amount that can be cancelled This is the amount that will NOT contain IRPF amounts */
-            $client_facing_adjustable_amount = ($child_invoices_sum / $invoice->backup->adjustable_amount) * $total;
+            $client_facing_adjustable_amount = ($invoice->amount / $invoice->backup->adjustable_amount) * $adjustable_amount;
 
             nlog("total: " . $total);
+            nlog("invoice->amount: " . $invoice->amount);
             nlog("adjustable_amount: " . $adjustable_amount);
             nlog("child_invoices_sum: " . $child_invoices_sum);
             nlog("invoice->backup->adjustable_amount: " . $invoice->backup->adjustable_amount);
             nlog("client_facing_adjustable_amount: " . $client_facing_adjustable_amount);
             
 
-            if(abs($total) > $adjustable_amount) {
-                $total = abs($total); // The rectification invoice amount cannot be greater than the original invoice amount
-                $fail("Total de ajuste {$client_facing_adjustable_amount} no puede exceder el saldo de la factura {$total}");
+            if(abs($total) > $client_facing_adjustable_amount) {
+                $fail("Total de ajuste {$total} no puede exceder el saldo de la factura {$client_facing_adjustable_amount}");
             }
         }
 

@@ -753,7 +753,7 @@ class InvoiceService
                                         ->get()
                                         ->sum('backup.adjustable_amount');
 
-            //@modified->amount may not have the correct totals due to IRPF.
+            //@todo verifactu - this won't be accurate as the invoice->amount will be the ex IPRF amount. modified->amount may not have the correct totals due to IRPF.
             if(\App\Utils\BcMath::greaterThan(abs($child_invoice_amounts), $modified_invoice->amount)) {
                 $modified_invoice->status_id = Invoice::STATUS_CANCELLED;
                 $modified_invoice->saveQuietly();
