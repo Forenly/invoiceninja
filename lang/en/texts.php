@@ -5648,6 +5648,9 @@ $lang = array(
     'activity_151' => 'E-Invoice :invoice for :client failed to send to AEAT :notes',
     'activity_152' => 'Invoice cancellation for :invoice sent to AEAT successfully',
     'activity_153' => 'Invoice cancellation for :invoice failed to send to AEAT :notes',
+    'justify' => 'Justify',
+    'outdent' => 'Outdent',
+    'indent' => 'Indent',
 );
 
 return $lang;

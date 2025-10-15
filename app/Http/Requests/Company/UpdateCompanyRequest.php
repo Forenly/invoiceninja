@@ -216,9 +216,8 @@ class UpdateCompanyRequest extends Request
 
         }
 
-        if($this->company->verifactuEnabled()) {
+        if(isset($settings['e_invoice_type']) && $settings['e_invoice_type'] == 'VERIFACTU' && $this->company->verifactuEnabled()) {
             $settings['lock_invoices'] = 'when_sent';
-            $settings['e_invoice_type'] = 'VERIFACTU';
         }
 
         if (isset($settings['email_style_custom'])) {
