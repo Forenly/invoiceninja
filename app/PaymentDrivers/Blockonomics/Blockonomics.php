@@ -166,7 +166,6 @@ class Blockonomics implements LivewireMethodInterface
                 default => Payment::STATUS_PENDING
             };
 
-            // Create the payment - let InvoiceNinja handle the initial processing
             $payment = $this->blockonomics->createPayment($data, $statusId);
             $payment->private_notes = "{$request->btc_address} - {$request->btc_amount}";
             $payment->save();
