@@ -260,10 +260,6 @@ class EntityLevel implements EntityLevelInterface
             $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
 
         }
-
-        nlog($company->getSetting('classification'));
-        nlog($company->getSetting('id_number'));
-        nlog($company->getSetting('vat_number'));
         
         //If not an individual, you MUST have a VAT number
         if ($company->getSetting('classification') == 'individual' && !$this->validString($company->getSetting('id_number'))) {

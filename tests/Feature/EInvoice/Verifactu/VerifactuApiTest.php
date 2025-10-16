@@ -95,8 +95,6 @@ class VerifactuApiTest extends TestCase
 
     }
 
-
-
     public function test_update_group_settings_with_locked_invoices()
     {
         $settings = $this->company->settings;
