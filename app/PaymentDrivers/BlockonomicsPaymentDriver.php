@@ -21,7 +21,6 @@ use App\Models\GatewayType;
 use App\Models\PaymentHash;
 use App\Models\PaymentType;
 use App\Utils\Traits\MakesHash;
-use App\Jobs\Util\SystemLogger;
 use App\Exceptions\PaymentFailed;
 use Illuminate\Support\Facades\Http;
 use App\PaymentDrivers\Blockonomics\Blockonomics;
