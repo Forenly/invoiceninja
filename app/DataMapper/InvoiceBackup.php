@@ -31,6 +31,7 @@ class InvoiceBackup implements Castable
      * @param Collection $child_invoice_ids  The collection of child invoice IDs
      * @param string $redirect  The redirect url for the invoice
      * @param float $adjustable_amount  The adjustable amount for the invoice
+     * @param string $notes The notes field - can be multi purpose, but general usage for Verifactu cancellation reason
      * @return void
      */
     public function __construct(
@@ -42,6 +43,7 @@ class InvoiceBackup implements Castable
         public Collection $child_invoice_ids = new Collection(), 
         public ?string $redirect = null, 
         public float $adjustable_amount = 0,
+        public ?string $notes = null,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ class InvoiceBackup implements Castable
             child_invoice_ids: isset($data['child_invoice_ids']) ? collect($data['child_invoice_ids']) : new Collection(),
             redirect: $data['redirect'] ?? null,
             adjustable_amount: $data['adjustable_amount'] ?? 0,
+            notes: $data['notes'] ?? null,
         );
     }
 

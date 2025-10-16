@@ -782,7 +782,7 @@ class Invoice extends BaseXmlModel implements XmlModelInterface
         if (in_array($this->tipoFactura, [self::TIPO_FACTURA_SUSTITUIDA, self::TIPO_FACTURA_RECTIFICATIVA, self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL]) && $this->tipoRectificativa !== null) {
             $root->appendChild($this->createElement($doc, 'TipoRectificativa', $this->tipoRectificativa));
         }
-        
+
         // 6. FacturasRectificadas (only for R1 invoices)
         if (in_array($this->tipoFactura, [self::TIPO_FACTURA_RECTIFICATIVA_PARTIAL, self::TIPO_FACTURA_RECTIFICATIVA]) && $this->facturasRectificadas !== null) {
             $facturasRectificadasElement = $this->createElement($doc, 'FacturasRectificadas');

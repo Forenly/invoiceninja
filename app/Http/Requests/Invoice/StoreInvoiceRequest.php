@@ -18,7 +18,6 @@ use App\Utils\Traits\MakesHash;
 use Illuminate\Validation\Rule;
 use App\Utils\Traits\CleanLineItems;
 use App\Http\ValidationRules\Project\ValidProjectForClient;
-use App\Http\ValidationRules\Invoice\CanGenerateModificationInvoice;
 use App\Http\ValidationRules\Invoice\VerifactuAmountCheck;
 
 class StoreInvoiceRequest extends Request

@@ -190,67 +190,48 @@ class Verifactu extends AbstractService
     public function calculateQrCode(VerifactuLog $log)
     {
 
-        nlog($log->toArray());
-
         try{
-        $csv = $log->status;
-        $nif = $log->nif;
-        $invoiceNumber = $log->invoice_number;
-        $date = $log->date->format('d-m-Y');
-        $total = (string)round($log->invoice->amount, 2);
-        
-        $url = sprintf(
-            $this->aeat_client->base_qr_url,
-            urlencode($csv),
-            urlencode($nif),
-            urlencode($invoiceNumber),
-            urlencode($date),
-            urlencode($total)
-        );
+            $csv = $log->status;
+            $nif = $log->nif;
+            $invoiceNumber = $log->invoice_number;
+            $date = $log->date->format('d-m-Y');
+            $total = (string)round($log->invoice->amount, 2);
+            
+            $url = sprintf(
+                $this->aeat_client->base_qr_url,
+                urlencode($csv),
+                urlencode($nif),
+                urlencode($invoiceNumber),
+                urlencode($date),
+                urlencode($total)
+            );
 
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->data($url)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::Medium) // AEAT: level M or higher
-            ->size(300) // AEAT minimum recommended: 30x30 mm ≈ 300px @ 254 DPI
-            ->margin(10)
-            ->labelText('VERI*FACTU')
-            ->labelFont(new OpenSans(14))
-            ->build();
+            $result = Builder::create()
+                ->writer(new PngWriter())
+                ->data($url)
+                ->encoding(new Encoding('UTF-8'))
+                ->errorCorrectionLevel(ErrorCorrectionLevel::Medium) // AEAT: level M or higher
+                ->size(300) // AEAT minimum recommended: 30x30 mm ≈ 300px @ 254 DPI
+                ->margin(10)
+                ->labelText('VERI*FACTU')
+                ->labelFont(new OpenSans(14))
+                ->build();
 
-        return $result->getString();
+            return $result->getString();
 
         } catch (\Exception $e) {
-            nlog($e->getMessage());
+            nlog("VERIFACTU ERROR: [qr]" . $e->getMessage());
             return '';
         }
     }
 
     public function send(string $soapXml): array
     {
-        nlog(["sending", $soapXml]);
+        nlog("VERIFACTU: [send]" . $soapXml);
 
         $response =  $this->aeat_client->send($soapXml);
 
         if($response['success'] || $response['status'] == 'ParcialmenteCorrecto'){
-
-            // if($this->invoice->backup->document_type == 'F1'){
-            //     $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
-            //     $this->invoice->saveQuietly();
-            // }
-            // elseif(in_array($this->invoice->backup->document_type, ['R1','R2'])){
-            //     // $_parent = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
-            //     // if($_parent){
-            //     //     $_parent->backup->adjustable_amount += $this->registro_alta->calc->getTotal();
-            //     //     $_parent->saveQuietly();
-            //     // }
-            //     $this->invoice->backup->adjustable_amount = $this->registro_alta->calc->getTotal();
-            //     $this->invoice->saveQuietly();
-
-            //     //@todo calculate if the invoice has been fully cancelled, if it has tag it as CANCELLED
-            // }
-
             $this->writeLog($response);
         }
 

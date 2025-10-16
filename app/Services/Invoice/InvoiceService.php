@@ -720,9 +720,7 @@ class InvoiceService
          * 
          */
         /** New Invoice - F1 Type */
-        if(empty($this->invoice->client->vat_number) ||
-        !in_array($this->invoice->client->country->iso_3166_2, (new \App\DataMapper\Tax\BaseRule())->eu_country_codes)
-        ) {
+        if(empty($this->invoice->client->vat_number) || !in_array($this->invoice->client->country->iso_3166_2, (new \App\DataMapper\Tax\BaseRule())->eu_country_codes)) {
 
             $this->invoice->backup->guid = 'exempt';
             $this->invoice->saveQuietly();
@@ -749,6 +747,11 @@ class InvoiceService
             }
 
             $modified_invoice->backup->child_invoice_ids->push($this->invoice->hashed_id);
+
+            if(isset($invoice_array['reason'])) {
+                $this->invoice->backup->notes = $invoice_array['reason'];
+            }
+
             $modified_invoice->save();
 
             $this->markSent();

@@ -857,12 +857,12 @@ Motivo de la rectificación: Corrección de base imponible<br/>
 Tipo de rectificación: I (Por diferencias)\n
 Código seguro de verificación (CSV): {$verifactu_log->status}";
 
-$text = match($this->entity->backup->document_type) {
-    'F1' => $f1_text,
-    'R2' => $r2_text,
-    'R1' => $r1_text,
-    default => '',
-};
+        $text = match($this->entity->backup->document_type) {
+            'F1' => $f1_text,
+            'R1' => $r1_text,
+            'R2' => $r2_text,
+            default => '',
+        };
 
         return "<tr><td>{$text}</td></tr><tr><td><img src=\"data:image/png;base64,{$qr_code}\" alt=\"Verifactu QR Code\"></td></tr>";
     }

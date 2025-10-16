@@ -66,8 +66,6 @@ class VerifactuDocumentValidator extends XsltDocumentValidator
         // Detect document type to determine which validation to apply
         $documentType = $this->detectDocumentType($businessContent);
         
-        nlog("Detected document type: " . $documentType);
-        
         // For modifications, we need to use a different validation approach
         // since the standard XSD doesn't support modification structure
         if ($documentType === 'modification') {

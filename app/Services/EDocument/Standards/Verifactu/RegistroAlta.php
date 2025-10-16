@@ -333,9 +333,6 @@ class RegistroAlta
             throw new \Exception('Parent invoice not found');
         }
 
-        nlog("invoice amount: " . $this->invoice->amount);
-        nlog("parent invoice amount: " . $_i->amount);
-        
         if(BcMath::lessThan(abs($this->invoice->amount), $_i->amount)) {
             $document_type = 'R1';
         }
@@ -343,6 +340,9 @@ class RegistroAlta
         $this->v_invoice->setTipoFactura($document_type);
         $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
 
+        if(strlen($this->invoice->backup->notes ?? '') > 0) {
+            $this->v_invoice->setDescripcionOperacion($this->invoice->backup->notes);
+        }
         // Set up rectified invoice information
         $facturasRectificadas = [
             [

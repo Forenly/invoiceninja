@@ -59,6 +59,7 @@ class InvoiceBackupCast implements CastsAttributes
                 'child_invoice_ids' => $value->child_invoice_ids->toArray(),
                 'redirect' => $value->redirect,
                 'adjustable_amount' => $value->adjustable_amount,
+                'notes' => $value->notes,
             ])
         ];
     }
