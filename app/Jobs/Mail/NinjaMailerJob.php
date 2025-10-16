@@ -218,6 +218,7 @@ class NinjaMailerJob implements ShouldQueue
 
         } catch(\ErrorException $e){ //@todo - remove after symfony/mailer is updated with bug fix
             
+            nlog("Mailer failed with an Error Exception {$e->getMessage()}");
             $message = "Attachment size is too large.";
             $this->fail();
             $this->logMailError($message, $this->company->clients()->first());
