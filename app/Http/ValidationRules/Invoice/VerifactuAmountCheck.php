@@ -101,6 +101,7 @@ class VerifactuAmountCheck implements ValidationRule
             }
         }
         elseif($company->verifactuEnabled() && isset($this->input['amount']) && $this->input['amount'] < 0){
+            //Adhoc negative invoices cannot be created, they must be created as a rectification invoice against the original invoice.
             $fail("El importe de la factura no puede ser negativo.");
         }
     }
