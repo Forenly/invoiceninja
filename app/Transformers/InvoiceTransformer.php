@@ -12,15 +12,16 @@
 
 namespace App\Transformers;
 
-use App\Models\Activity;
 use App\Models\Backup;
 use App\Models\Client;
 use App\Models\Credit;
-use App\Models\Document;
 use App\Models\Invoice;
-use App\Models\InvoiceInvitation;
 use App\Models\Payment;
+use App\Models\Project;
+use App\Models\Activity;
+use App\Models\Document;
 use App\Utils\Traits\MakesHash;
+use App\Models\InvoiceInvitation;
 
 class InvoiceTransformer extends EntityTransformer
 {
@@ -36,6 +37,7 @@ class InvoiceTransformer extends EntityTransformer
         'client',
         'activities',
         'location',
+        'project',
     ];
 
     public function includeLocation(Invoice $invoice)
@@ -68,6 +70,17 @@ class InvoiceTransformer extends EntityTransformer
         $transformer = new ClientTransformer($this->serializer);
 
         return $this->includeItem($invoice->client, $transformer, Client::class);
+    }
+
+    public function includeProject(Invoice $invoice)
+    {
+        $transformer = new ProjectTransformer($this->serializer);
+
+        if (!$invoice->project) {
+            return null;
+        }
+
+        return $this->includeItem($invoice->project, $transformer, Project::class);
     }
 
     public function includePayments(Invoice $invoice)

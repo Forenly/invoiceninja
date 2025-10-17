@@ -138,12 +138,14 @@ class TaskFilters extends QueryFilters
         $dir = ($sort_col[1] == 'asc') ? 'asc' : 'desc';
 
         if ($sort_col[0] == 'client_id') {
-            return $this->builder->orderBy(\App\Models\Client::select('name')
+            return $this->builder->orderByRaw('ISNULL(client_id), client_id '. $dir)
+                    ->orderBy(\App\Models\Client::select('name')
                     ->whereColumn('clients.id', 'tasks.client_id'), $dir);
         }
 
         if ($sort_col[0] == 'user_id') {
-            return $this->builder->orderBy(\App\Models\User::select('first_name')
+            return $this->builder->orderByRaw('ISNULL(user_id), user_id '. $dir)
+                    ->orderBy(\App\Models\User::select('first_name')
                     ->whereColumn('users.id', 'tasks.user_id'), $dir);
         }
 
