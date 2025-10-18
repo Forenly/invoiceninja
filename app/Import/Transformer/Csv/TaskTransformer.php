@@ -93,7 +93,9 @@ class TaskTransformer extends BaseTransformer
             $start_date = $this->resolveStartDate($item);
             $end_date = $this->resolveEndDate($item);
         } elseif (isset($item['task.duration'])) {
-            $duration =  strtotime($item['task.duration']) - strtotime('TODAY');
+
+            $starttime = strtotime($item['task.duration']) ? strtotime($item['task.duration']) : strtotime('TODAY');
+            $duration =  $starttime - strtotime('TODAY');
             $start_date = $this->stubbed_timestamp;
             $end_date = $this->stubbed_timestamp + $duration;
             $this->stubbed_timestamp;
