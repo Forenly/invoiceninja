@@ -81,6 +81,8 @@ class SystemLog extends Model
 
     public const CATEGORY_VERIFACTU = 7;
 
+    public const CATEGORY_PEPPOL = 8;
+
     /* Event IDs*/
     public const EVENT_PAYMENT_RECONCILIATION_FAILURE = 10;
 
@@ -121,6 +123,10 @@ class SystemLog extends Model
     public const EVENT_VERIFACTU_FAILURE = 70;
 
     public const EVENT_VERIFACTU_SUCCESS = 71;
+
+    public const EVENT_PEPPOL_FAILURE = 72;
+
+    public const EVENT_PEPPOL_SUCCESS = 73;
 
     /*Type IDs*/
     public const TYPE_PAYPAL = 300;
@@ -192,6 +198,10 @@ class SystemLog extends Model
     public const TYPE_VERIFACTU_INVOICE = 1001;
 
     public const TYPE_VERIFACTU_RECTIFICATION = 1002;
+
+    public const TYPE_PEPPOL_SEND = 1100;
+
+    public const TYPE_PEPPOL_RECEIVE = 1101;
 
     protected $fillable = [
         'client_id',

@@ -12,16 +12,20 @@
 
 namespace App\Services\EDocument\Jobs;
 
-use App\Services\Email\Email;
-use App\Services\Email\EmailObject;
+use Mail;
 use App\Utils\Ninja;
 use App\Models\Invoice;
-use App\Libraries\MultiDB;
 use App\Models\Activity;
+use App\Models\SystemLog;
+use App\Libraries\MultiDB;
 use App\Models\EInvoicingLog;
+use App\Services\Email\Email;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Cache;
+use App\Jobs\Util\SystemLogger;
+use App\Services\Email\EmailObject;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,8 +33,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use App\Services\EDocument\Standards\Peppol;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use App\Services\EDocument\Gateway\Storecove\Storecove;
-use Mail;
-use Illuminate\Mail\Mailables\Address;
 
 class SendEDocument implements ShouldQueue
 {
@@ -119,6 +121,16 @@ class SendEDocument implements ShouldQueue
             if ($r->failed()) {
                 nlog("Model {$model->number} failed to be accepted by invoice ninja, error follows:");
                 nlog($r->json());
+                (
+                    new SystemLogger(
+                        $r->json(),
+                        SystemLog::CATEGORY_PEPPOL,
+                        SystemLog::EVENT_PEPPOL_FAILURE,
+                        SystemLog::TYPE_PEPPOL_SEND,
+                        $model->client,
+                        $model->company
+                    )
+                )->handle();
                 $this->writeActivity($model, Activity::EINVOICE_DELIVERY_FAILURE, data_get($r->json(), 'errors.0.details', 'Unhandled error, check logs'));
             }
 
