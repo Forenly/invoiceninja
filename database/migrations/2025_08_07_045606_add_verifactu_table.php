@@ -27,8 +27,7 @@ return new class extends Migration
             $table->text('state')->nullable();
             $table->timestamps();
 
-            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade')->onUpdate('cascade');
+            // Foreign key constraints removed - data integrity handled at application level
 
         });
     }

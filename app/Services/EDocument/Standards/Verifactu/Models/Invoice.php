@@ -849,27 +849,25 @@ class Invoice extends BaseXmlModel implements XmlModelInterface
         $root->appendChild($this->createElement($doc, 'DescripcionOperacion', $this->descripcionOperacion));
 
         // 9. Destinatarios (if set)
-        
-// 9. Destinatarios (if set)
-if ($this->destinatarios !== null && count($this->destinatarios) > 0) {
-    $destinatariosElement = $this->createElement($doc, 'Destinatarios');
-    foreach ($this->destinatarios as $destinatario) {
-        $idDestinatarioElement = $this->createElement($doc, 'IDDestinatario');
+        if ($this->destinatarios !== null && count($this->destinatarios) > 0) {
+            $destinatariosElement = $this->createElement($doc, 'Destinatarios');
+            foreach ($this->destinatarios as $destinatario) {
+                $idDestinatarioElement = $this->createElement($doc, 'IDDestinatario');
 
-        // Add NombreRazon
-        $idDestinatarioElement->appendChild($this->createElement($doc, 'NombreRazon', $destinatario->getNombreRazon()));
+                // Add NombreRazon
+                $idDestinatarioElement->appendChild($this->createElement($doc, 'NombreRazon', $destinatario->getNombreRazon()));
 
-        if ($destinatario instanceof PersonaFisicaJuridica) {
-            $idDestinatarioElement->appendChild($this->createElement($doc, 'NIF', $destinatario->getNif()));
-        } elseif ($destinatario instanceof IDOtro) {
-            // Use the full IDOtro XML structure
-            $idDestinatarioElement->appendChild($destinatario->toXml($doc));
+                if ($destinatario instanceof PersonaFisicaJuridica) {
+                    $idDestinatarioElement->appendChild($this->createElement($doc, 'NIF', $destinatario->getNif()));
+                } elseif ($destinatario instanceof IDOtro) {
+                    // Use the full IDOtro XML structure
+                    $idDestinatarioElement->appendChild($destinatario->toXml($doc));
+                }
+
+                $destinatariosElement->appendChild($idDestinatarioElement);
+            }
+            $root->appendChild($destinatariosElement);
         }
-
-        $destinatariosElement->appendChild($idDestinatarioElement);
-    }
-    $root->appendChild($destinatariosElement);
-}
 
 
         // 10. Desglose
