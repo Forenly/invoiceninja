@@ -87,6 +87,11 @@ class InvoiceTransformer extends BaseTransformer
             'tax_rate2' => $this->getFloat($invoice_data, 'invoice.tax_rate2'),
             'tax_name3' => $this->getString($invoice_data, 'invoice.tax_name3'),
             'tax_rate3' => $this->getFloat($invoice_data, 'invoice.tax_rate3'),
+            'is_amount_discount' => filter_var(
+                    $this->getString($invoice_data, 'invoice.is_amount_discount'),
+                    FILTER_VALIDATE_BOOLEAN,
+                    FILTER_NULL_ON_FAILURE
+                ),
             'custom_value1' => $this->getString(
                 $invoice_data,
                 'invoice.custom_value1'
