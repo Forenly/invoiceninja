@@ -139,23 +139,34 @@ class Blockonomics implements LivewireMethodInterface
             'btc_address' => ['required'],
             'btc_amount' => ['required'],
             'btc_price' => ['required'],
-            // Setting status to required will break the payment process
-            // because sometimes the status is returned as 0 which is falsy
-            // and the validation will fail.
-            // 'status' => ['required'],
         ]);
 
         $this->payment_hash = PaymentHash::where('hash', $request->payment_hash)->firstOrFail();
 
+        // Calculate fiat amount from Bitcoin
+        $amount_received_satoshis = $request->btc_amount;
+        $amount_satoshis_in_one_btc = 100000000;
+        $amount_received_btc = $amount_received_satoshis / $amount_satoshis_in_one_btc;
+        $price_per_btc_in_fiat = $request->btc_price;
+        $fiat_amount = round(($price_per_btc_in_fiat * $amount_received_btc), 2);
+
+        // Get the expected amount from payment hash
+        $payment_hash_data = $this->payment_hash->data;
+        $expected_amount = $payment_hash_data->amount_with_fee;
+
+        // ALWAYS adjust invoice allocations to match actual received amount
+        if ($fiat_amount != $expected_amount) {
+            $this->adjustInvoiceAllocations($fiat_amount);
+
+            // CRITICAL: Reload both payment_hash references
+            $this->payment_hash = PaymentHash::where('hash', $request->payment_hash)->firstOrFail();
+
+            // Update the blockonomics driver's payment_hash reference
+            // This is the key - the driver needs the updated payment_hash
+            $this->blockonomics->payment_hash = $this->payment_hash;
+        }
+
         try {
-            // Satoshis is the smallest unit of Bitcoin
-            $amount_received_satoshis = $request->btc_amount;
-            $amount_satohis_in_one_btc = 100000000;
-            $amount_received_btc = $amount_received_satoshis / $amount_satohis_in_one_btc;
-            $price_per_btc_in_fiat = $request->btc_price;
-
-            $fiat_amount = round(($price_per_btc_in_fiat * $amount_received_btc), 2);
-
             $data = [
                 'amount' => $fiat_amount,
                 'payment_method_id' => $request->payment_method_id,
@@ -164,7 +175,6 @@ class Blockonomics implements LivewireMethodInterface
             ];
 
             // Append a random value to the transaction reference for test payments
-            // to prevent duplicate entries in the database.
             $testTxid = $this->test_txid;
             $data['transaction_reference'] = ($request->txid === $testTxid)
                 ? $request->txid . bin2hex(random_bytes(16))
@@ -197,12 +207,79 @@ class Blockonomics implements LivewireMethodInterface
                 $blockonomics->client,
                 $blockonomics->payment_hash->data,
                 $blockonomics->client->company,
-                $request->amount
+                $fiat_amount
             );
             throw new PaymentFailed('Error during Blockonomics payment: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Adjust invoice allocations to match the actual amount received
+     * Only modifies the amounts in the PaymentHash, never the actual invoices
+     */
+    private function adjustInvoiceAllocations(float $amount_received): void
+    {
+        $payment_hash_data = $this->payment_hash->data;
+
+        // Get the invoices array from payment hash data
+        $invoices = $payment_hash_data->invoices ?? [];
+
+        if (empty($invoices)) {
+            return;
+        }
+
+        $remaining_amount = $amount_received;
+        $adjusted_invoices = [];
+
+        // Iterate through invoices and allocate up to the amount received
+        foreach ($invoices as $invoice) {
+            if ($remaining_amount <= 0) {
+                // No more funds to allocate, drop remaining invoices
+                break;
+            }
+
+            $invoice_amount = $invoice->amount;
+
+            if ($remaining_amount >= $invoice_amount) {
+                // Full payment for this invoice - keep all original data
+                $adjusted_invoices[] = (object)[
+                    'invoice_id' => $invoice->invoice_id,
+                    'amount' => $invoice_amount,
+                    'formatted_amount' => number_format($invoice_amount, 2),
+                    'formatted_currency' => '$' . number_format($invoice_amount, 2),
+                    'number' => $invoice->number,
+                    'date' => $invoice->date,
+                    'due_date' => $invoice->due_date ?? '',
+                    'terms' => $invoice->terms ?? '',
+                    'invoice_number' => $invoice->invoice_number,
+                    'additional_info' => $invoice->additional_info ?? '',
+                ];
+                $remaining_amount -= $invoice_amount;
+            } else {
+                // Partial payment for this invoice - adjust the amount
+                $adjusted_invoices[] = (object)[
+                    'invoice_id' => $invoice->invoice_id,
+                    'amount' => round($remaining_amount, 2),
+                    'formatted_amount' => number_format($remaining_amount, 2),
+                    'formatted_currency' => '$' . number_format($remaining_amount, 2),
+                    'number' => $invoice->number,
+                    'date' => $invoice->date,
+                    'due_date' => $invoice->due_date ?? '',
+                    'terms' => $invoice->terms ?? '',
+                    'invoice_number' => $invoice->invoice_number,
+                    'additional_info' => $invoice->additional_info ?? '',
+                ];
+                $remaining_amount = 0;
+            }
+        }
+
+        // Update the payment hash with adjusted invoice allocations
+        $payment_hash_data->invoices = $adjusted_invoices;
+        $payment_hash_data->amount_with_fee = $amount_received; // Critical: Update total amount
+
+        $this->payment_hash->data = $payment_hash_data;
+        $this->payment_hash->save();
+    }
     // Not supported yet
     public function refund(Payment $payment, $amount)
     {
