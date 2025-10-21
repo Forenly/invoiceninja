@@ -136,22 +136,6 @@ class BlockonomicsPaymentDriver extends BaseDriver
         $payment->save();
 
         $this->payment_hash = PaymentHash::where('payment_id', $payment->id)->firstOrFail();
-        $invoices_data = $this->payment_hash->invoices();
-
-        // How about recurring invoices?
-        if (is_array($invoices_data)) {
-            foreach ($invoices_data as $invoice_data) {
-                $invoice = Invoice::withTrashed()->find($this->decodePrimaryKey($invoice_data->invoice_id));
-                // Do I need to loop through each payment for the invoice?
-                if ($invoice) {
-                    $invoice->balance = $invoice->amount - $payment->amount;
-                    $invoice->status_id = $invoice->balance <= 0
-                        ? Invoice::STATUS_PAID
-                        : Invoice::STATUS_PARTIAL;
-                    $invoice->save();
-                }
-            }
-        }
 
         return response()->json([
             'message' => 'Payment confirmed successfully',
