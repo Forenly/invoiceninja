@@ -5652,6 +5652,12 @@ $lang = array(
     'outdent' => 'Outdent',
     'indent' => 'Indent',
     'clear_filters' => 'Clear Filters',
+    'feedback' => 'Feedback',
+    'feedback_modal_description' => 'We would love to hear your feedback!',
+    'do_not_ask_again' => 'Do not ask again',
+    'not_likely' => 'Not likely',
+    'extremely_likely' => 'Extremely likely',
+    'feedback_slider_title' => 'How likely are you to recommend Invoice Ninja to a friend or colleague?',
 );
 
 return $lang;
