@@ -273,7 +273,7 @@ class Peppol extends AbstractService
     private function setInvoice(): self
     {
         /** Handle Existing Document */
-        if ($this->invoice->e_invoice && isset($this->invoice->e_invoice->Invoice)  && isset($this->invoice->e_invoice->Invoice->ID)) {
+        if ($this->invoice->e_invoice && isset($this->invoice->e_invoice->Invoice) && isset($this->invoice->e_invoice->Invoice->ID)) {
 
             $this->decode($this->invoice->e_invoice->Invoice);
 
@@ -696,6 +696,12 @@ class Peppol extends AbstractService
         return $tax_type;
     }
 
+    // private function addDeliveryDate()
+    // {
+    //     $delivery = new \InvoiceNinja\EInvoice\Models\Peppol\DeliveryType\Delivery();
+    //     $delivery->ActualDeliveryDate = new \DateTime($this->invoice->delivery_date);
+    //     $this->p_invoice->Delivery = [$delivery];
+    // }
 
     private function resolveTaxExemptReason($item, $ctc = null): mixed
     {
@@ -1188,6 +1194,7 @@ class Peppol extends AbstractService
 
     private function getDelivery(): array
     {
+
         $locationData = $this->invoice->service()->location();
         $delivery = new \InvoiceNinja\EInvoice\Models\Peppol\DeliveryType\Delivery();
         $location = new \InvoiceNinja\EInvoice\Models\Peppol\LocationType\DeliveryLocation();
@@ -1216,6 +1223,10 @@ class Peppol extends AbstractService
         $address->Country = $country;
         $location->Address = $address;
         $delivery->DeliveryLocation = $location;
+
+        if(isset($this->invoice->e_invoice->Invoice->Delivery[0]->ActualDeliveryDate->date)){
+            $delivery->ActualDeliveryDate = new \DateTime($this->invoice->e_invoice->Invoice->Delivery[0]->ActualDeliveryDate->date);
+        }
 
         return [$delivery];
 

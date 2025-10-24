@@ -302,6 +302,20 @@ class StorecoveTest extends TestCase
         }
 
         $this->assertEquals(floatval(0), floatval($invoice->total_taxes));
+
+        $einvoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
+
+        $delivery = new \InvoiceNinja\EInvoice\Models\Peppol\DeliveryType\Delivery();
+        $delivery->ActualDeliveryDate = new \DateTime($invoice->due_date);
+
+        $einvoice->Delivery = [$delivery];
+
+        $stub = new \stdClass();
+        $stub->Invoice = $einvoice;
+        $invoice->e_invoice = $stub;
+nlog($invoice->e_invoice);
+        $invoice->save();
+
         $this->sendDocument($invoice);
     }
         
@@ -378,7 +392,7 @@ $this->assertTrue(in_array($item->tax_id, ['1','2']));
         foreach($invoice->line_items as $item)
         {
 
-$this->assertTrue(in_array($item->tax_id, ['1','2']));
+          $this->assertTrue(in_array($item->tax_id, ['1','2']));
           $this->assertEquals($tax_rate, $item->tax_rate1);
         }
 
