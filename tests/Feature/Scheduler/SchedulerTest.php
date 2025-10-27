@@ -416,23 +416,19 @@ class SchedulerTest extends TestCase
            ],
        ];
 
-        
-        
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/task_schedulers', $data);
 
-
-$response = $this->withHeaders([
-    'X-API-SECRET' => config('ninja.api_secret'),
-    'X-API-TOKEN' => $this->token,
-])->postJson('/api/v1/task_schedulers', $data);
-
-        $response->assertStatus(200);
+                $response->assertStatus(200);
 
 
 
-$response = $this->withHeaders([
-    'X-API-SECRET' => config('ninja.api_secret'),
-    'X-API-TOKEN' => $this->token,
-])->postJson('/api/v1/task_schedulers', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/task_schedulers', $data);
 
         $response->assertStatus(422);
 

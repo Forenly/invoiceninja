@@ -96,7 +96,7 @@ class StoreSchedulerRequest extends Request
             'parameters.auto_send' => ['bail','sometimes', 'boolean', 'required_if:template,invoice_outstanding_tasks'],
             'parameters.invoice_id' => ['bail', 'string', 'required_if:template,payment_schedule', new InvoiceWithNoExistingSchedule()],
             'parameters.auto_bill' => ['bail', 'boolean', 'required_if:template,payment_schedule'],
-            'parameters.template' => ['bail', 'sometimes', 'string', Rule::in($this->templates)],
+            'parameters.template' => ['bail', 'sometimes', 'nullable', 'string', Rule::in($this->templates)],
             'parameters.schedule' => ['bail', 'array', 'required_if:template,payment_schedule', 'min:1'],
             'parameters.schedule.*.id' => ['bail','sometimes', 'integer'],
             'parameters.schedule.*.date' => ['bail','sometimes', 'date:Y-m-d'],
