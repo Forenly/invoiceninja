@@ -86,7 +86,7 @@ class RouteServiceProvider extends ServiceProvider
             }
         });
 
-        RateLimiter::for('daily-verify', function ($request) {
+        RateLimiter::for('daily-verify', function (Request $request) {
             if (Ninja::isSelfHost()) {
                 return Limit::none();
             } else {
