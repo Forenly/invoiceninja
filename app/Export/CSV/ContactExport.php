@@ -65,6 +65,7 @@ class ContactExport extends BaseExport
                         });
 
         $query = $this->addDateRange($query, 'client_contacts');
+        $query = $this->filterByUserPermissions($query);
 
         return $query;
 

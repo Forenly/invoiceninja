@@ -92,10 +92,13 @@ class ARSummaryReport extends BaseExport
 
         $this->csv->insertOne($this->buildHeader());
 
-        Client::query()
+        $query = Client::query()
             ->where('company_id', $this->company->id)
-            ->where('is_deleted', 0)
-            ->orderBy('balance', 'desc')
+            ->where('is_deleted', 0);
+
+            $query = $this->filterByUserPermissions($query);
+
+            $query->orderBy('balance', 'desc')
             ->cursor()
             ->each(function ($client) {
 

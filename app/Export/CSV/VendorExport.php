@@ -70,6 +70,7 @@ class VendorExport extends BaseExport
         }
 
         $query = $this->addDateRange($query, 'vendors');
+        $query = $this->filterByUserPermissions($query);
 
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);

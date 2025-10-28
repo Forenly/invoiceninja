@@ -93,6 +93,8 @@ class InvoiceItemExport extends BaseExport
             $query = $this->addInvoiceStatusFilter($query, $this->input['status']);
         }
 
+        $query = $this->filterByUserPermissions($query);
+
         $query = $this->applyProductFilters($query);
 
         if ($this->input['document_email_attachment'] ?? false) {

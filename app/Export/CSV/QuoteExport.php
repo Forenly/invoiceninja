@@ -78,6 +78,8 @@ class QuoteExport extends BaseExport
 
         $query = $this->addQuoteStatusFilter($query, $this->input['status'] ?? '');
 
+        $query = $this->filterByUserPermissions($query);
+
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }

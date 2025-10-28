@@ -79,6 +79,7 @@ class PurchaseOrderItemExport extends BaseExport
         if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
+        $query = $this->filterByUserPermissions($query);
 
         $query = $this->addPurchaseOrderStatusFilter($query, $this->input['status'] ?? '');
 

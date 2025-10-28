@@ -114,6 +114,8 @@ class ExpenseExport extends BaseExport
             $query = $this->addCategoryFilter($query, $this->input['categories']);
         }
 
+        $query = $this->filterByUserPermissions($query);
+
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }

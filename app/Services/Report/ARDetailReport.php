@@ -103,6 +103,7 @@ class ARDetailReport extends BaseExport
         $query = $this->addDateRange($query, 'invoices');
 
         $query = $this->filterByClients($query);
+        $query = $this->filterByUserPermissions($query);
 
         $query->cursor()
             ->each(function ($invoice) {

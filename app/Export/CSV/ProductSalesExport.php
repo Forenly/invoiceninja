@@ -128,6 +128,8 @@ class ProductSalesExport extends BaseExport
 
         $query = $this->filterByClients($query);
 
+        $query = $this->filterByUserPermissions($query);
+
         $query = $this->filterByProducts($query);
 
         $this->csv->insertOne($this->buildHeader());

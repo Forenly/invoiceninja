@@ -136,6 +136,8 @@ class ClientExport extends BaseExport
 
         $query = $this->addDateRange($query, ' clients');
 
+        $query = $this->filterByUserPermissions($query);
+
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }

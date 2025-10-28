@@ -83,6 +83,7 @@ class ProductExport extends BaseExport
         }
 
         $query = $this->addDateRange($query, 'products');
+        $query = $this->filterByUserPermissions($query);
 
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);

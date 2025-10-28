@@ -82,6 +82,7 @@ class QuoteItemExport extends BaseExport
         if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
+        $query = $this->filterByUserPermissions($query);
 
         $query = $this->addQuoteStatusFilter($query, $this->input['status'] ?? '');
 

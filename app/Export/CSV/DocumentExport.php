@@ -81,6 +81,8 @@ class DocumentExport extends BaseExport
 
         $query = $this->addDateRange($query, 'documents');
 
+        $query = $this->filterByUserPermissions($query);
+
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }

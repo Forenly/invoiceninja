@@ -73,6 +73,7 @@ class RecurringInvoiceExport extends BaseExport
         if ($clients) {
             $query = $this->addClientFilter($query, $clients);
         }
+        $query = $this->filterByUserPermissions($query);
 
         $query = $this->addRecurringInvoiceStatusFilter($query, $this->input['status'] ?? '');
 

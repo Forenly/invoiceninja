@@ -123,6 +123,8 @@ class CreditExport extends BaseExport
             $query = $this->addCreditStatusFilter($query, $this->input['status']);
         }
 
+        $query = $this->filterByUserPermissions($query);
+
         if ($this->input['document_email_attachment'] ?? false) {
             $this->queueDocuments($query);
         }

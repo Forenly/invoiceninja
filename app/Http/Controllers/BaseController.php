@@ -1089,7 +1089,7 @@ class BaseController extends Controller
                 $data = $this->first_load;
             }
         } else {
-            $included = request()->input('include', '');
+            $included = request()->input('include') ?? '';
             $included = explode(',', $included);
 
             foreach ($included as $include) {

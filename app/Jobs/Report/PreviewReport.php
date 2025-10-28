@@ -56,7 +56,7 @@ class PreviewReport implements ShouldQueue
     /**
      * Handle a job failure.
      */
-    public function failed(\Throwable $exception = null)
+    public function failed(?\Throwable $exception)
     {
         if($exception) {
             nlog("EXCEPTION:: PreviewReport:: could not preview report for " . $exception->getMessage());

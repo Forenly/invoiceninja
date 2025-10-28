@@ -471,10 +471,10 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return  $this->isSuperUser() ||
-                (stripos($this->token()->cu->permissions, $permission) !== false) ||
-                (stripos($this->token()->cu->permissions, $all_permission) !== false) ||
-                (stripos($this->token()->cu->permissions, $edit_all) !== false) ||
-                (stripos($this->token()->cu->permissions, $edit_entity) !== false);
+                (stripos($this->token()->cu->permissions ?? '', $permission) !== false) ||
+                (stripos($this->token()->cu->permissions ?? '', $all_permission) !== false) ||
+                (stripos($this->token()->cu->permissions ?? '', $edit_all) !== false) ||
+                (stripos($this->token()->cu->permissions ?? '', $edit_entity) !== false);
     }
 
     /**

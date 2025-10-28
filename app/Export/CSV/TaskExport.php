@@ -82,6 +82,12 @@ class TaskExport extends BaseExport
             $query = $this->addClientFilter($query, $clients);
         }
 
+        if($this->input['status'] ?? false){
+            $query = $this->addTaskStatusFilter($query, $this->input['status']);
+        }
+
+        $query = $this->filterByUserPermissions($query);
+
         $document_attachments = &$this->input['document_email_attachment'];
 
         if ($document_attachments) {
@@ -261,6 +267,7 @@ class TaskExport extends BaseExport
      */
     protected function addTaskStatusFilter(Builder $query, string $status): Builder
     {
+        nlog(['addTaskStatusFilter', $status]);
         /** @var array $status_parameters */
         $status_parameters = explode(',', $status);
 
@@ -274,6 +281,16 @@ class TaskExport extends BaseExport
 
         if (in_array('uninvoiced', $status_parameters)) {
             $query->whereNull('invoice_id');
+        }
+
+        $keys = $this->transformKeys($status_parameters);
+
+        $keys = collect($keys)->filter(function ($key){
+            return is_int($key);
+        })->toArray();
+
+        if(count($keys) > 0){
+            $query->whereIn('status_id', $keys);
         }
 
         return $query;

@@ -1710,4 +1710,77 @@ $products = str_getcsv($this->input['product_key'], ',', "'");
         return $entity;
 
     }
+
+    public function filterByUserPermissions(Builder $query): Builder
+    {
+
+        $user = User::withTrashed()->where('id', $this->input['user_id'])->where('account_id', $this->company->account_id)->first();
+
+        if ($user->isAdmin() || $user->hasExactPermission('view_all') || $user->hasExactPermission('edit_all')) { // No State? Do we need to ensure -> isAdmin() binds to the correct company?
+            return $query;
+        }
+
+        if($user->hasExactPermission('create_all')){
+            return $query->where('user_id', $user->id);
+        }
+
+        return $this->resolveEntityFilters($user, $query);
+        
+    }
+
+    private function resolveEntityFilters(User $user, Builder $query): Builder
+    {
+        $model = get_class($query->getModel());
+        $column_listing = \Illuminate\Support\Facades\Schema::getColumnListing($query->getModel()->getTable());
+
+        $model_string = match($model) {
+            'App\Models\Client' => 'client',
+            'App\Models\ClientContact' => 'client',
+            'App\Models\Invoice' => 'invoice',
+            'App\Models\Quote' => 'quote',
+            'App\Models\Credit' => 'credit',
+            'App\Models\PurchaseOrder' => 'purchase_order',
+            'App\Models\RecurringInvoice' => 'recurring_invoice',
+            'App\Models\RecurringExpense' => 'recurring_expense',
+            'App\Models\Task' => 'task',
+            'App\Models\Vendor' => 'vendor',
+            'App\Models\VendorContact' => 'vendor_contact',
+            'App\Models\Product' => 'product',
+            'App\Models\Payment' => 'payment',
+            'App\Models\Expense' => 'expense',
+            'App\Models\Document' => 'document',
+            'App\Models\Activity' => 'activity',
+            'App\Models\Task' => 'task',
+            'App\Models\Project' => 'project',
+            default => false,
+        };
+
+        /** If the User can view or edit the entity, then return the query unfiltered */
+        if($user->hasIntersectPermissions(["view_{$model_string}", "edit_{$model_string}"])){
+            return $query;
+        }
+
+        //Handle Child Models Like ClientContact or VendorContact
+        if(in_array($model, ['App\Models\ClientContact', 'App\Models\VendorContact'])){
+
+            $query->whereHas($model_string, function ($_q) use ($user){
+                $_q->where('user_id', $user->id)->orWhere('assigned_user_id', $user->id);
+            });
+
+            return $query;
+
+        }
+
+        return $query->where(function ($q) use ($user, $column_listing){
+
+            if(in_array('user_id', $column_listing)){
+                $q->where('user_id', $user->id);
+            }
+
+            if(in_array('assigned_user_id', $column_listing)){
+                $q->orWhere('assigned_user_id', $user->id);
+            }
+
+        });
+    }
 }
