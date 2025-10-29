@@ -77,6 +77,8 @@ trait MockAccountData
     use MakesHash;
     use GeneratesCounter;
 
+    public $credit_calc;
+    
     /**
      * @var
      */
@@ -888,7 +890,7 @@ trait MockAccountData
 
         $item = InvoiceItemFactory::create();
         $item->quantity = 1;
-        $item->notes = $this->faker->sentence;
+        $item->notes = $this->faker->sentence();
         $item->cost = 10;
         $item->task_id = $this->encodePrimaryKey($this->task->id);
         $item->expense_id = $this->encodePrimaryKey($this->expense->id);
