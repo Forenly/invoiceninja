@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -27,7 +28,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class MultiPaymentDeleteTest extends TestCase
 {
@@ -291,7 +292,7 @@ class MultiPaymentDeleteTest extends TestCase
             ],
             'date' => '2019/12/12',
         ];
-sleep(1);
+        sleep(1);
 
         $response = $this->withHeaders([
             'X-API-SECRET' => config('ninja.api_secret'),
@@ -351,7 +352,7 @@ sleep(1);
         ])->post('/api/v1/invoices/bulk?action=delete', $data);
 
         $this->assertFalse($invoice->verifactuEnabled());
-        
+
         $response->assertStatus(200);
 
         $this->assertEquals(0, $invoice->fresh()->balance);

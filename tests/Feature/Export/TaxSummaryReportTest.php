@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -27,7 +28,7 @@ use App\Listeners\Invoice\InvoiceTransactionEventEntry;
 use App\Listeners\Invoice\InvoiceTransactionEventEntryCash;
 
 /**
- * 
+ *
  */
 class TaxSummaryReportTest extends TestCase
 {
@@ -111,7 +112,7 @@ class TaxSummaryReportTest extends TestCase
             'notifications' => \App\DataMapper\CompanySettings::notificationDefaults(),
             'settings' => null,
         ]);
-        
+
         $company_token = new \App\Models\CompanyToken();
         $company_token->user_id = $this->user->id;
         $company_token->company_id = $this->company->id;
@@ -219,7 +220,7 @@ class TaxSummaryReportTest extends TestCase
         $i2 = $i2->calc()->getInvoice();
         $i2->service()->markPaid();
 
-        for($x=0; $x<50; $x++){
+        for ($x = 0; $x < 50; $x++) {
 
             $date = now();
 
@@ -243,7 +244,7 @@ class TaxSummaryReportTest extends TestCase
                 'uses_inclusive_taxes' => false,
                 'line_items' => $this->buildLineItems(),
             ]);
-                        
+
             $i3 = $i3->calc()->getInvoice();
 
             $i3 = $i3->service()->markSent()->save();
@@ -287,7 +288,7 @@ class TaxSummaryReportTest extends TestCase
         $i2->service()->applyPaymentAmount(10, 'yadda')->save();
 
         $this->travelTo(now()->addDay());
-        
+
         $i2->service()->applyPaymentAmount(1, 'yadda - 1')->save();
 
         $this->travelTo(now()->addDay());
@@ -304,7 +305,7 @@ class TaxSummaryReportTest extends TestCase
         config(['queue.default' => 'sync']);
 
         $this->assertNotNull($payment);
-        
+
         $data = [
             'id' => $payment->id,
             'amount' => $payment->amount,
@@ -338,7 +339,7 @@ class TaxSummaryReportTest extends TestCase
         config(['queue.default' => 'redis']);
 
         $this->account->delete();
-    
+
     }
 
 
@@ -452,7 +453,7 @@ class TaxSummaryReportTest extends TestCase
 
         $i = $i->calc()->getInvoice();
         $i->service()->markSent()->save();
-        
+
         (new InvoiceTransactionEventEntry())->run($i);
 
         $i2 = Invoice::factory()->create([
@@ -481,13 +482,13 @@ class TaxSummaryReportTest extends TestCase
 
         (new InvoiceTransactionEventEntryCash())->run($i2, now()->subDays(30)->format('Y-m-d'), now()->addDays(30)->format('Y-m-d'));
 
-                // $tr = new \App\Services\Report\XLS\TaxReport($this->company, '2025-01-01', '2025-12-31');
-                // $response = $tr->run()->getXlsFile();
+        // $tr = new \App\Services\Report\XLS\TaxReport($this->company, '2025-01-01', '2025-12-31');
+        // $response = $tr->run()->getXlsFile();
 
-                // $this->assertNotEmpty($response);
+        // $this->assertNotEmpty($response);
 
-                $this->assertNotNull(TransactionEvent::where('invoice_id', $i->id)->first());
-                $this->assertNotNull(TransactionEvent::where('invoice_id', $i2->id)->first());
+        $this->assertNotNull(TransactionEvent::where('invoice_id', $i->id)->first());
+        $this->assertNotNull(TransactionEvent::where('invoice_id', $i2->id)->first());
 
 
         $this->account->delete();

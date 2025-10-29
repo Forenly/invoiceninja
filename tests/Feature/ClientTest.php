@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -37,7 +38,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
- * 
+ *
  *  App\Http\Controllers\ClientController
  */
 class ClientTest extends TestCase
@@ -169,7 +170,7 @@ class ClientTest extends TestCase
             $this->assertEquals($gs->id, $c->group_settings_id);
         });
 
-        foreach($arr['data'] as $client_response) {
+        foreach ($arr['data'] as $client_response) {
 
             $this->assertEquals($gs->hashed_id, $client_response['group_settings_id']);
         }
@@ -206,7 +207,7 @@ class ClientTest extends TestCase
     public function testClientIsPrimaryScalarTransform()
     {
         $data = [
-            
+
                 'address1' => '105 Drive',
                 'address2' => '122',
                 'city' => 'NoRoses',
@@ -226,7 +227,7 @@ class ClientTest extends TestCase
                 'private_notes' => 'DMARC Client | Tenant ID: 45 | Team Name: Targas',
                 'state' => 'Gauteng',
                 'vat_number' => 'VAT: 33'
-            
+
         ];
 
         $response = $this->withHeaders([
@@ -687,16 +688,16 @@ class ClientTest extends TestCase
         ];
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);
         // }
 
-                $response->assertStatus(422);
+        $response->assertStatus(422);
     }
 
     public function testCreatingClientAndContacts()
@@ -781,10 +782,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);
@@ -805,10 +806,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         // }
@@ -832,10 +833,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);
@@ -869,10 +870,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);
@@ -903,10 +904,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->postJson('/api/v1/clients/', $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/clients/', $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);
@@ -938,10 +939,10 @@ class ClientTest extends TestCase
         $response = null;
 
         // try {
-            $response = $this->withHeaders([
-                'X-API-SECRET' => config('ninja.api_secret'),
-                'X-API-TOKEN' => $this->token,
-            ])->putJson('/api/v1/clients/'.$this->client->hashed_id, $data);
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->putJson('/api/v1/clients/'.$this->client->hashed_id, $data);
         // } catch (ValidationException $e) {
         //     $message = json_decode($e->validator->getMessageBag(), 1);
         //     $this->assertNotNull($message);

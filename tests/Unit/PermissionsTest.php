@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -23,7 +24,7 @@ use App\Models\User;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class PermissionsTest extends TestCase
 {
@@ -42,7 +43,7 @@ class PermissionsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         if (\App\Models\Country::count() == 0) {
             \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
         }
@@ -138,7 +139,7 @@ class PermissionsTest extends TestCase
         $this->assertEquals(2, count($data));
 
         $u->forceDelete();
-        
+
         $this->account->forceDelete();
     }
 

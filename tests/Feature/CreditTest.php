@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -53,7 +54,7 @@ class CreditTest extends TestCase
             'balance' => 0,
             'paid_to_date' => 0,
         ]);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -79,7 +80,7 @@ class CreditTest extends TestCase
 
         $repo = new InvoiceRepository();
         $repo->save([], $i);
-        
+
         $i = $i->calc()->getInvoice();
         $i = $i->service()->markPaid()->save(); //paid
 
@@ -122,7 +123,7 @@ class CreditTest extends TestCase
             'id' => $payment->hashed_id,
             'amount' => 100,
             'date' => '2020/12/12',
-            
+
             'invoices' => [
                 [
                     'invoice_id' => $i->hashed_id,
@@ -146,7 +147,7 @@ class CreditTest extends TestCase
         $this->assertEquals(\App\Models\Payment::STATUS_REFUNDED, $payment->status_id);
         $this->assertEquals(0, $credit->balance);
         $this->assertEquals(Credit::STATUS_APPLIED, $credit->status_id);
-        
+
 
         $this->assertEquals(0, $client->paid_to_date);
         $this->assertEquals(0, $client->balance);
@@ -163,7 +164,7 @@ class CreditTest extends TestCase
         $this->assertEquals(0, $client->paid_to_date);
         $this->assertEquals(0, $client->balance);
         $this->assertEquals(0, $credit->balance);
-            
+
         $this->assertEquals(Credit::STATUS_APPLIED, $credit->status_id);
     }
 
@@ -175,7 +176,7 @@ class CreditTest extends TestCase
             'balance' => 0,
             'paid_to_date' => 0,
         ]);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -201,7 +202,7 @@ class CreditTest extends TestCase
 
         $repo = new InvoiceRepository();
         $repo->save([], $i);
-        
+
         $i = $i->calc()->getInvoice();
         $i = $i->service()->markPaid()->save();
 
@@ -233,7 +234,7 @@ class CreditTest extends TestCase
         $i = $i->fresh();
 
         $this->assertEquals(\App\Models\Invoice::STATUS_REVERSED, $i->status_id);
-        
+
         $client = $i->client;
 
         $this->assertEquals(100, $client->credit_balance);
@@ -253,14 +254,14 @@ class CreditTest extends TestCase
 
     public function testPartialAmountWithPartialCreditAndPaymentDeletedBalance()
     {
-             
+
         $c = Client::factory()->create([
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
             'balance' => 0,
             'paid_to_date' => 0,
         ]);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -286,7 +287,7 @@ class CreditTest extends TestCase
 
         $repo = new InvoiceRepository();
         $repo->save([], $i);
-        
+
         $i = $i->calc()->getInvoice();
         $i = $i->service()->markSent()->save();
 
@@ -319,7 +320,7 @@ class CreditTest extends TestCase
         $this->assertEquals(100, $cr->balance);
         $this->assertEquals(100, $cr->amount);
 
-        
+
         $data = [
                 'date' => '2020/12/12',
                 'client_id' => $c->hashed_id,
@@ -370,14 +371,14 @@ class CreditTest extends TestCase
 
     public function testCreditReversalScenarioInvoicePartiallyPaid()
     {
-             
+
         $c = Client::factory()->create([
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
             'balance' => 0,
             'paid_to_date' => 0,
         ]);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -409,7 +410,7 @@ class CreditTest extends TestCase
 
         $i->service()->applyPaymentAmount(50, 'test');
         $i->refresh();
-        
+
         $this->assertEquals(50, $i->balance);
         $this->assertEquals(100, $i->amount);
 
@@ -417,14 +418,14 @@ class CreditTest extends TestCase
         $credit_array['invoice_id'] = $i->hashed_id;
         $credit_array['client_id'] = $c->hashed_id;
         unset($credit_array['backup']);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 50;
         $ii->quantity = 1;
         $ii->product_key = 'xx';
         $ii->notes = 'yy';
 
-        
+
         $credit_array['line_items'] = [];
         $credit_array['line_items'][] = (array)$ii;
 
@@ -452,14 +453,14 @@ class CreditTest extends TestCase
 
     public function testCreditReversalScenarioInvoicePaidInFull()
     {
-             
+
         $c = Client::factory()->create([
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
             'balance' => 0,
             'paid_to_date' => 0,
         ]);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -491,7 +492,7 @@ class CreditTest extends TestCase
 
         $i->service()->applyPaymentAmount(100, 'test');
         $i->refresh();
-        
+
         $this->assertEquals(0, $i->balance);
         $this->assertEquals(100, $i->amount);
         $this->assertEquals(4, $i->status_id);
@@ -501,7 +502,7 @@ class CreditTest extends TestCase
         $credit_array['client_id'] = $c->hashed_id;
 
         unset($credit_array['backup']);
-        
+
         $ii = new InvoiceItem();
         $ii->cost = 100;
         $ii->quantity = 1;
@@ -509,8 +510,8 @@ class CreditTest extends TestCase
         $ii->notes = 'yy';
 
 
-$credit_array['line_items'] = [];
-$credit_array['line_items'][] = (array)$ii;
+        $credit_array['line_items'] = [];
+        $credit_array['line_items'][] = (array)$ii;
 
         $response = $this->withHeaders([
                     'X-API-SECRET' => config('ninja.api_secret'),
@@ -738,7 +739,7 @@ $credit_array['line_items'][] = (array)$ii;
         $this->assertEquals(100, $cr->paid_to_date);
         $this->assertEquals(4, $i->status_id);
 
-        
+
         $this->assertEquals(100, $c->paid_to_date);
         $this->assertEquals(0, $c->balance);
 

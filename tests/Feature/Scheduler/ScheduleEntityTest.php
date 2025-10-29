@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 
 /**
- * 
+ *
  *   App\Services\Scheduler\EmailRecord
  */
 class ScheduleEntityTest extends TestCase

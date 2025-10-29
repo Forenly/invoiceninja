@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -28,7 +29,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *  App\Services\Report\ProfitLoss
  */
 class ProfitAndLossReportTest extends TestCase

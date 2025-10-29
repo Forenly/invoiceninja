@@ -26,7 +26,6 @@ use App\Services\EDocument\Standards\Verifactu\Models\IDOtro;
 
 class VerifactuModelTest extends TestCase
 {
-
     public function test_and_create_new_invoice_for_non_spanish_client(): void
     {
 
@@ -99,17 +98,17 @@ class VerifactuModelTest extends TestCase
         // $invoice->setCupon($cupon);
 
         $xml = $invoice->toXmlString();
-        
-      $xslt = new VerifactuDocumentValidator($xml);
-      $xslt->validate();
-      $errors = $xslt->getVerifactuErrors();
-      
-      if(count($errors) > 0) {
-        nlog($xml);
-        nlog($errors);
-      }
 
-      $this->assertCount(0, $errors);
+        $xslt = new VerifactuDocumentValidator($xml);
+        $xslt->validate();
+        $errors = $xslt->getVerifactuErrors();
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(0, $errors);
 
 
 
@@ -192,17 +191,17 @@ class VerifactuModelTest extends TestCase
         // $invoice->setCupon($cupon);
 
         $xml = $invoice->toXmlString();
-        
-      $xslt = new VerifactuDocumentValidator($xml);
-      $xslt->validate();
-      $errors = $xslt->getVerifactuErrors();
-      
-      if(count($errors) > 0) {
-        nlog($xml);
-        nlog($errors);
-      }
 
-      $this->assertCount(0, $errors);
+        $xslt = new VerifactuDocumentValidator($xml);
+        $xslt->validate();
+        $errors = $xslt->getVerifactuErrors();
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(0, $errors);
 
 
 
@@ -269,8 +268,8 @@ class VerifactuModelTest extends TestCase
         $invoice->setEncadenamiento($encadenamiento);
 
         $xml = $invoice->toXmlString();
-        
-        
+
+
         $xslt = new VerifactuDocumentValidator($xml);
         $xslt->validate();
         $errors = $xslt->getVerifactuErrors();
@@ -363,7 +362,7 @@ class VerifactuModelTest extends TestCase
     public function testInvalidXmlThrowsException(): void
     {
         $this->expectException(\DOMException::class);
-        
+
         $invalidXml = '<?xml version="1.0" encoding="UTF-8"?><unclosed>';
         Invoice::fromXml($invalidXml);
     }
@@ -371,7 +370,7 @@ class VerifactuModelTest extends TestCase
     public function testMissingRequiredFieldsThrowsException(): void
     {
         $invoice = new Invoice();
-        
+
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing required field: IDVersion');
@@ -450,7 +449,7 @@ class VerifactuModelTest extends TestCase
 
         // Generate XML string
         $xml = $invoice->toXmlString();
-        
+
         $xslt = new VerifactuDocumentValidator($xml);
         $xslt->validate();
         $errors = $xslt->getVerifactuErrors();
@@ -465,14 +464,14 @@ class VerifactuModelTest extends TestCase
         // Test deserialization
         $deserialized = Invoice::fromXml($xml);
         $this->assertEquals(2, count($deserialized->getDestinatarios()));
-        
+
         // Verify first recipient (with NIF)
         $this->assertEquals('Cliente 1 SL', $deserialized->getDestinatarios()[0]->getNombreRazon());
         $this->assertEquals('B87654321', $deserialized->getDestinatarios()[0]->getNif());
-        
+
         // Verify second recipient (with IDOtro)
         $this->assertEquals('Client 2 SARL', $deserialized->getDestinatarios()[1]->getNombreRazon());
-        
+
     }
 
     public function testCreateAndSerializeInvoiceWithExemptOperation(): void
@@ -526,24 +525,24 @@ class VerifactuModelTest extends TestCase
 
         // Generate XML string
         $xml = $invoice->toXmlString();
-        
+
         // Debug output
         // echo "\nGenerated XML:\n";
         // echo $xml;
         // echo "\n\n";
-        
-        
 
-      $xslt = new VerifactuDocumentValidator($xml);
-      $xslt->validate();
-      $errors = $xslt->getVerifactuErrors();
-      
-      if(count($errors) > 0) {
-        nlog($xml);
-        nlog($errors);
-      }
 
-      $this->assertCount(1, $errors);
+
+        $xslt = new VerifactuDocumentValidator($xml);
+        $xslt->validate();
+        $errors = $xslt->getVerifactuErrors();
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(1, $errors);
 
 
 
@@ -614,23 +613,23 @@ class VerifactuModelTest extends TestCase
 
         // Generate XML string
         $xml = $invoice->toXmlString();
-        
+
         // Debug output
         // echo "\nGenerated XML:\n";
         // echo $xml;
         // echo "\n\n";
-        
-        
-      $xslt = new VerifactuDocumentValidator($xml);
-      $xslt->validate();
-      $errors = $xslt->getVerifactuErrors();
-      
-      if(count($errors) > 0) {
-        nlog($xml);
-        nlog($errors);
-      }
 
-      $this->assertCount(1, $errors);
+
+        $xslt = new VerifactuDocumentValidator($xml);
+        $xslt->validate();
+        $errors = $xslt->getVerifactuErrors();
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(1, $errors);
 
 
         // Test deserialization
@@ -690,23 +689,23 @@ class VerifactuModelTest extends TestCase
 
         // Generate XML string
         $xml = $invoice->toXmlString();
-        
+
         // Debug output
         // echo "\nGenerated XML:\n";
         // echo $xml;
         // echo "\n\n";
-        
-        
-      $xslt = new VerifactuDocumentValidator($xml);
-      $xslt->validate();
-      $errors = $xslt->getVerifactuErrors();
-      
-      if(count($errors) > 0) {
-        nlog($xml);
-        nlog($errors);
-      }
 
-      $this->assertCount(1, $errors);
+
+        $xslt = new VerifactuDocumentValidator($xml);
+        $xslt->validate();
+        $errors = $xslt->getVerifactuErrors();
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(1, $errors);
 
 
         // Test deserialization
@@ -719,7 +718,7 @@ class VerifactuModelTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid TipoFactura value');
-        
+
         $invoice = new Invoice();
         $invoice
             ->setIdVersion('1.0')
@@ -734,7 +733,7 @@ class VerifactuModelTest extends TestCase
     public function testInvalidTipoRectificativaThrowsException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        
+
         $invoice = new Invoice();
         $invoice
             ->setIdVersion('1.0')
@@ -770,7 +769,7 @@ class VerifactuModelTest extends TestCase
     public function testInvalidNIFFormatThrowsException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        
+
         $invoice = new Invoice();
         $invoice
             ->setIdVersion('1.0')
@@ -811,7 +810,7 @@ class VerifactuModelTest extends TestCase
     public function testInvalidAmountFormatThrowsException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        
+
         $invoice = new Invoice();
         $invoice
             ->setIdVersion('1.0')
@@ -845,7 +844,7 @@ class VerifactuModelTest extends TestCase
     public function testInvalidSchemaThrowsException(): void
     {
         $this->expectException(\DOMException::class);
-        
+
         $invoice = new Invoice();
         $invoice->setIdVersion('1.0')
             ->setIdFactura((new \App\Services\EDocument\Standards\Verifactu\Models\IDFactura())
@@ -900,7 +899,7 @@ class VerifactuModelTest extends TestCase
         $invalidElement = $doc->createElementNS('https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd', 'sum1:InvalidElement');
         $invalidElement->textContent = 'test';
         $doc->documentElement->appendChild($invalidElement);
-        
+
         // Try to validate the invalid XML using our validateXml method
         $reflectionClass = new \ReflectionClass(Invoice::class);
         $validateXmlMethod = $reflectionClass->getMethod('validateXml');
@@ -941,7 +940,7 @@ class VerifactuModelTest extends TestCase
             if (!$doc->loadXML($xml, LIBXML_NOBLANKS)) {
                 throw new \DOMException('Failed to load XML in assertValidatesAgainstXsd');
             }
-            
+
             libxml_use_internal_errors(true);
             $result = $doc->schemaValidate($xsdPath);
             if (!$result) {
@@ -949,7 +948,7 @@ class VerifactuModelTest extends TestCase
                 }
                 libxml_clear_errors();
             }
-            
+
             $this->assertTrue(
                 $result,
                 'XML does not validate against XSD schema'
@@ -963,4 +962,4 @@ class VerifactuModelTest extends TestCase
     {
         return __DIR__ . '/../schema/SuministroInformacion.xsd';
     }
-} 
+}

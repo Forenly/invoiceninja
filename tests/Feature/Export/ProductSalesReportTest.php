@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -26,7 +27,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *  App\Services\Report\ProductSalesExport
  */
 class ProductSalesReportTest extends TestCase
@@ -112,7 +113,7 @@ class ProductSalesReportTest extends TestCase
             'notifications' => \App\DataMapper\CompanySettings::notificationDefaults(),
             'settings' => null,
         ]);
-        
+
         $company_token = new \App\Models\CompanyToken();
         $company_token->user_id = $this->user->id;
         $company_token->company_id = $this->company->id;
@@ -129,7 +130,7 @@ class ProductSalesReportTest extends TestCase
         $truth->setUser($this->user);
         $truth->setCompany($this->company);
 
-        
+
         $this->payload = [
             'start_date' => '2000-01-01',
             'end_date' => '2030-01-11',

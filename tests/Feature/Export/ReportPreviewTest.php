@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -33,7 +34,7 @@ use Tests\MockAccountData;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class ReportPreviewTest extends TestCase
 {
@@ -447,7 +448,7 @@ class ReportPreviewTest extends TestCase
             'date_range' => 'all',
             'report_keys' => ['client.name','client.balance','contact.email'],
             'include_deleted' => false,
-            'user_id' => $this->user->id,   
+            'user_id' => $this->user->id,
         ];
 
         $p = (new PreviewReport($this->company, $data, ContactExport::class, '123'))->handle();

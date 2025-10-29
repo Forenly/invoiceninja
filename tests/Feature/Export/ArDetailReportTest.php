@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -25,7 +26,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class ArDetailReportTest extends TestCase
 {
@@ -117,7 +118,7 @@ class ArDetailReportTest extends TestCase
             'notifications' => \App\DataMapper\CompanySettings::notificationDefaults(),
             'settings' => null,
         ]);
-        
+
         $company_token = new \App\Models\CompanyToken();
         $company_token->user_id = $this->user->id;
         $company_token->company_id = $this->company->id;

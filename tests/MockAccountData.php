@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -78,7 +79,7 @@ trait MockAccountData
     use GeneratesCounter;
 
     public $credit_calc;
-    
+
     /**
      * @var
      */
@@ -210,7 +211,7 @@ trait MockAccountData
     {
         config(['database.default' => config('ninja.db.default')]);
 
-        if(Country::count() == 0){
+        if (Country::count() == 0) {
             Artisan::call('db:seed', ['--force' => true]);
         }
 
@@ -311,7 +312,7 @@ trait MockAccountData
         $company_token->save();
 
         // $user->setContext($this->company, $company_token);
-        
+
         $truth = app()->make(TruthSource::class);
         $truth->setCompanyUser($company_token->first());
         $truth->setUser($this->user);
@@ -655,7 +656,7 @@ trait MockAccountData
 
         $this->credit->save();
 
-        
+
         $repo = new CreditRepository();
         $repo->save([], $this->credit);
 

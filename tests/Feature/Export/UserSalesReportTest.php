@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class UserSalesReportTest extends TestCase
 {
@@ -111,7 +112,7 @@ class UserSalesReportTest extends TestCase
             'notifications' => \App\DataMapper\CompanySettings::notificationDefaults(),
             'settings' => null,
         ]);
-        
+
         $company_token = new \App\Models\CompanyToken();
         $company_token->user_id = $this->user->id;
         $company_token->company_id = $this->company->id;
@@ -128,7 +129,7 @@ class UserSalesReportTest extends TestCase
         $truth->setUser($this->user);
         $truth->setCompany($this->company);
 
-        
+
         $this->payload = [
             'start_date' => '2000-01-01',
             'end_date' => '2030-01-11',

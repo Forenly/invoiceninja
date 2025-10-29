@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -24,7 +25,7 @@ use Tests\MockAccountData;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *   App\Helpers\Invoice\InvoiceSum
  */
 class InvoiceTest extends TestCase
@@ -175,7 +176,7 @@ class InvoiceTest extends TestCase
 
     public function testDeletingCancelledAndTrashedInvoicePayment()
     {
-        
+
         $c = \App\Models\Client::factory()->create([
             'user_id' => $this->user->id,
             'company_id' => $this->company->id,
@@ -252,7 +253,7 @@ class InvoiceTest extends TestCase
         $payment->service()->deletePayment(false)->save();
 
         $ii = $ii->fresh();
-        
+
         $this->assertEquals(0, $ii->balance);
         $this->assertEquals(0, $ii->paid_to_date);
         $this->assertEquals(5, $ii->status_id);
@@ -261,7 +262,7 @@ class InvoiceTest extends TestCase
 
     public function testDeletingCancelledInvoicePayment()
     {
-        
+
         $c = \App\Models\Client::factory()->create([
             'user_id' => $this->user->id,
             'company_id' => $this->company->id,
@@ -335,7 +336,7 @@ class InvoiceTest extends TestCase
         $payment->service()->deletePayment(false)->save();
 
         $ii = $ii->fresh();
-        
+
         $this->assertEquals(0, $ii->balance);
         $this->assertEquals(0, $ii->paid_to_date);
         $this->assertEquals(5, $ii->status_id);
@@ -344,7 +345,7 @@ class InvoiceTest extends TestCase
 
     public function testRefundPaidToDateRelation()
     {
-                
+
         $c = \App\Models\Client::factory()->create([
             'user_id' => $this->user->id,
             'company_id' => $this->company->id,
@@ -380,7 +381,7 @@ class InvoiceTest extends TestCase
 
         $this->assertEquals(10, $ii->balance);
         $this->assertEquals(2, $ii->status_id);
-        
+
         $ii = $ii->service()->markPaid()->save();
 
         $this->assertEquals(10, $ii->amount);
@@ -394,7 +395,7 @@ class InvoiceTest extends TestCase
         $this->assertEquals(10, $p->applied);
         $this->assertEquals(0, $p->refunded);
 
-        $refund_data['gateway_refund']=false;
+        $refund_data['gateway_refund'] = false;
         $refund_data['invoices'][] = [
             'invoice_id' => $ii->id,
             'amount' => 10

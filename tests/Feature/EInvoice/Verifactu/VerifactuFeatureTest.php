@@ -59,7 +59,7 @@ class VerifactuFeatureTest extends TestCase
 
         $this->markTestSkipped('We do not run these unattended as they attempt to hit the AEAT web service');
     }
-    
+
     /**
      * Helper to stub test data.
      *
@@ -88,7 +88,7 @@ class VerifactuFeatureTest extends TestCase
 
         $this->user = $u;
 
-        if(!$settings) {
+        if (!$settings) {
             $settings = CompanySettings::defaults();
             $settings->client_online_payment_notification = false;
             $settings->client_manual_payment_notification = false;
@@ -174,10 +174,10 @@ class VerifactuFeatureTest extends TestCase
         $item->notes = 'Test item';
         $item->tax_name1 = 'IVA';
         $item->tax_rate1 = 21;
-        $item->discount =0;
+        $item->discount = 0;
 
         $line_items[] = $item;
-        
+
         $invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'company_id' => $this->company->id,
@@ -207,10 +207,10 @@ class VerifactuFeatureTest extends TestCase
                         ->service()
                         ->markSent()
                         ->save();
-                        
+
         return $invoice;
     }
-    
+
     /**
      * test_construction_and_validation
      *
@@ -219,9 +219,9 @@ class VerifactuFeatureTest extends TestCase
      */
     public function test_construction_and_validation()
     {
-// - current previous hash - 10C643EDC7DC727FAC6BAEBAAC7BEA67B5C1369A5A5ED74E5AD3149FC30A3C8C
-//BE95547AA8B973A3D6A860B36833FBDE3C8AB853F4B8F05872574A5DA7314A23
-// - current previous invoice number - TEST0033343443
+        // - current previous hash - 10C643EDC7DC727FAC6BAEBAAC7BEA67B5C1369A5A5ED74E5AD3149FC30A3C8C
+        //BE95547AA8B973A3D6A860B36833FBDE3C8AB853F4B8F05872574A5DA7314A23
+        // - current previous invoice number - TEST0033343443
 
         $invoice = $this->buildData();
 
@@ -271,7 +271,7 @@ class VerifactuFeatureTest extends TestCase
         $this->assertNotEmpty($verifactu->getEnvelope());
 
         $envelope = $verifactu->getEnvelope();
-        
+
         $this->assertNotEmpty($envelope);
 
         // In test mode, we don't actually send to the service
@@ -291,12 +291,12 @@ class VerifactuFeatureTest extends TestCase
 
         $xx->forceDelete();
     }
-    
+
     /**
      * testBuildInvoiceCancellation
      *
      * test cancellation of an invoice and sending to AEAT
-     * 
+     *
      * @return void
      */
     public function testBuildInvoiceCancellation()
@@ -363,11 +363,11 @@ class VerifactuFeatureTest extends TestCase
 
     }
 
-    
-    
+
+
     /**
      * test_invoice_modification_validation
-     * 
+     *
      * Test that the modified invoice passes the validation rules
      * @return void
      */
@@ -393,12 +393,12 @@ class VerifactuFeatureTest extends TestCase
 
         $items = $invoice->line_items;
 
-        foreach($items as &$item) {
+        foreach ($items as &$item) {
             $item->quantity = -1;
         }
 
         $invoice->line_items = $items;
-        
+
         $repo = new InvoiceRepository();
         $invoice = $repo->save($invoice->toArray(), $invoice);
         $invoice = $invoice->service()->markSent()->save();
@@ -412,13 +412,13 @@ class VerifactuFeatureTest extends TestCase
                 ->getInvoice();
 
         $soapXml = $document2->toSoapEnvelope();
-                    
+
         $this->assertNotNull($document2->getHuella());
-        
+
         nlog("huella: " . $document2->getHuella());
 
         nlog($soapXml);
-        
+
         $xslt = new VerifactuDocumentValidator($soapXml);
         $xslt->validate();
         $errors = $xslt->getVerifactuErrors();
@@ -432,11 +432,11 @@ class VerifactuFeatureTest extends TestCase
         $this->assertCount(0, $errors);
 
     }
-    
+
     /**
      * test_invoice_invoice_modification
      * Creates a new invoice and sends to AEAT, follows with a matching credit note that is then sent to AEAT
-     * 
+     *
      * @return void
      */
     public function test_invoice_invoice_modification_and_create_cancellation_of_rectification_invoice()
@@ -467,7 +467,7 @@ class VerifactuFeatureTest extends TestCase
         nlog($document->toSoapEnvelope());
 
         $response = $verifactu->send($document->toSoapEnvelope());
-       
+
         $this->assertNotNull($response);
         $this->assertArrayHasKey('success', $response);
         $this->assertTrue($response['success']);
@@ -480,14 +480,14 @@ class VerifactuFeatureTest extends TestCase
         $invoice2->backup->document_type = 'R2';
         $items = $invoice2->line_items;
 
-        foreach($items as &$item) {
+        foreach ($items as &$item) {
             $item->quantity = -1;
         }
 
         $invoice2->line_items = $items;
-                
+
         $invoice2->save();
-        
+
         $data = $invoice2->toArray();
         $data['client_id'] = $invoice->client_id;
         unset($data['id']);
@@ -497,7 +497,7 @@ class VerifactuFeatureTest extends TestCase
         $invoice2 = $invoice2->service()->markSent()->save();
 
         $this->assertEquals(-121, $invoice2->amount);
-        
+
         $verifactu2 = new Verifactu($invoice2);
         $document2 = $verifactu2->setTestMode()
                 ->setPreviousHash($document->getHuella())
@@ -512,7 +512,7 @@ class VerifactuFeatureTest extends TestCase
         $this->assertArrayHasKey('success', $response);
         $this->assertTrue($response['success']);
 
-//Lets try and cancel the credit note now - we should fail!!
+        //Lets try and cancel the credit note now - we should fail!!
         $verifactu = new Verifactu($invoice2);
         $document = (new RegistroAlta($invoice2))->run()->getInvoice();
         $huella = $this->cancellationHash($document, $document2->getHuella());
@@ -544,8 +544,8 @@ class VerifactuFeatureTest extends TestCase
 
     }
 
-        public function test_rectification_invoice()
-        {
+    public function test_rectification_invoice()
+    {
         $soapXml = <<<XML
                     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd" xmlns:sum1="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd">
                     <soapenv:Header/>
@@ -628,7 +628,7 @@ class VerifactuFeatureTest extends TestCase
         $xslt->validate();
         $errors = $xslt->getVerifactuErrors();
 
-        if(count($errors) > 0) {
+        if (count($errors) > 0) {
             nlog('Errors:');
             nlog($errors);
             nlog('Errors:');
@@ -661,7 +661,7 @@ class VerifactuFeatureTest extends TestCase
 
         nlog($rx);
 
-        }
+    }
 
 
 
@@ -672,16 +672,16 @@ class VerifactuFeatureTest extends TestCase
     {
         // Create a complete R1 invoice with all required elements matching the exact XML structure
         $invoice = new VerifactuInvoice();
-        
+
         // Set required properties using setter methods to match the expected XML exactly
         $invoice->setIdVersion('1.0');
-        
+
         $idFactura = new IDFactura();
         $idFactura->setIdEmisorFactura('A39200019');
         $idFactura->setNumSerieFactura('TEST0033343444');
         $idFactura->setFechaExpedicionFactura('09-08-2025');
         $invoice->setIdFactura($idFactura);
-        
+
         $invoice->setNombreRazonEmisor('CERTIFICADO FISICA PRUEBAS');
         $invoice->setTipoFactura(VerifactuInvoice::TIPO_FACTURA_RECTIFICATIVA);
         $invoice->setTipoRectificativa('S');
@@ -695,7 +695,7 @@ class VerifactuFeatureTest extends TestCase
         // Set up rectification details exactly as in the expected XML
         $invoice->setRectifiedInvoice('A39200019', 'TEST0033343443', '09-08-2025');
 
-        
+
         $importeRectificacion = [
             'BaseRectificada' => 100.00,
             'CuotaRectificada' => 21.00,
@@ -725,7 +725,7 @@ class VerifactuFeatureTest extends TestCase
         $this->assertStringContainsString('xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"', $soapXml);
         $this->assertStringContainsString('xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"', $soapXml);
         $this->assertStringContainsString('xmlns:sum1="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd"', $soapXml);
-        
+
         // Verify SOAP structure
         $this->assertStringContainsString('<soapenv:Header/>', $soapXml);
         $this->assertStringContainsString('<soapenv:Body>', $soapXml);
@@ -734,7 +734,7 @@ class VerifactuFeatureTest extends TestCase
         $this->assertStringContainsString('<sum1:ObligadoEmision>', $soapXml);
         $this->assertStringContainsString('<sum:RegistroFactura>', $soapXml);
         $this->assertStringContainsString('<sum1:RegistroAlta>', $soapXml);
-        
+
         // Verify elements are in exact order as per the expected XML
         $expectedOrder = [
             'IDVersion',
@@ -834,7 +834,7 @@ class VerifactuFeatureTest extends TestCase
     }
 
 
-////////////////////////////////////////////////
+    ////////////////////////////////////////////////
     private function cancellationHash($document, $huella)
     {
 
@@ -849,14 +849,14 @@ class VerifactuFeatureTest extends TestCase
             "Huella={$huella}&" .
             "FechaHoraHusoGenRegistro={$fechaHoraHusoGenRegistro}";
 
-            nlog("Cancellation Huella: " . $hashInput);
+        nlog("Cancellation Huella: " . $hashInput);
 
         return strtoupper(hash('sha256', $hashInput));
 
     }
 
 
-      //@todo - need to test that the user has granted power of attorney to the system 
+    //@todo - need to test that the user has granted power of attorney to the system
     //@todo - data must be written to the database to confirm this.
     public function test_verifactu_authority()
     {
@@ -868,10 +868,10 @@ class VerifactuFeatureTest extends TestCase
     }
 
 
-//@todo - need to confirm that building the xml and sending works.
+    //@todo - need to confirm that building the xml and sending works.
     public function test_verifactu_invoice_model_can_build_xml()
     {
-                    
+
         // Generate current timestamp in the correct format
         $currentTimestamp = now()->setTimezone('Europe/Madrid')->format('Y-m-d\TH:i:s');
 
@@ -911,16 +911,16 @@ class VerifactuFeatureTest extends TestCase
         $invoice->setDesglose($desglose);
 
 
-$destinatarios = [];
-$destinatario = new PersonaFisicaJuridica();
+        $destinatarios = [];
+        $destinatario = new PersonaFisicaJuridica();
 
-$destinatario
-    ->setNif('A39200020')
-    ->setNombreRazon('Empresa Ejemplo SL VV');
+        $destinatario
+            ->setNif('A39200020')
+            ->setNombreRazon('Empresa Ejemplo SL VV');
 
-$destinatarios[] = $destinatario;
+        $destinatarios[] = $destinatario;
 
-$invoice->setDestinatarios($destinatarios);
+        $invoice->setDestinatarios($destinatarios);
 
         // Add information system
         $sistema = new SistemaInformatico();
@@ -942,13 +942,13 @@ $invoice->setDestinatarios($destinatarios);
 
         $this->assertNotNull($soapXml);
 
-     nlog($soapXml);
+        nlog($soapXml);
     }
 
     //@todo - need to confirm that building the xml and sending works.
     public function test_generated_invoice_xml_can_send_to_web_service()
     {
-                    
+
         // Generate current timestamp in the correct format
         $currentTimestamp = now()->setTimezone('Europe/Madrid')->format('Y-m-d\TH:i:s');
 
@@ -1073,7 +1073,7 @@ $invoice->setDestinatarios($destinatarios);
     {
         // Generate current timestamp in the correct format
         // $currentTimestamp = date('Y-m-d\TH:i:sP');
-                
+
         $currentTimestamp = now()->setTimezone('Europe/Madrid')->format('Y-m-d\TH:i:sP');
         $invoice_number = 'TEST0033343443';
         $previous_invoice_number = 'TEST0033343442';
@@ -1081,7 +1081,7 @@ $invoice->setDestinatarios($destinatarios);
         $previous_hash = '10C643EDC7DC727FAC6BAEBAAC7BEA67B5C1369A5A5ED74E5AD3149FC30A3C8C';
         $nif = 'A39200019';
 
-                $soapXml = <<<XML
+        $soapXml = <<<XML
         <?xml version="1.0" encoding="UTF-8"?>
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
             xmlns:sum="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"
@@ -1160,18 +1160,18 @@ $invoice->setDestinatarios($destinatarios);
         // Calculate the correct hash using AEAT's specified format
         $correctHash = $this->calculateVerifactuHash(
             $nif,           // IDEmisorFactura
-            $invoice_number,            // NumSerieFactura  
+            $invoice_number, // NumSerieFactura
             $invoice_date,          // FechaExpedicionFactura
             'F1',                  // TipoFactura
             '21.00',               // CuotaTotal
             '121.00',              // ImporteTotal
             $previous_hash,                    // Huella (empty for first calculation)
             $currentTimestamp      // FechaHoraHusoGenRegistro (current time)
-        );  
-        
+        );
+
         // Replace the placeholder with the correct hash
         $soapXml = str_replace('PLACEHOLDER_HUELLA', $correctHash, $soapXml);
-        
+
         nlog('Calculated hash for XML: ' . $correctHash);
 
         // Sign the XML before sending
@@ -1181,7 +1181,7 @@ $invoice->setDestinatarios($destinatarios);
         $soapXml = $signingService->sign();
 
         nlog($soapXml);
-        
+
         // Try direct HTTP approach instead of SOAP client
         $response = Http::withHeaders([
                 'Content-Type' => 'text/xml; charset=utf-8',
@@ -1202,12 +1202,12 @@ $invoice->setDestinatarios($destinatarios);
         nlog('Response Status: ' . $response->status());
         nlog('Response Headers: ' . json_encode($response->headers()));
         nlog('Response Body: ' . $response->body());
-        
+
         if (!$response->successful()) {
             \Log::error('Request failed with status: ' . $response->status());
             \Log::error('Response body: ' . $response->body());
         }
-        
+
         $this->assertTrue($response->successful());
 
 
@@ -1226,7 +1226,7 @@ $invoice->setDestinatarios($destinatarios);
      */
     private function calculateVerifactuHash(
         string $idEmisorFactura,
-        string $numSerieFactura, 
+        string $numSerieFactura,
         string $fechaExpedicionFactura,
         string $tipoFactura,
         string $cuotaTotal,
@@ -1243,9 +1243,9 @@ $invoice->setDestinatarios($destinatarios);
                     "ImporteTotal={$importeTotal}&" .
                     "Huella={$huella}&" .
                     "FechaHoraHusoGenRegistro={$fechaHoraHusoGenRegistro}";
-        
+
         nlog('Hash input string: ' . $hashInput);
-        
+
         // Calculate SHA256 hash and return in uppercase
         return strtoupper(hash('sha256', $hashInput));
     }

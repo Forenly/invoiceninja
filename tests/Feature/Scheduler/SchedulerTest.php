@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -34,7 +35,7 @@ use App\Http\Requests\TaskScheduler\PaymentScheduleRequest;
 use App\Utils\Traits\MakesDates;
 
 /**
- * 
+ *
  *   App\Services\Scheduler\SchedulerService
  */
 class SchedulerTest extends TestCase
@@ -74,7 +75,7 @@ class SchedulerTest extends TestCase
         $this->company->save();
 
         \App\Models\Credit::where('client_id', $this->client->id)->delete();
-        
+
         $invoice = Invoice::factory()->create([
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
@@ -126,7 +127,7 @@ class SchedulerTest extends TestCase
         $scheduler = Scheduler::find($this->decodePrimaryKey($arr['data']['id']));
 
         $this->assertNotNull($scheduler);
-   
+
         $scheduler->service()->runTask();
 
         $invoice = $invoice->fresh();
@@ -160,7 +161,7 @@ class SchedulerTest extends TestCase
         $this->company->save();
 
         \App\Models\Credit::where('client_id', $this->client->id)->delete();
-        
+
         $invoice = Invoice::factory()->create([
             'company_id' => $this->company->id,
             'user_id' => $this->user->id,
@@ -212,7 +213,7 @@ class SchedulerTest extends TestCase
         $scheduler = Scheduler::find($this->decodePrimaryKey($arr['data']['id']));
 
         $this->assertNotNull($scheduler);
-   
+
         $scheduler->service()->runTask();
 
         $invoice = $invoice->fresh();
@@ -296,7 +297,7 @@ class SchedulerTest extends TestCase
         $scheduler = Scheduler::find($this->decodePrimaryKey($arr['data']['id']));
 
         $this->assertNotNull($scheduler);
-   
+
         $scheduler->service()->runTask();
 
         $invoice = $invoice->fresh();
@@ -368,7 +369,7 @@ class SchedulerTest extends TestCase
         $scheduler = Scheduler::find($this->decodePrimaryKey($arr['data']['id']));
 
         $this->assertNotNull($scheduler);
-   
+
         $scheduler->service()->runTask();
 
         $invoice = $invoice->fresh();
@@ -390,7 +391,7 @@ class SchedulerTest extends TestCase
         ]);
 
         $invoice->service()->markSent()->save();
-        
+
         $data = [
            'name' => 'A test payment schedule scheduler',
            'frequency_id' => 0,
@@ -445,7 +446,7 @@ class SchedulerTest extends TestCase
         ]);
 
         $invoice->service()->markSent()->save();
-        
+
         $data = [
             'schedule' => [
                 [
@@ -463,7 +464,7 @@ class SchedulerTest extends TestCase
             ],
             'auto_bill' => true,
         ];
-        
+
         $response = $this->withHeaders([
             'X-API-SECRET' => config('ninja.api_secret'),
             'X-API-TOKEN' => $this->token,
@@ -472,7 +473,7 @@ class SchedulerTest extends TestCase
         $response->assertStatus(422);
 
     }
-    
+
     public function testPaymentScheduleWithPercentageBasedSchedule()
     {
         $invoice = Invoice::factory()->create([
@@ -486,7 +487,7 @@ class SchedulerTest extends TestCase
         ]);
 
         $invoice->service()->markSent()->save();
-        
+
         $data = [
             'schedule' => [
                 [
@@ -505,7 +506,7 @@ class SchedulerTest extends TestCase
             'auto_bill' => true,
             'next_run' => now()->addDay()->format('Y-m-d'),
         ];
-        
+
         $response = $this->withHeaders([
                     'X-API-SECRET' => config('ninja.api_secret'),
                     'X-API-TOKEN' => $this->token,
@@ -514,7 +515,7 @@ class SchedulerTest extends TestCase
         $response->assertStatus(200);
 
         $arr = $response->json();
-    
+
         $this->assertEquals(2, count($arr['data']['schedule']));
         $this->assertEquals(now()->format($this->company->date_format()), $arr['data']['schedule'][0]['date']);
         $this->assertEquals(now()->addDays(30)->format($this->company->date_format()), $arr['data']['schedule'][1]['date']);
@@ -534,7 +535,7 @@ class SchedulerTest extends TestCase
         ]);
 
         $invoice->service()->markSent()->save();
-        
+
         $data = [
             'schedule' => [
                 [
@@ -553,7 +554,7 @@ class SchedulerTest extends TestCase
             'auto_bill' => true,
             'next_run' => now()->addDay()->format('Y-m-d'),
         ];
-        
+
         $response = $this->withHeaders([
                     'X-API-SECRET' => config('ninja.api_secret'),
                     'X-API-TOKEN' => $this->token,
@@ -562,7 +563,7 @@ class SchedulerTest extends TestCase
         $response->assertStatus(200);
 
         $arr = $response->json();
-        
+
         $this->assertEquals(2, count($arr['data']['schedule']));
         $this->assertEquals(now()->format($this->company->date_format()), $arr['data']['schedule'][0]['date']);
         $this->assertEquals(now()->addDays(30)->format($this->company->date_format()), $arr['data']['schedule'][1]['date']);
@@ -581,15 +582,15 @@ class SchedulerTest extends TestCase
         ]);
 
         $invoice->service()->markSent()->save();
-        
-        
+
+
         $data = [
             'frequency_id' => 5, // Monthly
             'remaining_cycles' => 3,
             'auto_bill' => false,
             'next_run' => now()->addDays(30)->format('Y-m-d'),
         ];
-        
+
         $response = $this->withHeaders([
                 'X-API-SECRET' => config('ninja.api_secret'),
                 'X-API-TOKEN' => $this->token,
@@ -629,14 +630,14 @@ class SchedulerTest extends TestCase
 
         $offset = -3600;
 
-        $next_schedule = collect($data)->first(function ($item) use ($offset){
+        $next_schedule = collect($data)->first(function ($item) use ($offset) {
             return now()->startOfDay()->eq(Carbon::parse($item['date'])->subSeconds($offset)->startOfDay());
         });
 
         $this->assertNotNull($next_schedule);
 
         $this->assertEquals(Carbon::parse($next_schedule['date'])->format($this->company->date_format()), now()->format($this->company->date_format()));
-        
+
         $this->travelTo(now()->addDays(1));
 
         $next_schedule = collect($data)->first(function ($item) use ($offset) {
@@ -646,7 +647,7 @@ class SchedulerTest extends TestCase
         $this->assertNotNull($next_schedule);
 
         $this->assertEquals(Carbon::parse($next_schedule['date'])->format($this->company->date_format()), now()->format($this->company->date_format()));
-        
+
     }
 
     public function testInvoiceOutstandingTasks()

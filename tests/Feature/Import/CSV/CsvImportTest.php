@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -25,7 +26,7 @@ use Tests\MockAccountData;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *  App\Import\Providers\Csv
  */
 class CsvImportTest extends TestCase
@@ -120,7 +121,7 @@ class CsvImportTest extends TestCase
         Cache::put($hash.'-recurring_invoice', base64_encode($csv), 360);
 
         // $this->user->setContext($this->company, $this->token);
-        
+
         $truth = app()->make(TruthSource::class);
         $truth->setCompanyUser($this->cu);
         $truth->setUser($this->user);
@@ -358,7 +359,7 @@ class CsvImportTest extends TestCase
         Cache::put($hash.'-invoice', base64_encode($csv), 360);
 
         // $this->user->setContext($this->company, $this->token);
-        
+
         // $truth = app()->make(TruthSource::class);
         // $truth->setCompanyUser($this->cu);
         // $truth->setUser($this->user);
