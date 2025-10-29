@@ -76,7 +76,7 @@ class ARSummaryReport extends BaseExport
         $t = app('translator');
         $t->replace(Ninja::transformTranslations($this->company->settings));
 
-        $this->csv = Writer::createFromString();
+        $this->csv = Writer::fromString();
         \League\Csv\CharsetConverter::addTo($this->csv, 'UTF-8', 'UTF-8');
 
         $this->csv->insertOne([]);
@@ -101,7 +101,7 @@ class ARSummaryReport extends BaseExport
             $query->orderBy('balance', 'desc')
             ->cursor()
             ->each(function ($client) {
-
+                /** @var \App\Models\Client $client */
                 $this->csv->insertOne($this->buildRow($client));
 
             });

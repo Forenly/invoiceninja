@@ -54,7 +54,7 @@ class VendorExport extends BaseExport
         $t->replace(Ninja::transformTranslations($this->company->settings));
 
         //load the CSV document from a string
-        $this->csv = Writer::createFromString();
+        $this->csv = Writer::fromString();
         \League\Csv\CharsetConverter::addTo($this->csv, 'UTF-8', 'UTF-8');
 
         if (count($this->input['report_keys']) == 0) {

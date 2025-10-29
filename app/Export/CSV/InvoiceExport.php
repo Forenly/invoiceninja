@@ -123,7 +123,7 @@ class InvoiceExport extends BaseExport
         $query = $this->init();
 
         //load the CSV document from a string
-        $this->csv = Writer::createFromString();
+        $this->csv = Writer::fromString();
         \League\Csv\CharsetConverter::addTo($this->csv, 'UTF-8', 'UTF-8');
 
         if ($tax_amount_position = array_search('invoice.total_taxes', $this->input['report_keys'])) {

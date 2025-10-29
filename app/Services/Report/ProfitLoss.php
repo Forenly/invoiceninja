@@ -360,7 +360,7 @@ class ProfitLoss
         nlog($this->income_taxes);
         nlog(array_sum(array_column($this->expense_break_down, 'total')));
 
-        $csv = Writer::createFromString();
+        $csv = Writer::fromString();
 
         $csv->insertOne([ctrans('texts.profit_and_loss')]);
         $csv->insertOne([ctrans('texts.company_name'), $this->company->present()->name()]);
