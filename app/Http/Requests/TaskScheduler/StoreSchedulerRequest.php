@@ -12,12 +12,13 @@
 
 namespace App\Http\Requests\TaskScheduler;
 
+use App\Models\Design;
+use App\Models\Invoice;
 use App\Http\Requests\Request;
 use App\Utils\Traits\MakesHash;
+use Illuminate\Validation\Rule;
 use App\Http\ValidationRules\Scheduler\ValidClientIds;
 use App\Http\ValidationRules\Scheduler\InvoiceWithNoExistingSchedule;
-use App\Models\Invoice;
-use Illuminate\Validation\Rule;
 
 class StoreSchedulerRequest extends Request
 {
@@ -102,11 +103,21 @@ class StoreSchedulerRequest extends Request
             'parameters.schedule.*.date' => ['bail','sometimes', 'date:Y-m-d'],
             'parameters.schedule.*.amount' => ['bail','sometimes', 'numeric'],
             'parameters.schedule.*.is_amount' => ['bail','sometimes', 'boolean'],
+            'parameters.template_id' => ['bail','sometimes', 'string', 'nullable'],
         ];
 
         return $rules;
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator)
+    {
+        $validator->after(function ($validator) {
+            if(!empty($this->parameters['template_id']) && Design::where('id', $this->decodePrimaryKey($this->parameters['template_id']))->where('is_template',true)->company()->doesntExist()) {
+                $validator->errors()->add('template_id', 'Invalid Template ID Selected');
+            }
+        });
+    }
+    
     public function prepareForValidation()
     {
         $input = $this->all();
@@ -164,4 +175,4 @@ class StoreSchedulerRequest extends Request
             'parameters.invoice_id.required_if' => 'The invoice is required for the payment schedule template.'
         ];
     }
-}
+  | 'include_deleted'
