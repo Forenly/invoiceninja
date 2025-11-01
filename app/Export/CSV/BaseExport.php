@@ -12,12 +12,13 @@
 
 namespace App\Export\CSV;
 
-use App\Jobs\Credit\ZipCredits;
+use Str;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Quote;
 use App\Models\Client;
 use App\Models\Credit;
+use App\Models\Design;
 use App\Models\Vendor;
 use App\Utils\Helpers;
 use App\Models\Company;
@@ -27,20 +28,21 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Document;
 use League\Fractal\Manager;
+use App\Jobs\Quote\ZipQuotes;
 use App\Models\ClientContact;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Carbon;
+use App\Jobs\Credit\ZipCredits;
 use App\Utils\Traits\MakesHash;
 use App\Models\RecurringInvoice;
-use App\Jobs\Document\ZipDocuments;
 use App\Jobs\Invoice\ZipInvoices;
-use App\Jobs\PurchaseOrder\ZipPurchaseOrders;
-use App\Jobs\Quote\ZipQuotes;
+use App\Jobs\Document\ZipDocuments;
 use App\Transformers\TaskTransformer;
 use App\Transformers\PaymentTransformer;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\Template\TemplateService;
+use App\Jobs\PurchaseOrder\ZipPurchaseOrders;
 use League\Fractal\Serializer\ArraySerializer;
-use Str;
 
 class BaseExport
 {
@@ -1727,6 +1729,15 @@ $products = str_getcsv($this->input['product_key'], ',', "'");
 
         return $this->resolveEntityFilters($user, $query);
         
+    }
+
+    public function exportTemplate(Builder $query, string $template_id)
+    {
+        $template = Design::withTrashed()->find($this->decodePrimaryKey($template_id));
+
+        $template_service = new TemplateService($template);
+
+        // return $template_service->getHtml();
     }
 
     private function resolveEntityFilters(User $user, Builder $query): Builder

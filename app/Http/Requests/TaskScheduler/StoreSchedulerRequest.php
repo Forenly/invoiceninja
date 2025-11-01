@@ -175,4 +175,4 @@ class StoreSchedulerRequest extends Request
             'parameters.invoice_id.required_if' => 'The invoice is required for the payment schedule template.'
         ];
     }
-  | 'include_deleted'
+}

@@ -565,6 +565,8 @@ class TemplateService
                 ->map(function ($invoice) {
 
                     $payments = [];
+
+                    /** @var Invoice $invoice */
                     $this->entity = $invoice;
 
                     if ($invoice->payments ?? false) {
