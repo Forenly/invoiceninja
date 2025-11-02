@@ -822,6 +822,7 @@ class TemplateService
     {
 
         return collect($quotes)->map(function ($quote) {
+            /** @var Quote $quote */
             return [
                 'amount' => Number::formatMoney($quote->amount, $quote->client),
                 'balance' => Number::formatMoney($quote->balance, $quote->client),
@@ -890,6 +891,7 @@ class TemplateService
 
                     $payments = [];
 
+                    /** @var Credit $credit */
                     $this->entity = $credit;
 
                     if ($credit->payments ?? false) {
@@ -971,6 +973,7 @@ class TemplateService
     {
 
         $payments = collect($payments)->map(function ($payment) {
+            /** @var Payment $payment */
             return $this->transformPayment($payment);
         })->toArray();
 
@@ -984,6 +987,13 @@ class TemplateService
         return $entity->client ? [
             'name' => $entity->client->present()->name(),
             'balance' => $entity->client->balance,
+            'address1' => $entity->client->address1 ?: '',
+            'address2' => $entity->client->address2 ?: '',
+            'phone' => $entity->client->phone ?: '',
+            'city' => $entity->client->city ?: '',
+            'state' => $entity->client->state ?: '',
+            'postal_code' => $entity->client->postal_code ?: '',
+            'country_id' => (string) $entity->client->country_id ?: '',
             'payment_balance' => $entity->client->payment_balance,
             'credit_balance' => $entity->client->credit_balance,
             'number' => $entity->client->number ?? '',
@@ -1140,7 +1150,7 @@ class TemplateService
 
         return
         collect($projects)->map(function ($project) {
-
+            /** @var Project $project */
             return $this->transformProject($project);
 
         })->toArray();
@@ -1197,6 +1207,7 @@ class TemplateService
 
         return collect($purchase_orders)->map(function ($purchase_order) {
 
+            /** @var PurchaseOrder $purchase_order */
             return [
                 'vendor' => $purchase_order->vendor ? [
                     'name' => $purchase_order->vendor->present()->name(),

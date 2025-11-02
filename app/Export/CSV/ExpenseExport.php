@@ -62,7 +62,7 @@ class ExpenseExport extends BaseExport
         return array_merge(['columns' => $header], $report);
     }
 
-    private function init(): Builder
+    public function init(): Builder
     {
 
         MultiDB::setDb($this->company->db);

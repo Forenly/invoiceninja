@@ -1735,17 +1735,26 @@ $products = str_getcsv($this->input['product_key'], ',', "'");
     {
         $template = Design::withTrashed()->find($this->decodePrimaryKey($template_id));
 
-        $template_service = new TemplateService($template);
+        $model_string = $this->getModelString($query);
 
-        // return $template_service->getHtml();
+        $data = [
+            "{$model_string}s" => $query->get(),
+        ];
+
+        $ts = new TemplateService($template);
+        $ts->setCompany($this->company);
+        $ts->build($data);
+
+        return $ts->getPdf();
+
     }
 
-    private function resolveEntityFilters(User $user, Builder $query): Builder
+    private function getModelString(Builder $query): ?string
     {
-        $model = get_class($query->getModel());
-        $column_listing = \Illuminate\Support\Facades\Schema::getColumnListing($query->getModel()->getTable());
 
-        $model_string = match($model) {
+        $model = get_class($query->getModel());
+        
+        return match($model) {
             'App\Models\Client' => 'client',
             'App\Models\ClientContact' => 'client',
             'App\Models\Invoice' => 'invoice',
@@ -1764,8 +1773,15 @@ $products = str_getcsv($this->input['product_key'], ',', "'");
             'App\Models\Activity' => 'activity',
             'App\Models\Task' => 'task',
             'App\Models\Project' => 'project',
-            default => false,
+            default => null,
         };
+    }
+    private function resolveEntityFilters(User $user, Builder $query): Builder
+    {
+
+        $model = get_class($query->getModel());
+        $model_string = $this->getModelString($query);
+        $column_listing = \Illuminate\Support\Facades\Schema::getColumnListing($query->getModel()->getTable());
 
         /** If the User can view or edit the entity, then return the query unfiltered */
         if($user->hasIntersectPermissions(["view_{$model_string}", "edit_{$model_string}"])){

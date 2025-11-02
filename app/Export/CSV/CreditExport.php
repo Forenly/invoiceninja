@@ -87,7 +87,7 @@ class CreditExport extends BaseExport
         return $clean_row;
     }
 
-    private function init(): Builder
+    public function init(): Builder
     {
 
         MultiDB::setDb($this->company->db);

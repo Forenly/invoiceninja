@@ -40,7 +40,7 @@ class PaymentExport extends BaseExport
         $this->decorator = new Decorator();
     }
 
-    private function init(): Builder
+    public function init(): Builder
     {
 
         MultiDB::setDb($this->company->db);

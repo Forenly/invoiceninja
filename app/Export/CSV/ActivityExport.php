@@ -93,7 +93,7 @@ class ActivityExport extends BaseExport
 
     }
 
-    private function init(): Builder
+    public function init(): Builder
     {
         MultiDB::setDb($this->company->db);
         App::forgetInstance('translator');
