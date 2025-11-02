@@ -54,6 +54,8 @@ use App\Events\PurchaseOrder\PurchaseOrderWasEmailed;
  * @property string|null $terms
  * @property string|null $tax_name1
  * @property float $tax_rate1
+ * @property bool $has_tasks
+ * @property bool $has_expenses
  * @property string|null $tax_name2
  * @property float $tax_rate2
  * @property string|null $tax_name3

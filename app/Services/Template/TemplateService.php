@@ -411,8 +411,6 @@ class TemplateService
 
         @$this->document->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
-        // @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-
         $this->save();
 
         return $this;
@@ -448,16 +446,34 @@ class TemplateService
         $html .= $this->template->design->body;
         $html .= $this->template->design->footer;
 
-        @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        @$this->document->loadHTML($this->convertHtmlToEntities($html));
+
+        // @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
 
         return $this;
 
     }
 
+
+    /**
+     * Convert HTML string to HTML entities (replacement for deprecated mb_convert_encoding)
+     * Maintains exact same functionality as mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8')
+     * 
+     * @param string $html
+     * @return string
+     */
+    private function convertHtmlToEntities(string $html): string
+    {
+        // Encode all non-ASCII characters (code points 0x80 and above) as numeric HTML entities
+        // This matches the exact behavior of mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8')
+        return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0xFFFF], 'UTF-8');
+    }
+
     public function setRawTemplate(string $template): self
     {
+        @$this->document->loadHTML($this->convertHtmlToEntities($template));
 
-        @$this->document->loadHTML(mb_convert_encoding($template, 'HTML-ENTITIES', 'UTF-8'));
+        // @$this->document->loadHTML(mb_convert_encoding($template, 'HTML-ENTITIES', 'UTF-8'));
 
         return $this;
 
@@ -477,7 +493,8 @@ class TemplateService
         $html .= $partials['design']['body'];
         $html .= $partials['design']['footer'];
 
-        @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        @$this->document->loadHTML($this->convertHtmlToEntities($html));
+        // @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
 
         return $this;
 
@@ -1207,7 +1224,6 @@ class TemplateService
 
         return collect($purchase_orders)->map(function ($purchase_order) {
 
-            /** @var PurchaseOrder $purchase_order */
             return [
                 'vendor' => $purchase_order->vendor ? [
                     'name' => $purchase_order->vendor->present()->name(),
