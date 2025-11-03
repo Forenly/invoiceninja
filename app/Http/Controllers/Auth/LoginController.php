@@ -378,8 +378,8 @@ class LoginController extends BaseController
         $account_user = $account->default_company->owner();
         Auth::login($account_user, false);
 
-        $account_user->email_verified_at = now();
-        $account_user->save();
+        // $account_user->email_verified_at = now();
+        // $account_user->save();
 
         /** @var \App\Models\CompanyUser $cu */
         $cu = $this->hydrateCompanyUser($account_user);

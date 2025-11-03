@@ -17,6 +17,6 @@ interface XmlModelInterface
     public function toXmlString(): string;
 
     public function toXml(\DOMDocument $doc): \DOMElement;
-    
+
     public function toSoapEnvelope(): string;
 }

@@ -55,36 +55,36 @@ class IDFactura extends BaseXmlModel
     public function toXml(DOMDocument $doc): DOMElement
     {
         $idFactura = $this->createElement($doc, 'IDFactura');
-        
+
         $idFactura->appendChild($this->createElement($doc, 'IDEmisorFactura', $this->idEmisorFactura));
         $idFactura->appendChild($this->createElement($doc, 'NumSerieFactura', $this->numSerieFactura));
         $idFactura->appendChild($this->createElement($doc, 'FechaExpedicionFactura', $this->fechaExpedicionFactura));
-        
+
         return $idFactura;
     }
 
     public static function fromDOMElement(DOMElement $element): self
     {
         $idFactura = new self();
-        
+
         // Parse IDEmisorFactura
         $idEmisorFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'IDEmisorFactura')->item(0);
         if ($idEmisorFactura) {
             $idFactura->setIdEmisorFactura($idEmisorFactura->nodeValue);
         }
-        
+
         // Parse NumSerieFactura
         $numSerieFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'NumSerieFactura')->item(0);
         if ($numSerieFactura) {
             $idFactura->setNumSerieFactura($numSerieFactura->nodeValue);
         }
-        
+
         // Parse FechaExpedicionFactura
         $fechaExpedicionFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'FechaExpedicionFactura')->item(0);
         if ($fechaExpedicionFactura) {
             $idFactura->setFechaExpedicionFactura($fechaExpedicionFactura->nodeValue);
         }
-        
+
         return $idFactura;
     }
 
@@ -96,11 +96,11 @@ class IDFactura extends BaseXmlModel
     public static function unserialize(string $data): self
     {
         $object = unserialize($data);
-        
+
         if (!$object instanceof self) {
             throw new \InvalidArgumentException('Invalid serialized data - not an IDFactura object');
         }
-        
+
         return $object;
     }
-} 
+}

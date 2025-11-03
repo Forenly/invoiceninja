@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -21,7 +22,7 @@ class AeatClient
     private string $sandbox_url = 'https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP';
 
     public string $base_qr_url = 'https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?csv=%s&nif=%s&numserie=%s&fecha=%s&importe=%s';
-    
+
     private string $sandbox_qr_url = 'https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?csv=%s&nif=%s&numserie=%s&fecha=%s&importe=%s';
 
 
@@ -29,7 +30,7 @@ class AeatClient
     {
         $this->init();
     }
-    
+
     /**
      * initialize the certificates
      *
@@ -40,13 +41,13 @@ class AeatClient
         $this->certificate = $this->certificate ?? config('services.verifactu.certificate');
         $this->ssl_key = $this->ssl_key ?? config('services.verifactu.ssl_key');
 
-        if(config('services.verifactu.test_mode')) {
+        if (config('services.verifactu.test_mode')) {
             $this->setTestMode();
         }
 
         return $this;
     }
-    
+
     /**
      * setTestMode
      *
@@ -62,7 +63,7 @@ class AeatClient
 
     public function send($xml): array
     {
-                        
+
         $response = Http::withHeaders([
                 'Content-Type' => 'text/xml; charset=utf-8',
                 'SOAPAction' => '',
@@ -85,6 +86,6 @@ class AeatClient
         nlog($parsedResponse);
 
         return $parsedResponse;
-        
+
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -23,7 +24,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
- * 
+ *
  *   App\Jobs\Invoice\CreateXInvoice
  */
 class EInvoiceTest extends TestCase
@@ -44,9 +45,9 @@ class EInvoiceTest extends TestCase
     public function testECreditExpiryLogic()
     {
         $a = Account::factory()->create([
-            'e_invoice_quota'=>100,
+            'e_invoice_quota' => 100,
         ]);
-        
+
         $company = Company::factory()->create([
             'account_id' => $a->id,
             'legal_entity_id' => 1,
@@ -59,7 +60,7 @@ class EInvoiceTest extends TestCase
         $log->save();
 
 
-        for($x=0; $x<50; $x++){
+        for ($x = 0; $x < 50; $x++) {
 
             $log = new EInvoicingLog();
             $log->counter = -1;
@@ -129,7 +130,7 @@ class EInvoiceTest extends TestCase
 
         $record_query = EInvoicingLog::where('created_at', '<', now()->subYear())
                                         ->where('counter', '>', 0)
-                                        ->when($is_hosted, function ($q) use ($identifier){
+                                        ->when($is_hosted, function ($q) use ($identifier) {
                                             $q->whereIn('tenant_id', $identifier);
                                         })
                                         ->when(!$is_hosted, function ($q) use ($identifier) {
@@ -139,8 +140,9 @@ class EInvoiceTest extends TestCase
         $log = $record_query->first();
         $stub['purchased'] = $record_query->sum('counter');
 
-        if($stub['purchased'] == 0)
+        if ($stub['purchased'] == 0) {
             return $stub;
+        }
 
 
         $stub['sent'] = EInvoicingLog::where('created_at', '<', now()->subYear())
@@ -166,11 +168,11 @@ class EInvoiceTest extends TestCase
                                     })
                                     ->sum('counter');
 
-        
+
         $log->notes = "{$stub['purchased']} purchased, {$stub['sent']} sent, {$stub['received']} received, {$stub['period']} period";
         nlog($log->tenant_id ?? $log->license_key. " : " .$log->notes);
         $log->save();
-        
+
         EInvoicingLog::where('created_at', '<', now()->subYear())
                         ->when($is_hosted, function ($q) use ($identifier) {
                             $q->where('tenant_id', $identifier);
@@ -180,7 +182,7 @@ class EInvoiceTest extends TestCase
                         })
                         ->delete();
 
-        
+
         return $stub;
     }
 }

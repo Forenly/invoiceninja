@@ -12,9 +12,10 @@
 
 namespace App\Http\Requests\TaskScheduler;
 
+use App\Models\Design;
 use App\Http\Requests\Request;
-use App\Http\ValidationRules\Scheduler\ValidClientIds;
 use Illuminate\Validation\Rule;
+use App\Http\ValidationRules\Scheduler\ValidClientIds;
 
 class UpdateSchedulerRequest extends Request
 {
@@ -93,18 +94,29 @@ class UpdateSchedulerRequest extends Request
             'parameters.auto_send' => ['bail','sometimes', 'boolean', 'required_if:template,invoice_outstanding_tasks'],
             // 'parameters.invoice_id' => ['bail','sometimes', 'string', 'required_if:template,payment_schedule'],
             'parameters.auto_bill' => ['bail','sometimes', 'boolean', 'required_if:template,payment_schedule'],
-            'parameters.template' => ['bail', 'sometimes', 'string', Rule::in($this->templates)],
+            'parameters.template' => ['bail', 'sometimes', 'nullable', 'string', Rule::in($this->templates)],
 
             'parameters.schedule' => ['bail', 'array', 'required_if:template,payment_schedule','min:1'],
             'parameters.schedule.*.id' => ['bail','sometimes', 'integer'],
             'parameters.schedule.*.date' => ['bail','sometimes', 'date:Y-m-d'],
             'parameters.schedule.*.amount' => ['bail','sometimes', 'numeric'],
             'parameters.schedule.*.is_amount' => ['bail','sometimes', 'boolean'],
+            'parameters.template_id' => ['bail','sometimes', 'string', 'nullable'],
         ];
 
         return $rules;
     }
 
+
+    public function withValidator(\Illuminate\Validation\Validator $validator)
+    {
+        $validator->after(function ($validator) {
+            if(!empty($this->parameters['template_id']) && Design::where('id', $this->decodePrimaryKey($this->parameters['template_id']))->where('is_template',true)->company()->doesntExist()) {
+                $validator->errors()->add('template_id', 'Invalid Template ID Selected');
+            }
+        });
+    }
+    
     public function prepareForValidation()
     {
         $input = $this->all();
@@ -145,6 +157,8 @@ class UpdateSchedulerRequest extends Request
             $input['remaining_cycles'] = count($input['parameters']['schedule']);
         }
 
+        $input['parameters']['user_id'] = auth()->user()->id;
+        
         $this->replace($input);
 
     }

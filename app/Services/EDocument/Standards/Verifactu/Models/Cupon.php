@@ -32,7 +32,7 @@ class Cupon extends BaseXmlModel
         $cupon->setIdCupon($cupon->getElementValue($element, 'IDCupon'));
         $cupon->setFechaExpedicionCupon($cupon->getElementValue($element, 'FechaExpedicionCupon'));
         $cupon->setImporteCupon((float)$cupon->getElementValue($element, 'ImporteCupon'));
-        
+
         $descripcionCupon = $cupon->getElementValue($element, 'DescripcionCupon');
         if ($descripcionCupon !== null) {
             $cupon->setDescripcionCupon($descripcionCupon);
@@ -84,4 +84,4 @@ class Cupon extends BaseXmlModel
         $this->descripcionCupon = $descripcionCupon;
         return $this;
     }
-} 
+}

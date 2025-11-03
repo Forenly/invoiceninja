@@ -16,15 +16,15 @@ class VerifactuDocumentValidatorTest extends TestCase
         $mockError = new \LibXMLError();
         $mockError->line = 12;
         $mockError->message = 'Element \'{https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd}Desglose\': Missing child element(s). Expected is ( {https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd}DetalleDesglose ).';
-        
+
         // Use reflection to test the private method
         $validator = new VerifactuDocumentValidator('<xml></xml>');
         $reflection = new \ReflectionClass($validator);
         $formatMethod = $reflection->getMethod('formatXsdError');
         $formatMethod->setAccessible(true);
-        
+
         $formattedError = $formatMethod->invoke($validator, $mockError);
-        
+
         // The formatted error should be more readable
         $this->assertStringContainsString('Line 12:', $formattedError);
         $this->assertStringContainsString('Missing required child element:', $formattedError);
@@ -41,9 +41,9 @@ class VerifactuDocumentValidatorTest extends TestCase
         $reflection = new \ReflectionClass($validator);
         $contextMethod = $reflection->getMethod('getErrorContext');
         $contextMethod->setAccessible(true);
-        
+
         $context = $contextMethod->invoke($validator, 'Missing child element: DetalleDesglose');
-        
+
         $this->assertStringContainsString('Desglose (Tax Breakdown)', $context);
         $this->assertStringContainsString('DetalleDesglose (Tax Detail)', $context);
         $this->assertStringContainsString('requires', $context);
@@ -58,9 +58,9 @@ class VerifactuDocumentValidatorTest extends TestCase
         $reflection = new \ReflectionClass($validator);
         $suggestionMethod = $reflection->getMethod('getErrorSuggestion');
         $suggestionMethod->setAccessible(true);
-        
+
         $suggestion = $suggestionMethod->invoke($validator, 'Missing child element: DetalleDesglose');
-        
+
         $this->assertStringContainsString('Add a DetalleDesglose element', $suggestion);
         $this->assertStringContainsString('Example:', $suggestion);
         $this->assertStringContainsString('<DetalleDesglose>', $suggestion);
@@ -72,11 +72,11 @@ class VerifactuDocumentValidatorTest extends TestCase
     public function test_error_summary_provides_clear_overview()
     {
         $validator = new VerifactuDocumentValidator('<xml></xml>');
-        
+
         // Initially no errors
         $summary = $validator->getErrorSummary();
         $this->assertEquals('Document validation passed successfully.', $summary);
-        
+
         // Add some mock errors
         $reflection = new \ReflectionClass($validator);
         $errorsProperty = $reflection->getProperty('errors');
@@ -85,7 +85,7 @@ class VerifactuDocumentValidatorTest extends TestCase
             'xsd' => ['Error 1', 'Error 2'],
             'structure' => ['Error 3']
         ]);
-        
+
         $summary = $validator->getErrorSummary();
         $this->assertStringContainsString('Validation failed with 3 total error(s):', $summary);
         $this->assertStringContainsString('Schema Validation Errors: 2', $summary);
@@ -98,7 +98,7 @@ class VerifactuDocumentValidatorTest extends TestCase
     public function test_formatted_errors_provide_structured_information()
     {
         $validator = new VerifactuDocumentValidator('<xml></xml>');
-        
+
         // Add some mock errors
         $reflection = new \ReflectionClass($validator);
         $errorsProperty = $reflection->getProperty('errors');
@@ -107,9 +107,9 @@ class VerifactuDocumentValidatorTest extends TestCase
             'xsd' => ['Error 1', 'Error 2'],
             'business' => ['Error 3']
         ]);
-        
+
         $formatted = $validator->getFormattedErrors();
-        
+
         $this->assertArrayHasKey('xsd', $formatted);
         $this->assertArrayHasKey('business', $formatted);
         $this->assertEquals(2, $formatted['xsd']['count']);

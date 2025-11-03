@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -20,7 +21,7 @@ use Tests\MockAccountData;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *   App\Helpers\Invoice\InvoiceItemSum
  */
 class InvoiceItemTest extends TestCase
@@ -37,38 +38,38 @@ class InvoiceItemTest extends TestCase
 
     public function testNetCost()
     {
-        
-            $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
-            $invoice->client_id = $this->client->id;
-            $invoice->uses_inclusive_taxes = true;
-            $invoice->is_amount_discount = false;
-            $invoice->discount = 0;
-            $invoice->tax_rate1 = 0;
-            $invoice->tax_rate2 = 0;
-            $invoice->tax_rate3 = 0;
-            $invoice->tax_name1 = '';
-            $invoice->tax_name2 = '';
-            $invoice->tax_name3 = '';
 
-            $line_items = [];
+        $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
+        $invoice->client_id = $this->client->id;
+        $invoice->uses_inclusive_taxes = true;
+        $invoice->is_amount_discount = false;
+        $invoice->discount = 0;
+        $invoice->tax_rate1 = 0;
+        $invoice->tax_rate2 = 0;
+        $invoice->tax_rate3 = 0;
+        $invoice->tax_name1 = '';
+        $invoice->tax_name2 = '';
+        $invoice->tax_name3 = '';
 
-            $line_item = new InvoiceItem();
-            $line_item->quantity = 1;
-            $line_item->cost = 100;
-            $line_item->tax_rate1 = 22;
-            $line_item->tax_name1 = 'Km';
-            $line_item->product_key = 'Test';
-            $line_item->notes = 'Test';
-            $line_item->is_amount_discount = false;
-            $line_items[] = $line_item;
+        $line_items = [];
 
-            $invoice->line_items = $line_items;
-            $invoice->save();
+        $line_item = new InvoiceItem();
+        $line_item->quantity = 1;
+        $line_item->cost = 100;
+        $line_item->tax_rate1 = 22;
+        $line_item->tax_name1 = 'Km';
+        $line_item->product_key = 'Test';
+        $line_item->notes = 'Test';
+        $line_item->is_amount_discount = false;
+        $line_items[] = $line_item;
 
-            $invoice = $invoice->calc()->getInvoice();
+        $invoice->line_items = $line_items;
+        $invoice->save();
 
-            $this->assertEquals(100, $invoice->amount);
-            $this->assertEquals(18.03, $invoice->total_taxes);
+        $invoice = $invoice->calc()->getInvoice();
+
+        $this->assertEquals(100, $invoice->amount);
+        $this->assertEquals(18.03, $invoice->total_taxes);
 
 
     }
@@ -562,7 +563,7 @@ class InvoiceItemTest extends TestCase
         $item_calc->process();
 
         nlog($item_calc->getGroupedTaxes());
-        
+
         $this->assertEquals($item_calc->getTotalTaxes(), 2.06);
         $this->assertEquals($item_calc->getGroupedTaxes()->count(), 2);
     }
@@ -600,7 +601,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -628,7 +629,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -655,7 +656,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -681,7 +682,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -707,7 +708,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -733,7 +734,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;
@@ -759,7 +760,7 @@ class InvoiceItemTest extends TestCase
         $invoice = InvoiceFactory::create($this->company->id, $this->user->id);
         $invoice->client_id = $this->client->id;
         $invoice->uses_inclusive_taxes = true;
-        
+
         $line_items = [];
         $line_item = new InvoiceItem();
         $line_item->quantity = 1;

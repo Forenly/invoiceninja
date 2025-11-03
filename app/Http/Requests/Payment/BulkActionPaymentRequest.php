@@ -38,26 +38,4 @@ class BulkActionPaymentRequest extends Request
         ];
 
     }
-
-    // public function withValidator($validator)
-    // {
-
-    // $validator->after(function ($validator) {
-    //     if($this->action == 'delete'){
-    //         $attached_credits = \App\Models\Payment::withTrashed()
-    //                             ->with('credits.payments')
-    //                             ->whereIn('id', $this->transformKeys($this->ids))
-    //                             ->company()
-    //                             ->map(function ($payment) {
-    //                                 return $payment->credits()->whereHas('payments', function ($q){
-    //                                     $q->withTrashed()->where('is_deleted',0);
-    //                                 })->count();
-    //                             })->sum();
-
-    //         if($attached_credits > 0){
-    //             $validator->errors()->add('status_id', 'Payment has attached credits and can not be deleted');
-    //         }
-    //     }
-    // });
-    // }
 }

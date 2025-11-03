@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -17,7 +18,7 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\Artisan;
 
 /**
- * 
+ *
  *  App\Services\Invoice\AutoBillInvoice
  */
 class AutoBillInvoiceTest extends TestCase

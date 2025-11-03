@@ -4,7 +4,7 @@ namespace App\Services\EDocument\Standards\Verifactu\Models;
 
 /**
  * RegistroAnterior - Previous Record Information
- * 
+ *
  * This class represents the previous record information required for Verifactu e-invoicing
  * chain linking. It contains the details of the previous invoice in the chain.
  */
@@ -30,31 +30,31 @@ class RegistroAnterior extends BaseXmlModel
     public static function fromDOMElement(\DOMElement $element): self
     {
         $registroAnterior = new self();
-        
+
         // Handle IDEmisorFactura
         $idEmisorFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'IDEmisorFactura')->item(0);
         if ($idEmisorFactura) {
             $registroAnterior->setIdEmisorFactura($idEmisorFactura->nodeValue);
         }
-        
+
         // Handle NumSerieFactura
         $numSerieFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'NumSerieFactura')->item(0);
         if ($numSerieFactura) {
             $registroAnterior->setNumSerieFactura($numSerieFactura->nodeValue);
         }
-        
+
         // Handle FechaExpedicionFactura
         $fechaExpedicionFactura = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'FechaExpedicionFactura')->item(0);
         if ($fechaExpedicionFactura) {
             $registroAnterior->setFechaExpedicionFactura($fechaExpedicionFactura->nodeValue);
         }
-        
+
         // Handle Huella
         $huella = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'Huella')->item(0);
         if ($huella) {
             $registroAnterior->setHuella($huella->nodeValue);
         }
-        
+
         return $registroAnterior;
     }
 
@@ -63,14 +63,14 @@ class RegistroAnterior extends BaseXmlModel
         if ($xml instanceof \DOMElement) {
             return static::fromDOMElement($xml);
         }
-        
+
         if (!is_string($xml)) {
             throw new \InvalidArgumentException('Input must be either a string or DOMElement');
         }
-        
+
         // Enable user error handling for XML parsing
         $previousErrorSetting = libxml_use_internal_errors(true);
-        
+
         try {
             $doc = new \DOMDocument();
             if (!$doc->loadXML($xml)) {
@@ -129,7 +129,7 @@ class RegistroAnterior extends BaseXmlModel
 
     /**
      * Set the invoice issue date from the previous record
-     * 
+     *
      * @param string $fechaExpedicionFactura Date in DD-MM-YYYY format
      */
     public function setFechaExpedicionFactura(string $fechaExpedicionFactura): self
@@ -154,4 +154,4 @@ class RegistroAnterior extends BaseXmlModel
         $this->huella = $huella;
         return $this;
     }
-} 
+}

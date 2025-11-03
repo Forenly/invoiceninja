@@ -27,9 +27,9 @@ class IDOtro extends BaseXmlModel
         '08', // Other supporting document
         '09', // Tax ID from third country
     ];
-    
+
     private ?string $nombreRazon = '';
-    
+
     /**
      * __construct
      *
@@ -40,7 +40,7 @@ class IDOtro extends BaseXmlModel
      */
     public function __construct(private string $codigoPais = 'ES', private string $idType = '06', private string $id = 'NO_DISPONIBLE')
     {
-       
+
     }
 
     public function getNombreRazon(): string
@@ -113,9 +113,9 @@ class IDOtro extends BaseXmlModel
         return $root;
     }
 
-     /**
-     * Create a PersonaFisicaJuridica instance from XML string or DOMElement
-     */
+    /**
+    * Create a PersonaFisicaJuridica instance from XML string or DOMElement
+    */
     public static function fromXml($xml): BaseXmlModel
     {
         if (is_string($xml)) {

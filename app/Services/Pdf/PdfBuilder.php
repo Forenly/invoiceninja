@@ -184,11 +184,26 @@ class PdfBuilder
 
         $document->validateOnParse = true;
 
-        @$document->loadHTML(mb_convert_encoding($this->service->designer->template, 'HTML-ENTITIES', 'UTF-8'));
+        @$document->loadHTML($this->convertHtmlToEntities($this->service->designer->template));
+        // @$document->loadHTML(mb_convert_encoding($this->service->designer->template, 'HTML-ENTITIES', 'UTF-8'));
 
         $this->document = $document;
 
         return $this;
+    }
+
+    /**
+     * Convert HTML string to HTML entities (replacement for deprecated mb_convert_encoding)
+     * Maintains exact same functionality as mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8')
+     * 
+     * @param string $html
+     * @return string
+     */
+    private function convertHtmlToEntities(string $html): string
+    {
+        // Encode all non-ASCII characters (code points 0x80 and above) as numeric HTML entities
+        // This matches the exact behavior of mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8')
+        return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0xFFFF], 'UTF-8');
     }
 
     /**
@@ -2167,7 +2182,8 @@ $f->appendXML('<![CDATA[' . $decoded_template . ']]>');
         $html = strtr($this->getCompiledHTML(), $this->service->html_variables['labels']);
         $html = strtr($html, $this->service->html_variables['values']);
 
-        @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        @$this->document->loadHTML($this->convertHtmlToEntities($html));
+        // @$this->document->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
 
         //new block
         // $html = htmlspecialchars_decode($html, ENT_QUOTES | ENT_HTML5);

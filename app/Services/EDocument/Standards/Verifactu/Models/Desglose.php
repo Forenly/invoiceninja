@@ -46,7 +46,7 @@ class Desglose extends BaseXmlModel
             }
 
             // Add ClaveRegimen if present
-            if (isset($this->desgloseFactura['ClaveRegimen']) ) {
+            if (isset($this->desgloseFactura['ClaveRegimen'])) {
                 $detalleDesglose->appendChild($this->createElement($doc, 'ClaveRegimen', $this->desgloseFactura['ClaveRegimen']));
             } else {
                 // Default ClaveRegimen
@@ -54,50 +54,68 @@ class Desglose extends BaseXmlModel
             }
 
             // Add CalificacionOperacion
-            $detalleDesglose->appendChild($this->createElement($doc, 'CalificacionOperacion', 
-                $this->desgloseFactura['CalificacionOperacion'] ?? 'S1'));
+            $detalleDesglose->appendChild($this->createElement(
+                $doc,
+                'CalificacionOperacion',
+                $this->desgloseFactura['CalificacionOperacion'] ?? 'S1'
+            ));
 
             // Add TipoImpositivo if present
             if (isset($this->desgloseFactura['TipoImpositivo']) && $this->desgloseFactura['CalificacionOperacion'] == 'S1') {
-                $detalleDesglose->appendChild($this->createElement($doc, 'TipoImpositivo', 
-                    number_format((float)$this->desgloseFactura['TipoImpositivo'], 2, '.', '')));
-            } 
+                $detalleDesglose->appendChild($this->createElement(
+                    $doc,
+                    'TipoImpositivo',
+                    number_format((float)$this->desgloseFactura['TipoImpositivo'], 2, '.', '')
+                ));
+            }
             // else {
             //     // Default TipoImpositivo
             //     $detalleDesglose->appendChild($this->createElement($doc, 'TipoImpositivo', '0'));
             // }
 
             // Convert BaseImponible to BaseImponibleOimporteNoSujeto if needed
-            $baseImponible = isset($this->desgloseFactura['BaseImponible']) 
-                ? $this->desgloseFactura['BaseImponible'] 
+            $baseImponible = isset($this->desgloseFactura['BaseImponible'])
+                ? $this->desgloseFactura['BaseImponible']
                 : ($this->desgloseFactura['BaseImponibleOimporteNoSujeto'] ?? '0');
 
-            $detalleDesglose->appendChild($this->createElement($doc, 'BaseImponibleOimporteNoSujeto', 
-                number_format((float)$baseImponible, 2, '.', '')));
+            $detalleDesglose->appendChild($this->createElement(
+                $doc,
+                'BaseImponibleOimporteNoSujeto',
+                number_format((float)$baseImponible, 2, '.', '')
+            ));
 
 
-                if(isset($this->desgloseFactura['Cuota']) && $this->desgloseFactura['CalificacionOperacion'] == 'S1'){
-                    $detalleDesglose->appendChild($this->createElement($doc, 'CuotaRepercutida', 
-                        number_format((float)$this->desgloseFactura['Cuota'], 2, '.', '')));
-                }
+            if (isset($this->desgloseFactura['Cuota']) && $this->desgloseFactura['CalificacionOperacion'] == 'S1') {
+                $detalleDesglose->appendChild($this->createElement(
+                    $doc,
+                    'CuotaRepercutida',
+                    number_format((float)$this->desgloseFactura['Cuota'], 2, '.', '')
+                ));
+            }
 
             // Add TipoRecargoEquivalencia if present
             if (isset($this->desgloseFactura['TipoRecargoEquivalencia'])) {
-                $detalleDesglose->appendChild($this->createElement($doc, 'TipoRecargoEquivalencia', 
-                    number_format((float)$this->desgloseFactura['TipoRecargoEquivalencia'], 2, '.', '')));
+                $detalleDesglose->appendChild($this->createElement(
+                    $doc,
+                    'TipoRecargoEquivalencia',
+                    number_format((float)$this->desgloseFactura['TipoRecargoEquivalencia'], 2, '.', '')
+                ));
             }
 
             // Add CuotaRecargoEquivalencia if present
             if (isset($this->desgloseFactura['CuotaRecargoEquivalencia'])) {
-                $detalleDesglose->appendChild($this->createElement($doc, 'CuotaRecargoEquivalencia', 
-                    number_format((float)$this->desgloseFactura['CuotaRecargoEquivalencia'], 2, '.', '')));
+                $detalleDesglose->appendChild($this->createElement(
+                    $doc,
+                    'CuotaRecargoEquivalencia',
+                    number_format((float)$this->desgloseFactura['CuotaRecargoEquivalencia'], 2, '.', '')
+                ));
             }
         }
-        
+
         // Handle simplified invoice desglose (IVA)
         if ($this->desgloseIVA !== null) {
             $taxRates = $this->normalizeTaxRates($this->desgloseIVA);
-            
+
             foreach ($taxRates as $taxRate) {
                 $detalleDesglose = $this->createDetalleDesglose($doc, $taxRate);
                 $root->appendChild($detalleDesglose);
@@ -122,7 +140,7 @@ class Desglose extends BaseXmlModel
     public static function fromDOMElement(\DOMElement $element): self
     {
         $desglose = new self();
-        
+
         // Parse DesgloseFactura
         $desgloseFacturaElement = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'DesgloseFactura')->item(0);
         if ($desgloseFacturaElement) {
@@ -290,7 +308,7 @@ class Desglose extends BaseXmlModel
         if (!empty($desgloseIVA) && is_array($desgloseIVA[0] ?? null)) {
             return $desgloseIVA;
         }
-        
+
         // Single tax rate - wrap in array
         return [$desgloseIVA];
     }
@@ -313,20 +331,29 @@ class Desglose extends BaseXmlModel
 
         // Add TipoImpositivo if present
         if (isset($taxRate['TipoImpositivo'])) {
-            $detalleDesglose->appendChild($this->createElement($doc, 'TipoImpositivo', 
-                number_format((float)$taxRate['TipoImpositivo'], 2, '.', '')));
+            $detalleDesglose->appendChild($this->createElement(
+                $doc,
+                'TipoImpositivo',
+                number_format((float)$taxRate['TipoImpositivo'], 2, '.', '')
+            ));
         }
 
         // Convert BaseImponible to BaseImponibleOimporteNoSujeto if needed
         $baseImponible = $taxRate['BaseImponible'] ?? $taxRate['BaseImponibleOimporteNoSujeto'] ?? '0';
-        $detalleDesglose->appendChild($this->createElement($doc, 'BaseImponibleOimporteNoSujeto', 
-            number_format((float)$baseImponible, 2, '.', '')));
+        $detalleDesglose->appendChild($this->createElement(
+            $doc,
+            'BaseImponibleOimporteNoSujeto',
+            number_format((float)$baseImponible, 2, '.', '')
+        ));
 
         // Convert Cuota to CuotaRepercutida if needed
         $cuota = $taxRate['Cuota'] ?? $taxRate['CuotaRepercutida'] ?? '0';
-        $detalleDesglose->appendChild($this->createElement($doc, 'CuotaRepercutida', 
-            number_format((float)$cuota, 2, '.', '')));
+        $detalleDesglose->appendChild($this->createElement(
+            $doc,
+            'CuotaRepercutida',
+            number_format((float)$cuota, 2, '.', '')
+        ));
 
         return $detalleDesglose;
     }
-} 
+}

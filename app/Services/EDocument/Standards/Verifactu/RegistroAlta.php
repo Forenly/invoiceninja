@@ -103,17 +103,15 @@ class RegistroAlta
     {
         $line_items = $invoice->line_items;
 
-        foreach($line_items as $key => $value){
+        foreach ($line_items as $key => $value) {
 
-            if(stripos($value->tax_name1, 'irpf') !== false){
+            if (stripos($value->tax_name1, 'irpf') !== false) {
                 $line_items[$key]->tax_name1 = '';
                 $line_items[$key]->tax_rate1 = 0;
-            } 
-            elseif(stripos($value->tax_name2, 'irpf') !== false){
+            } elseif (stripos($value->tax_name2, 'irpf') !== false) {
                 $line_items[$key]->tax_name2 = '';
                 $line_items[$key]->tax_rate2 = 0;
-            }
-            elseif(stripos($value->tax_name3, 'irpf') !== false){
+            } elseif (stripos($value->tax_name3, 'irpf') !== false) {
                 $line_items[$key]->tax_name3 = '';
                 $line_items[$key]->tax_rate3 = 0;
             }
@@ -132,7 +130,7 @@ class RegistroAlta
      */
     public function run(): self
     {
-        
+
         // Get the previous invoice log
         $this->v_log = $this->company->verifactu_logs()->first();
 
@@ -145,11 +143,11 @@ class RegistroAlta
         // Ensure it’s not later than "now" in Spain
         $now = \Carbon\Carbon::now('Europe/Madrid');
 
-        if ($date->greaterThan($now)) {        
+        if ($date->greaterThan($now)) {
             $date = $now;
             $this->invoice->date = $date->format('Y-m-d');
         }
-        
+
 
         $formattedDate = $date->format('d-m-Y');
 
@@ -178,21 +176,19 @@ class RegistroAlta
         $destinatario = new PersonaFisicaJuridica();
 
         //Spanish NIF/VAT
-        if($this->invoice->client->country_id == 724 && strlen($this->invoice->client->vat_number ?? '') > 5) {
+        if ($this->invoice->client->country_id == 724 && strlen($this->invoice->client->vat_number ?? '') > 5) {
             $destinatario
                 ->setNif($this->invoice->client->vat_number)
                 ->setNombreRazon($this->invoice->client->present()->name());
-        }
-        elseif($this->invoice->client->country_id == 724) { // Spanish Passport
-            
+        } elseif ($this->invoice->client->country_id == 724) { // Spanish Passport
+
             $destinatario = new IDOtro();
             $destinatario->setNombreRazon($this->invoice->client->present()->name());
             $destinatario->setCodigoPais('ES')
                         ->setIdType('03')
                         ->setId($this->invoice->client->id_number);
 
-        }
-        else {
+        } else {
             $locationData = $this->invoice->service()->location();
 
             $destinatario = new IDOtro();
@@ -201,7 +197,7 @@ class RegistroAlta
 
             $br = new \App\DataMapper\Tax\BaseRule();
 
-            if(in_array($locationData['country_code'], $br->eu_country_codes) && strlen($this->invoice->client->vat_number ?? '') > 0) {
+            if (in_array($locationData['country_code'], $br->eu_country_codes) && strlen($this->invoice->client->vat_number ?? '') > 0) {
                 $destinatario->setIdType('03');
                 $destinatario->setId($this->invoice->client->vat_number);
             }
@@ -210,7 +206,7 @@ class RegistroAlta
         $destinatarios[] = $destinatario;
 
         $this->v_invoice->setDestinatarios($destinatarios);
-        
+
         // The tax breakdown
         $desglose = new Desglose();
 
@@ -236,8 +232,8 @@ class RegistroAlta
 
         };
 
-        if(count($taxes) == 0) {
-            
+        if (count($taxes) == 0) {
+
             $client_country_code = $this->invoice->client->country->iso_3166_2;
 
             /** By Default we assume a Spanish transaction */
@@ -252,13 +248,11 @@ class RegistroAlta
                 $impuesto = '05';
                 $clave_regimen = '05';
                 $calificacion = 'N2';
-            } /** EU B2C */   
-            elseif (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification == 'individual') {
+            } /** EU B2C */ elseif (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification == 'individual') {
                 $impuesto = '08';
                 $clave_regimen = '05';
                 $calificacion = 'N2';
-            }
-            else { /** Non-EU */
+            } else { /** Non-EU */
                 $impuesto = '05';
                 $clave_regimen = '05';
                 $calificacion = 'N2';
@@ -283,7 +277,7 @@ class RegistroAlta
         $encadenamiento = new Encadenamiento();
 
         // We chain the previous hash to the current invoice to ensure consistency
-        if($this->v_log){
+        if ($this->v_log) {
 
             $registro_anterior = new RegistroAnterior();
             $registro_anterior->setIDEmisorFactura($this->v_log->nif);
@@ -292,12 +286,11 @@ class RegistroAlta
             $registro_anterior->setHuella($this->v_log->hash);
 
             $encadenamiento->setRegistroAnterior($registro_anterior);
-            
-        }
-        else {
+
+        } else {
 
             $encadenamiento->setPrimerRegistro('S');
-            
+
         }
 
         $this->v_invoice->setEncadenamiento($encadenamiento);
@@ -329,18 +322,18 @@ class RegistroAlta
         //need to harvest the parent invoice!!
         $_i = Invoice::withTrashed()->find($this->decodePrimaryKey($this->invoice->backup->parent_invoice_id));
 
-        if(!$_i) {
+        if (!$_i) {
             throw new \Exception('Parent invoice not found');
         }
 
-        if(BcMath::lessThan(abs($this->invoice->amount), $_i->amount)) {
+        if (BcMath::lessThan(abs($this->invoice->amount), $_i->amount)) {
             $document_type = 'R1';
         }
 
         $this->v_invoice->setTipoFactura($document_type);
         $this->v_invoice->setTipoRectificativa('I'); // S for substitutive rectification
 
-        if(strlen($this->invoice->backup->notes ?? '') > 0) {
+        if (strlen($this->invoice->backup->notes ?? '') > 0) {
             $this->v_invoice->setDescripcionOperacion($this->invoice->backup->notes);
         }
         // Set up rectified invoice information
@@ -356,7 +349,7 @@ class RegistroAlta
 
         $this->invoice->backup->document_type = $document_type;
         $this->invoice->saveQuietly();
-        
+
         return $this;
     }
 
@@ -369,27 +362,27 @@ class RegistroAlta
     {
         $client_country_code = $this->invoice->client->country->iso_3166_2;
 
-        if($client_country_code == 'ES') {
+        if ($client_country_code == 'ES') {
 
-            if(stripos($tax_name, 'iva') !== false) {
+            if (stripos($tax_name, 'iva') !== false) {
                 return '01';
             }
 
-            if(stripos($tax_name, 'igic') !== false) {
+            if (stripos($tax_name, 'igic') !== false) {
                 return '03';
             }
 
-            if(stripos($tax_name, 'ipsi') !== false) {
+            if (stripos($tax_name, 'ipsi') !== false) {
                 return '02';
             }
 
-            if(stripos($tax_name, 'otros') !== false) {
+            if (stripos($tax_name, 'otros') !== false) {
                 return '05';
             }
 
             return '01';
         }
-        
+
         $br = new \App\DataMapper\Tax\BaseRule();
         if (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification != 'individual') {
             return '08';
@@ -405,21 +398,21 @@ class RegistroAlta
     {
         $client_country_code = $this->invoice->client->country->iso_3166_2;
 
-        if($client_country_code == 'ES') {
+        if ($client_country_code == 'ES') {
 
-            if(stripos($tax_name, 'iva') !== false) {
+            if (stripos($tax_name, 'iva') !== false) {
                 return '01';
             }
 
-            if(stripos($tax_name, 'igic') !== false) {
+            if (stripos($tax_name, 'igic') !== false) {
                 return '03';
             }
 
-            if(stripos($tax_name, 'ipsi') !== false) {
+            if (stripos($tax_name, 'ipsi') !== false) {
                 return '02';
             }
 
-            if(stripos($tax_name, 'otros') !== false) {
+            if (stripos($tax_name, 'otros') !== false) {
                 return '05';
             }
 
@@ -429,8 +422,7 @@ class RegistroAlta
         $br = new \App\DataMapper\Tax\BaseRule();
         if (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification != 'individual') {
             return '08';
-        }
-        elseif (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification == 'individual') {
+        } elseif (in_array($client_country_code, $br->eu_country_codes) && $this->invoice->client->classification == 'individual') {
             return '05';
         }
 
@@ -439,11 +431,11 @@ class RegistroAlta
 
     private function calculateOperationClassification(string $tax_name): string
     {
-        if($this->invoice->client->country_id == 724 || stripos($tax_name, 'iva') !== false) {
+        if ($this->invoice->client->country_id == 724 || stripos($tax_name, 'iva') !== false) {
             return 'S1';
         }
 
         return 'N2';
     }
-    
+
 }

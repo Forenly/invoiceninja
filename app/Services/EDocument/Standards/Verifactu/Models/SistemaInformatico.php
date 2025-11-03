@@ -240,4 +240,4 @@ class SistemaInformatico extends BaseXmlModel
         $this->indicadorMultiplesOT = $indicadorMultiplesOT;
         return $this;
     }
-} 
+}

@@ -61,7 +61,7 @@ class UserSalesReport extends BaseExport
         $t = app('translator');
         $t->replace(Ninja::transformTranslations($this->company->settings));
 
-        $this->csv = Writer::createFromString();
+        $this->csv = Writer::fromString();
         \League\Csv\CharsetConverter::addTo($this->csv, 'UTF-8', 'UTF-8');
 
         $query = Invoice::query()
@@ -74,6 +74,8 @@ class UserSalesReport extends BaseExport
 
         $query = $this->filterByClients($query);
 
+        $query = $this->filterByUserPermissions($query);
+        
         $this->csv->insertOne([ctrans('texts.user_sales_report_header', ['client' => $this->client_description, 'start_date' => $this->start_date, 'end_date' => $this->end_date])]);
 
         if (count($this->input['report_keys']) == 0) {

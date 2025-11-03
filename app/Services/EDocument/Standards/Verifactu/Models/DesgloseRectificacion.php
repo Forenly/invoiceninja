@@ -4,7 +4,7 @@ namespace App\Services\EDocument\Standards\Verifactu\Models;
 
 /**
  * DesgloseRectificacion - Rectification Breakdown
- * 
+ *
  * This class represents the DesgloseRectificacionType from the Spanish tax authority schema.
  * It contains the breakdown of base and tax amounts for rectified invoices.
  */
@@ -57,18 +57,18 @@ class DesgloseRectificacion extends BaseXmlModel
     public function toXml(\DOMDocument $doc): \DOMElement
     {
         $root = $doc->createElementNS(self::XML_NAMESPACE, self::XML_NAMESPACE_PREFIX . ':ImporteRectificacion');
-        
+
         // Add BaseRectificada (required)
         $root->appendChild($this->createElement($doc, 'BaseRectificada', number_format($this->baseRectificada, 2, '.', '')));
-        
+
         // Add CuotaRectificada (required)
         $root->appendChild($this->createElement($doc, 'CuotaRectificada', number_format($this->cuotaRectificada, 2, '.', '')));
-        
+
         // Add CuotaRecargoRectificado (optional)
         if ($this->cuotaRecargoRectificado !== null) {
             $root->appendChild($this->createElement($doc, 'CuotaRecargoRectificado', number_format($this->cuotaRecargoRectificado, 2, '.', '')));
         }
-        
+
         return $root;
     }
 
@@ -77,7 +77,7 @@ class DesgloseRectificacion extends BaseXmlModel
         $baseRectificada = (float)self::getElementText($element, 'BaseRectificada');
         $cuotaRectificada = (float)self::getElementText($element, 'CuotaRectificada');
         $cuotaRecargoRectificado = self::getElementText($element, 'CuotaRecargoRectificado');
-        
+
         return new self(
             $baseRectificada,
             $cuotaRectificada,
@@ -90,4 +90,4 @@ class DesgloseRectificacion extends BaseXmlModel
         $node = $element->getElementsByTagNameNS(self::XML_NAMESPACE, $tagName)->item(0);
         return $node ? $node->nodeValue : null;
     }
-} 
+}

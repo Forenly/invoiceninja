@@ -93,7 +93,7 @@ class ZugferdEDocument extends AbstractService
             ->setLineItems()            // 4. Then line items
             ->setCustomSurcharges()     // 4a. Surcharges
             ->setDocumentSummation();   // 5. Finally document summation
-            // ->setAdditionalReferencedDocument();   // 6. Additional referenced document
+        // ->setAdditionalReferencedDocument();   // 6. Additional referenced document
 
         return $this;
 
@@ -107,35 +107,35 @@ class ZugferdEDocument extends AbstractService
 
         if ($this->document->custom_surcharge1 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge1 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge1;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"],null,null,null,null,null,null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge2 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge2 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge2;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"],null,null,null,null,null,null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge3 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge3 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge3;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"],null,null,null,null,null,null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge4 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge4 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge4;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"],null,null,null,null,null,null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         return $this;
     }
-    
+
     /**
      * setAdditionalReferencedDocument
      *
      * circular reference causing the file to never be created.
      * PDF => xml => PDF => xml
-     * 
+     *
      * Need to abstract the insertion of the base64 document into the XML.
-     * 
+     *
      * @return self
      */
     // private function setAdditionalReferencedDocument(): self
@@ -149,7 +149,7 @@ class ZugferdEDocument extends AbstractService
     //     $file_name = $this->document->numberFormatter().'.pdf';
 
     //     $this->temp_file_path = \App\Utils\TempFile::filePath($pdf, $file_name);
-        
+
     //     $this->xdocument->addDocumentInvoiceSupportingDocumentWithFile(
     //         $this->document->number,
     //         $this->temp_file_path,
@@ -181,14 +181,14 @@ class ZugferdEDocument extends AbstractService
      */
     private function setDocumentTaxes(): self
     {
-        
+
         if ((string) $this->document->total_taxes == '0') {
 
             $base_amount = 0;
             $tax_amount = 0;
             $tax_rate = 0;
 
-            if (in_array($this->tax_code,[ZugferdDutyTaxFeeCategories::VAT_REVERSE_CHARGE, ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX])) { //reverse charge
+            if (in_array($this->tax_code, [ZugferdDutyTaxFeeCategories::VAT_REVERSE_CHARGE, ZugferdDutyTaxFeeCategories::EXEMPT_FROM_TAX])) { //reverse charge
                 $base_amount = $this->document->amount;
             }
 
@@ -211,7 +211,13 @@ class ZugferdEDocument extends AbstractService
                     $this->tax_code,
                     "VAT",
                     0,
-                    null,null,null,null,null,null, ctrans('texts.discount')
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ctrans('texts.discount')
                 );
             }
 
@@ -252,7 +258,13 @@ class ZugferdEDocument extends AbstractService
                     $this->getTaxType($item["tax_id"] ?? '2'),
                     "VAT",
                     $item["tax_rate"],
-                    null,null,null,null,null,null,ctrans('texts.discount')
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ctrans('texts.discount')
                 );
             }
 
@@ -286,7 +298,7 @@ class ZugferdEDocument extends AbstractService
         $xml = $this->xdocument->getContent();
 
         //used if we are embedding the document within the PDF
-        if($this->temp_file_path){
+        if ($this->temp_file_path) {
             unlink($this->temp_file_path);
         }
 
@@ -494,6 +506,10 @@ class ZugferdEDocument extends AbstractService
                 $this->client->shipping_country->iso_3166_2,
                 $this->client->shipping_state
             );
+        }
+
+        if (isset($this->document->e_invoice->Invoice->Delivery[0]->ActualDeliveryDate)) {
+            $this->xdocument->setDocumentSupplyChainEvent(new \DateTime($this->document->e_invoice->Invoice->Delivery[0]->ActualDeliveryDate));
         }
 
         return $this;

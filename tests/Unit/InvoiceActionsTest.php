@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -18,7 +19,7 @@ use Tests\MockAccountData;
 use Tests\TestCase;
 
 /**
- * 
+ *
  *   App\Utils\Traits\Invoice\ActionsInvoice
  */
 class InvoiceActionsTest extends TestCase
@@ -36,7 +37,7 @@ class InvoiceActionsTest extends TestCase
 
     public function testInvoiceIsDeletable()
     {
-        
+
         $this->assertTrue($this->invoiceDeletable($this->invoice));
         $this->assertTrue($this->invoiceReversable($this->invoice));
         $this->assertTrue($this->invoiceCancellable($this->invoice));

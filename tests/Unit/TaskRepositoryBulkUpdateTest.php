@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -48,7 +49,7 @@ class TaskRepositoryBulkUpdateTest extends TestCase
         Model::reguard();
 
         $this->taskRepository = new TaskRepository();
-        
+
         // Create test client
         $this->testClient = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -246,7 +247,7 @@ class TaskRepositoryBulkUpdateTest extends TestCase
 
         // Assert invoiced task is unchanged
         $this->assertNull($invoicedTask->assigned_user_id);
-        
+
         // Assert regular task is updated
         $this->assertEquals($this->testUser->id, $regularTask->assigned_user_id);
     }
@@ -322,10 +323,10 @@ class TaskRepositoryBulkUpdateTest extends TestCase
 
         // Measure execution time
         $startTime = microtime(true);
-        
+
         // Bulk update assigned_user_id
         $this->taskRepository->bulkUpdate($models, 'assigned_user_id', $this->testUser->hashed_id);
-        
+
         $endTime = microtime(true);
         $executionTime = $endTime - $startTime;
 

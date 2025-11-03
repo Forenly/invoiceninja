@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -16,7 +17,6 @@ use Illuminate\Support\Facades\Http;
 
 class AeatAuthority
 {
-
     // @todo - in the UI, the user must navigate to AEAT link, and add Invoice Ninja as a third party. We cannot send without this.
     // @todo - need to store the verification of this in the company
     // https://sede.agenciatributaria.gob.es/Sede/ayuda/consultas-informaticas/otros-servicios-ayuda-tecnica/consultar-confirmar-renunciar-apoderamiento-recibido.html
@@ -39,7 +39,7 @@ class AeatAuthority
 
     public function __construct()
     {
-       
+
     }
 
     public function setTestMode(): self
@@ -77,7 +77,7 @@ XML;
 
         $signingService = new \App\Services\EDocument\Standards\Verifactu\Signing\SigningService($xml, file_get_contents($ssl_key), file_get_contents($certificate));
         $soapXml = $signingService->sign();
-        
+
         $response = Http::withHeaders([
                     'Content-Type' => 'text/xml; charset=utf-8',
                     'SOAPAction' => '',

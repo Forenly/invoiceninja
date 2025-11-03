@@ -31,7 +31,7 @@ class Encadenamiento extends BaseXmlModel
     public static function fromXml($xml): BaseXmlModel
     {
         $encadenamiento = new self();
-        
+
         if (is_string($xml)) {
             error_log("Loading XML in Encadenamiento::fromXml: " . $xml);
             $dom = new \DOMDocument();
@@ -43,20 +43,20 @@ class Encadenamiento extends BaseXmlModel
         } else {
             $element = $xml;
         }
-        
+
         try {
             // Handle PrimerRegistro
             $primerRegistro = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'PrimerRegistro')->item(0);
             if ($primerRegistro) {
                 $encadenamiento->setPrimerRegistro($primerRegistro->nodeValue);
             }
-            
+
             // Handle RegistroAnterior
             $registroAnterior = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'RegistroAnterior')->item(0);
             if ($registroAnterior) {
                 $encadenamiento->setRegistroAnterior(RegistroAnterior::fromDOMElement($registroAnterior));
             }
-            
+
             return $encadenamiento;
         } catch (\Exception $e) {
             error_log("Error parsing XML in Encadenamiento::fromXml: " . $e->getMessage());
@@ -67,19 +67,19 @@ class Encadenamiento extends BaseXmlModel
     public static function fromDOMElement(\DOMElement $element): self
     {
         $encadenamiento = new self();
-        
+
         // Handle PrimerRegistro
         $primerRegistro = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'PrimerRegistro')->item(0);
         if ($primerRegistro) {
             $encadenamiento->setPrimerRegistro($primerRegistro->nodeValue);
         }
-        
+
         // Handle RegistroAnterior
         $registroAnterior = $element->getElementsByTagNameNS(self::XML_NAMESPACE, 'RegistroAnterior')->item(0);
         if ($registroAnterior) {
             $encadenamiento->setRegistroAnterior(RegistroAnterior::fromDOMElement($registroAnterior));
         }
-        
+
         return $encadenamiento;
     }
 
@@ -118,4 +118,4 @@ class Encadenamiento extends BaseXmlModel
         $this->registroPosterior = $registroPosterior;
         return $this;
     }
-} 
+}

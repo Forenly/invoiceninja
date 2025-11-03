@@ -86,6 +86,14 @@ class RouteServiceProvider extends ServiceProvider
             }
         });
 
+        RateLimiter::for('daily-verify', function (Request $request) {
+            if (Ninja::isSelfHost()) {
+                return Limit::none();
+            } else {
+                return Limit::perDay(3)->by($request->ip());
+            }
+        });
+
         RateLimiter::for('honeypot', function (Request $request) {
             return Limit::perMinute(2)->by($request->ip());
         });

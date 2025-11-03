@@ -61,7 +61,7 @@ class EInvoiceReport extends BaseExport
         $t = app('translator');
         $t->replace(Ninja::transformTranslations($this->company->settings));
 
-        $this->csv = Writer::createFromString();
+        $this->csv = Writer::fromString();
         \League\Csv\CharsetConverter::addTo($this->csv, 'UTF-8', 'UTF-8');
 
         $this->csv->insertOne([]);

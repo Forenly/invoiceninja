@@ -4,7 +4,7 @@ namespace App\Services\EDocument\Standards\Verifactu\Models;
 
 /**
  * RegistroAnulacion - Invoice Cancellation Record
- * 
+ *
  * This class represents the cancellation record information required for Verifactu e-invoicing
  * modification operations. It contains the details of the invoice to be cancelled.
  */
@@ -230,64 +230,64 @@ class RegistroAnulacion extends BaseXmlModel
     public function toXml(\DOMDocument $doc): \DOMElement
     {
         $root = $doc->createElementNS(self::XML_NAMESPACE, self::XML_NAMESPACE_PREFIX . ':RegistroAnulacion');
-        
+
         // Add IDVersion
         $root->appendChild($this->createElement($doc, 'IDVersion', $this->idVersion));
-        
+
         // Create IDFactura structure
         $idFactura = $this->createElement($doc, 'IDFactura');
         $idFactura->appendChild($this->createElement($doc, 'IDEmisorFacturaAnulada', $this->idEmisorFactura));
         $idFactura->appendChild($this->createElement($doc, 'NumSerieFacturaAnulada', $this->numSerieFactura));
         $idFactura->appendChild($this->createElement($doc, 'FechaExpedicionFacturaAnulada', $this->fechaExpedicionFactura));
         $root->appendChild($idFactura);
-        
+
         // Add optional RefExterna
         if ($this->refExterna !== null) {
             $root->appendChild($this->createElement($doc, 'RefExterna', $this->refExterna));
         }
-        
+
         // Add optional SinRegistroPrevio
         if ($this->sinRegistroPrevio !== null) {
             $root->appendChild($this->createElement($doc, 'SinRegistroPrevio', $this->sinRegistroPrevio));
         }
-        
+
         // Add optional RechazoPrevio
         if ($this->rechazoPrevio !== null) {
             $root->appendChild($this->createElement($doc, 'RechazoPrevio', $this->rechazoPrevio));
         }
-        
+
         // Add optional GeneradoPor
         if ($this->generadoPor !== null) {
             $root->appendChild($this->createElement($doc, 'GeneradoPor', $this->generadoPor));
         }
-        
+
         // Add optional Generador
         if ($this->generador !== null) {
             $root->appendChild($this->generador->toXml($doc));
         }
-        
+
         // Add Encadenamiento using actual property
         $encadenamientoElement = $this->encadenamiento->toXml($doc);
         $root->appendChild($encadenamientoElement);
-        
+
         // Add SistemaInformatico using actual property
         $sistemaInformaticoElement = $this->sistemaInformatico->toXml($doc);
         $root->appendChild($sistemaInformaticoElement);
-        
+
         // Add FechaHoraHusoGenRegistro using actual property
         $root->appendChild($this->createElement($doc, 'FechaHoraHusoGenRegistro', $this->fechaHoraHusoGenRegistro));
-        
+
         // Add TipoHuella using actual property
         $root->appendChild($this->createElement($doc, 'TipoHuella', $this->tipoHuella));
-        
+
         // Add Huella using actual property
         $root->appendChild($this->createElement($doc, 'Huella', $this->huella));
-        
+
         // Add optional Signature
         if ($this->signature !== null) {
             $root->appendChild($this->createDsElement($doc, 'Signature', $this->signature));
         }
-        
+
         return $root;
     }
 
@@ -410,7 +410,7 @@ class RegistroAnulacion extends BaseXmlModel
         $envelope->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:soapenv', 'http://schemas.xmlsoap.org/soap/envelope/');
         $envelope->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:sum', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd');
         $envelope->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:sum1', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
-        
+
         $soapDoc->appendChild($envelope);
 
         // Create Header
@@ -444,11 +444,11 @@ class RegistroAnulacion extends BaseXmlModel
         // Import your existing XML into the RegistroFactura
         $yourXmlDoc = new \DOMDocument();
         $yourXmlDoc->loadXML($this->toXmlString());
-        
+
         // Import the root element from your XML
         $importedNode = $soapDoc->importNode($yourXmlDoc->documentElement, true);
         $registroFactura->appendChild($importedNode);
 
         return $soapDoc->saveXML();
     }
-} 
+}

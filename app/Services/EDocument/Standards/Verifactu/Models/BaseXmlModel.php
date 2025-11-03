@@ -45,17 +45,17 @@ abstract class BaseXmlModel
     }
 
     abstract public function toXml(\DOMDocument $doc): \DOMElement;
-    
+
     public static function fromXml($xml): self
     {
         if ($xml instanceof \DOMElement) {
             return static::fromDOMElement($xml);
         }
-        
+
         if (!is_string($xml)) {
             throw new \InvalidArgumentException('Input must be either a string or DOMElement');
         }
-        
+
         $doc = new \DOMDocument();
         $doc->formatOutput = true;
         $doc->preserveWhiteSpace = false;
@@ -64,6 +64,6 @@ abstract class BaseXmlModel
         }
         return static::fromDOMElement($doc->documentElement);
     }
-    
+
     abstract public static function fromDOMElement(\DOMElement $element): self;
-} 
+}

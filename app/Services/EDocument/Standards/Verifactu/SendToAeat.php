@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -39,9 +40,9 @@ class SendToAeat implements ShouldQueue
     public $tries = 5;
 
     public $deleteWhenMissingModels = true;
-    
+
     /**
-     * Modification Invoices - (modify) 
+     * Modification Invoices - (modify)
      *  - If Amount < 0 - We generate a R2 document which is a negative modification on the original invoice.
      * Create Invoices - (create) Generates a F1 document.
      * Cancellation Invoices - (cancel) Generates a R3 document with full negative values of the original invoice.
@@ -71,8 +72,8 @@ class SendToAeat implements ShouldQueue
         $invoice = Invoice::withTrashed()->find($this->invoice_id);
 
         $invoice = $invoice->service()->markSent()->save();
-        
-        switch($this->action) {
+
+        switch ($this->action) {
             case 'create':
                 $this->createInvoice($invoice);
                 break;
@@ -82,7 +83,7 @@ class SendToAeat implements ShouldQueue
         }
 
     }
-    
+
     /**
      * modifyInvoice
      *
@@ -92,15 +93,15 @@ class SendToAeat implements ShouldQueue
      * @param  Invoice $invoice
      * @return void
      */
-    
+
     public function createInvoice(Invoice $invoice)
     {
-        sleep(rand(1,2));
+        sleep(rand(1, 2));
 
         $invoice = $invoice->fresh();
 
         /** Return Early if we have already sent the invoice to the end client */
-        if(strlen($invoice->backup->guid) >= 1 || $invoice->is_deleted) {
+        if (strlen($invoice->backup->guid) >= 1 || $invoice->is_deleted) {
             return;
         }
 
@@ -118,25 +119,25 @@ class SendToAeat implements ShouldQueue
             $message = $response['errors'][0]['message'];
         }
 
-        if($response['success']) {
+        if ($response['success']) {
             $invoice->backup->guid = $response['guid'];
             $invoice->saveQuietly();
         }
 
-        
+
         $this->writeActivity($invoice, $response['success'] ? Activity::VERIFACTU_INVOICE_SENT : Activity::VERIFACTU_INVOICE_SENT_FAILURE, $message);
         $this->systemLog($invoice, $response, $response['success'] ? SystemLog::EVENT_VERIFACTU_SUCCESS : SystemLog::EVENT_VERIFACTU_FAILURE, SystemLog::TYPE_VERIFACTU_INVOICE);
 
         /** Check if we have emailed the invoice to the end client - if not - do it now! */
         $invoice->invitations()
                 ->where('email_error', 'primed') // This is a special flag for AEAT submission
-                ->whereHas('contact', function($query) {
-                    $query->where(function ($sq){
+                ->whereHas('contact', function ($query) {
+                    $query->where(function ($sq) {
                         $sq->whereNotNull('email')
                         ->orWhere('email', '!=', '');
                     })->where('is_locked', false)
                     ->withoutTrashed();
-                })->each(function($invitation) {
+                })->each(function ($invitation) {
                     $invitation->invoice->service()->sendEmail($invitation->contact);
                     $invitation->email_error = '';
                     $invitation->saveQuietly();
@@ -148,7 +149,7 @@ class SendToAeat implements ShouldQueue
     {
 
         $verifactu = new Verifactu($invoice);
-        
+
         $document = (new RegistroAlta($invoice))->run()->getInvoice();
         $document->setNumSerieFactura($invoice->backup->parent_invoice_number);
         $last_hash = $invoice->company->verifactu_logs()->first();
@@ -167,16 +168,16 @@ class SendToAeat implements ShouldQueue
                         ->send($soapXml);
 
         nlog($response);
-        
+
         $message = '';
 
-        if($response['success']) {
+        if ($response['success']) {
             //if successful, we need to pop this invoice from the child array of the parent invoice!
             nlog("searching for parent invoice ".$invoice->backup->parent_invoice_id);
             $parent = Invoice::withTrashed()->find($this->decodePrimaryKey($invoice->backup->parent_invoice_id));
-            
-            if($parent) {
-                $parent->backup->child_invoice_ids = $parent->backup->child_invoice_ids->reject(fn($id) => $id === $invoice->hashed_id);
+
+            if ($parent) {
+                $parent->backup->child_invoice_ids = $parent->backup->child_invoice_ids->reject(fn ($id) => $id === $invoice->hashed_id);
                 $parent->saveQuietly();
             }
 
@@ -185,7 +186,7 @@ class SendToAeat implements ShouldQueue
 
         }
 
-        if(isset($response['errors'][0]['message'])){
+        if (isset($response['errors'][0]['message'])) {
             $message = $response['errors'][0]['message'];
         }
 
@@ -223,16 +224,16 @@ class SendToAeat implements ShouldQueue
     private function systemLog(Invoice $invoice, array $data, int $event_id, int $type_id): void
     {
         (new SystemLogger(
-                $data,
-                SystemLog::CATEGORY_VERIFACTU,
-                $event_id,
-                $type_id,
-                $invoice->client,
-                $invoice->company
-            )
+            $data,
+            SystemLog::CATEGORY_VERIFACTU,
+            $event_id,
+            $type_id,
+            $invoice->client,
+            $invoice->company
+        )
         )->handle();
     }
-    
+
     /**
      * cancellationHash
      *

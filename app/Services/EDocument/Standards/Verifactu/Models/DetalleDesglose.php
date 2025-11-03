@@ -24,18 +24,18 @@ class DetalleDesglose extends BaseXmlModel
         // Add IVA details directly under DetalleDesglose
         $root->appendChild($this->createElement($doc, 'Impuesto', $this->desgloseIVA['Impuesto']));
 
-        if(isset($this->desgloseIVA['ClaveRegimen']) && in_array($this->desgloseIVA['ClaveRegimen'], ['01','03'])){
-                $root->appendChild($this->createElement($doc, 'ClaveRegimen', $this->desgloseIVA['ClaveRegimen']));
+        if (isset($this->desgloseIVA['ClaveRegimen']) && in_array($this->desgloseIVA['ClaveRegimen'], ['01','03'])) {
+            $root->appendChild($this->createElement($doc, 'ClaveRegimen', $this->desgloseIVA['ClaveRegimen']));
         }
-        
+
         $root->appendChild($this->createElement($doc, 'CalificacionOperacion', $this->desgloseIVA['CalificacionOperacion']));
 
-        if(isset($this->desgloseIVA['TipoImpositivo']) && $this->desgloseIVA['CalificacionOperacion'] == 'S1') {
+        if (isset($this->desgloseIVA['TipoImpositivo']) && $this->desgloseIVA['CalificacionOperacion'] == 'S1') {
             $root->appendChild($this->createElement($doc, 'TipoImpositivo', (string)$this->desgloseIVA['TipoImpositivo']));
         }
         $root->appendChild($this->createElement($doc, 'BaseImponibleOimporteNoSujeto', (string)$this->desgloseIVA['BaseImponible']));
-        
-        if(isset($this->desgloseIVA['Cuota']) && $this->desgloseIVA['CalificacionOperacion'] == 'S1') {
+
+        if (isset($this->desgloseIVA['Cuota']) && $this->desgloseIVA['CalificacionOperacion'] == 'S1') {
             $root->appendChild($this->createElement($doc, 'CuotaRepercutida', (string)$this->desgloseIVA['Cuota']));
         }
 
@@ -64,4 +64,4 @@ class DetalleDesglose extends BaseXmlModel
         $node = $element->getElementsByTagNameNS(self::XML_NAMESPACE, $tagName)->item(0);
         return $node ? $node->nodeValue : null;
     }
-} 
+}

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -14,7 +15,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 
 /**
- * 
+ *
  */
 class TimeZoneTest extends TestCase
 {
@@ -145,7 +146,7 @@ class TimeZoneTest extends TestCase
     {
 
 
-        foreach($this->timezones as $timezone) {
+        foreach ($this->timezones as $timezone) {
 
             date_default_timezone_set('GMT');
             $date = new \DateTime("now", new \DateTimeZone($timezone));

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -17,7 +18,6 @@ use App\Models\Invoice;
 
 interface EntityLevelInterface
 {
-
     public function checkClient(Client $client): array;
 
     public function checkCompany(Company $company): array;

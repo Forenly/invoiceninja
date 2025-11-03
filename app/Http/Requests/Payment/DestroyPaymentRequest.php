@@ -26,18 +26,4 @@ class DestroyPaymentRequest extends Request
         return auth()->user()->can('edit', $this->payment) && $this->payment->is_deleted === false;
     }
 
-    // public function withValidator($validator)
-    // {
-// $validator->after(function ($validator) {
-    //     $attached_credits = $this->payment
-    //                             ->credits()
-    //                             ->whereHas('payments', function ($q){
-    //                                 $q->withTrashed()->where('is_deleted',0);
-    //                             })->count();
-
-    //     if($attached_credits > 0){
-    //         $validator->errors()->add('status_id', 'Payment has attached credits and can not be deleted');
-    //     }
-    // });
-    // }
 }

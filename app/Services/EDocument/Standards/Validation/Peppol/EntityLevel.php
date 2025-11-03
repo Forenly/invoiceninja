@@ -197,7 +197,7 @@ class EntityLevel implements EntityLevelInterface
                 continue;
             }
 
-            if(in_array($field, ['address1', 'address2', 'city', 'state', 'postal_code']) && strlen($client->address1 ?? '') < 2){
+            if (in_array($field, ['address1', 'address2', 'city', 'state', 'postal_code']) && strlen($client->address1 ?? '') < 2) {
                 $errors[] = ['field' => $field, 'label' => ctrans("texts.{$field}")];
             }
 

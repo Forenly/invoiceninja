@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -23,15 +24,15 @@ use App\Services\EDocument\Standards\Verifactu\Models\Invoice as VerifactuInvoic
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Label\Font\OpenSans;
 use App\Utils\Traits\MakesHash;
+
 class Verifactu extends AbstractService
 {
-
     use MakesHash;
-    
+
     private AeatClient $aeat_client;
 
     private string $soapXml;
-    
+
     //store the current document state
     private VerifactuInvoice $_document;
 
@@ -41,9 +42,9 @@ class Verifactu extends AbstractService
     private string $_huella;
 
     private string $_previous_huella;
-    
+
     public function __construct(public Invoice $invoice)
-    {  
+    {
         $this->aeat_client = new AeatClient();
     }
 
@@ -60,21 +61,21 @@ class Verifactu extends AbstractService
         $i_logs = $this->invoice->verifactu_logs;
 
         $registro_alta = (new RegistroAlta($this->invoice))->run();
-        
-        if($this->invoice->amount < 0) {
+
+        if ($this->invoice->amount < 0) {
             $registro_alta = $registro_alta->setRectification();
         }
-        
+
         $this->registro_alta = $registro_alta;
 
         $document = $registro_alta->getInvoice();
-    
+
         //keep this state for logging later on successful send
         $this->_document = $document;
 
         $this->_previous_huella = '';
 
-        if($v_logs->count() >= 1){
+        if ($v_logs->count() >= 1) {
             $v_log = $v_logs->first();
             $this->_previous_huella = $v_log->hash;
         }
@@ -85,13 +86,13 @@ class Verifactu extends AbstractService
         $this->setEnvelope($document->toSoapEnvelope());
 
         return $this;
-        
+
     }
-            
+
     /**
      * setHuella
      * We need this for cancellation documents.
-     * 
+     *
      * @param  string $huella
      * @return self
      */
@@ -100,7 +101,7 @@ class Verifactu extends AbstractService
         $this->_huella = $huella;
         return $this;
     }
-    
+
     public function getInvoice()
     {
         return $this->_document;
@@ -116,7 +117,7 @@ class Verifactu extends AbstractService
     {
         return $this->soapXml;
     }
-    
+
     public function setTestMode(): self
     {
         $this->aeat_client->setTestMode();
@@ -165,7 +166,7 @@ class Verifactu extends AbstractService
      */
     public function calculateHash($document, string $huella): string
     {
-        
+
         $idEmisorFactura = $document->getIdFactura()->getIdEmisorFactura();
         $numSerieFactura = $document->getIdFactura()->getNumSerieFactura();
         $fechaExpedicionFactura = $document->getIdFactura()->getFechaExpedicionFactura();
@@ -173,7 +174,7 @@ class Verifactu extends AbstractService
         $cuotaTotal = $document->getCuotaTotal();
         $importeTotal = $document->getImporteTotal();
         $fechaHoraHusoGenRegistro = $document->getFechaHoraHusoGenRegistro();
-        
+
         $hashInput = "IDEmisorFactura={$idEmisorFactura}&" .
             "NumSerieFactura={$numSerieFactura}&" .
             "FechaExpedicionFactura={$fechaExpedicionFactura}&" .
@@ -185,18 +186,18 @@ class Verifactu extends AbstractService
 
         return strtoupper(hash('sha256', $hashInput));
     }
-    
+
 
     public function calculateQrCode(VerifactuLog $log)
     {
 
-        try{
+        try {
             $csv = $log->status;
             $nif = $log->nif;
             $invoiceNumber = $log->invoice_number;
             $date = $log->date->format('d-m-Y');
             $total = (string)round($log->invoice->amount, 2);
-            
+
             $url = sprintf(
                 $this->aeat_client->base_qr_url,
                 urlencode($csv),
@@ -231,7 +232,7 @@ class Verifactu extends AbstractService
 
         $response =  $this->aeat_client->send($soapXml);
 
-        if($response['success'] || $response['status'] == 'ParcialmenteCorrecto'){
+        if ($response['success'] || $response['status'] == 'ParcialmenteCorrecto') {
             $this->writeLog($response);
         }
 

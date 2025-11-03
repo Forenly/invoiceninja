@@ -33,4 +33,4 @@ class BaseTypes
     public const RECHAZO_PREVIO_TYPE = 'string';
     public const FIN_REQUERIMIENTO_TYPE = 'string';
     public const INCIDENCIA_TYPE = 'string';
-} 
+}

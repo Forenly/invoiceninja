@@ -217,4 +217,4 @@ class PersonaFisicaJuridica extends BaseXmlModel
 
         return $persona;
     }
-} 
+}

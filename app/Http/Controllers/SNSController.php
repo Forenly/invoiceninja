@@ -302,8 +302,6 @@ class SNSController extends BaseController
                 OPENSSL_ALGO_SHA1
             );
 
-            openssl_free_key($publicKey);
-
             if ($verificationResult === 1) {
                 nlog('SNS: Signature verification successful');
                 return true;

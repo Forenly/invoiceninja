@@ -143,7 +143,7 @@ class TemplateEngine
     /* If the body / subject are not populated we need to get the defaults */
     private function setTemplates()
     {
-        if (strlen($this->subject) == 0 && strlen($this->template) > 1) {
+        if (strlen($this->subject) == 0 && strlen($this->template ?? '') > 1) {
             $subject_template = str_replace('template', 'subject', $this->template);
 
             if (strlen($this->settings_entity->getSetting($subject_template)) > 1) {
@@ -153,7 +153,7 @@ class TemplateEngine
             }
         }
 
-        if (strlen($this->body) == 0 && strlen($this->template) > 1) {
+        if (strlen($this->body) == 0 && strlen($this->template ?? '') > 1) {
             if (strlen($this->settings_entity->getSetting($this->template)) > 1) {
                 $this->body = $this->settings_entity->getSetting($this->template);
             } else {

@@ -117,10 +117,10 @@ class InvoiceValidator
         // Check if desglose exists and has valid tax rates
         // if ($invoice->getDesglose()) {
         //     $desglose = $invoice->getDesglose();
-            
+
         //     // Validate tax rates are standard Spanish rates
         //     $validRates = [0, 4, 10, 21];
-            
+
         //     // This would need to be implemented based on your Desglose structure
         //     // $taxRate = $desglose->getTipoImpositivo();
         //     // if (!in_array($taxRate, $validRates)) {
@@ -169,7 +169,7 @@ class InvoiceValidator
         // Basic format validation for Spanish NIFs
         // Company NIFs: Letter + 8 digits (e.g., B12345678)
         // Individual NIFs: 8 digits + letter (e.g., 12345678A)
-        
+
         $pattern = '/^([A-Z]\d{8}|\d{8}[A-Z])$/';
         return preg_match($pattern, $nif) === 1;
     }
@@ -204,4 +204,4 @@ class InvoiceValidator
             ]
         ];
     }
-} 
+}

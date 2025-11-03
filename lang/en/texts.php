@@ -5652,6 +5652,16 @@ $lang = array(
     'outdent' => 'Outdent',
     'indent' => 'Indent',
     'clear_filters' => 'Clear Filters',
+    'feedback' => 'Feedback',
+    'feedback_modal_description' => 'We would love to hear your feedback!',
+    'do_not_ask_again' => 'Do not ask again',
+    'not_likely' => 'Not likely',
+    'extremely_likely' => 'Extremely likely',
+    'feedback_slider_title' => 'How likely are you to recommend Invoice Ninja to a friend or colleague?',
+    'actual_delivery_date' => 'Actual Delivery Date',
+    'actual_delivery_date_help' => 'Sometimes required when billing across borders. Defines the EXACT date of delivery of goods.',
+    'invoice_period' => 'Invoice Period',
+    'invoice_period_help' => 'Defines the time period for which the services were provided.',
 );
 
 return $lang;

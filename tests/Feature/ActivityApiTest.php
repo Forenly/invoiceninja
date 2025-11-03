@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -16,7 +17,6 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
 use Tests\MockAccountData;
 use Tests\TestCase;
-
 
 class ActivityApiTest extends TestCase
 {

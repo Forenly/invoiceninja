@@ -25,7 +25,7 @@ class ResponseProcessor
     {
         try {
             $this->loadXml($xmlResponse);
-            
+
             nlog($this->dom->saveXML());
 
             return [
@@ -43,7 +43,7 @@ class ResponseProcessor
                 'error' => $e->getMessage(),
                 'xml' => $xmlResponse
             ]);
-            
+
             return [
                 'success' => false,
                 'error' => 'Failed to process response: ' . $e->getMessage(),
@@ -59,13 +59,13 @@ class ResponseProcessor
     {
         libxml_use_internal_errors(true);
         libxml_clear_errors();
-        
+
         if (!$this->dom->loadXML($xml)) {
             $errors = libxml_get_errors();
             libxml_clear_errors();
             throw new Exception('Invalid XML: ' . ($errors[0]->message ?? 'Unknown error'));
         }
-        
+
         $this->root = $this->dom->documentElement;
     }
 
@@ -97,7 +97,7 @@ class ResponseProcessor
     private function getErrors(): array
     {
         $errors = [];
-        
+
         // Check for SOAP faults
         $fault = $this->getElementText('//env:Fault/faultstring');
         if ($fault) {
@@ -108,16 +108,16 @@ class ResponseProcessor
                 'details' => $this->getElementText('//env:Fault/detail/callstack')
             ];
         }
-        
+
         // Check for business logic errors
         $respuestaLineas = $this->dom->getElementsByTagNameNS(
             'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd',
             'RespuestaLinea'
         );
-        
+
         foreach ($respuestaLineas as $linea) {
             $estadoRegistro = $this->getElementText('.//tikR:EstadoRegistro', $linea);
-            
+
             if ($estadoRegistro === 'Incorrecto') {
                 $errors[] = [
                     'type' => 'Business_Error',
@@ -127,7 +127,7 @@ class ResponseProcessor
                 ];
             }
         }
-        
+
         return $errors;
     }
 
@@ -137,7 +137,7 @@ class ResponseProcessor
     private function getWarnings(): array
     {
         $warnings = [];
-        
+
         // Check for subsanacion (correction) messages
         $subsanacion = $this->getElementText('//tikR:RespuestaLinea/tikR:Subsanacion');
         if ($subsanacion) {
@@ -146,7 +146,7 @@ class ResponseProcessor
                 'message' => $subsanacion
             ];
         }
-        
+
         return $warnings;
     }
 
@@ -156,7 +156,7 @@ class ResponseProcessor
     private function getResponseData(): array
     {
         $data = [];
-        
+
         // Get header information
         $cabecera = $this->getElement('//tikR:Cabecera');
         if ($cabecera) {
@@ -167,16 +167,16 @@ class ResponseProcessor
                 ]
             ];
         }
-        
+
         // Get processing information
         $data['processing'] = [
             'tiempo_espera_envio' => $this->getElementText('//tikR:TiempoEsperaEnvio'),
             'estado_envio' => $this->getElementText('//tikR:EstadoEnvio')
         ];
-        
+
         // Get invoice responses
         $data['invoices'] = $this->getInvoiceResponses();
-        
+
         return $data;
     }
 
@@ -200,12 +200,12 @@ class ResponseProcessor
     private function getInvoiceResponses(): array
     {
         $invoices = [];
-        
+
         $respuestaLineas = $this->dom->getElementsByTagNameNS(
             'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd',
             'RespuestaLinea'
         );
-        
+
         foreach ($respuestaLineas as $linea) {
             $invoices[] = [
                 'id_emisor' => $this->getElementText('.//tikR:IDFactura/tik:IDEmisorFactura', $linea),
@@ -219,7 +219,7 @@ class ResponseProcessor
                 'subsanacion' => $this->getElementText('.//tikR:Subsanacion', $linea)
             ];
         }
-        
+
         return $invoices;
     }
 
@@ -243,18 +243,18 @@ class ResponseProcessor
     private function getElementText(string $xpath, ?DOMElement $context = null): ?string
     {
         $xpathObj = new \DOMXPath($this->dom);
-        
+
         // Register namespaces
         $xpathObj->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
         $xpathObj->registerNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
         $xpathObj->registerNamespace('tik', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
-        
+
         $nodeList = $context ? $xpathObj->query($xpath, $context) : $xpathObj->query($xpath);
-        
+
         if ($nodeList && $nodeList->length > 0) {
             return trim($nodeList->item(0)->nodeValue);
         }
-        
+
         return null;
     }
 
@@ -264,19 +264,19 @@ class ResponseProcessor
     private function getElement(string $xpath): ?DOMElement
     {
         $xpathObj = new \DOMXPath($this->dom);
-        
+
         // Register namespaces
         $xpathObj->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
         $xpathObj->registerNamespace('tikR', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd');
         $xpathObj->registerNamespace('tik', 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroInformacion.xsd');
-        
+
         $nodeList = $xpathObj->query($xpath);
-        
+
         if ($nodeList && $nodeList->length > 0) {
             $node = $nodeList->item(0);
             return $node instanceof DOMElement ? $node : null;
         }
-        
+
         return null;
     }
 
@@ -304,13 +304,13 @@ class ResponseProcessor
     {
         $codes = [];
         $errors = $this->getErrors();
-        
+
         foreach ($errors as $error) {
             if (isset($error['code'])) {
                 $codes[] = $error['code'];
             }
         }
-        
+
         return $codes;
     }
 
@@ -337,4 +337,4 @@ class ResponseProcessor
             'error_codes' => $this->getErrorCodes()
         ];
     }
-} 
+}

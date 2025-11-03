@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Invoice Ninja (https://invoiceninja.com).
  *
@@ -43,7 +44,7 @@ class ClientApiTest extends TestCase
     public $faker;
 
     public $settings;
-    
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -7,7 +7,6 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class SigningService
 {
-
     public function __construct(
         private string $xml,
         private string $private_key,

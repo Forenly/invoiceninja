@@ -34,8 +34,7 @@ class ReportExportController extends BaseController
             return response()->json(['message' => 'Still working.....'], 409);
         }
 
-        // $report = base64_decode($report);
-
+        $report = base64_decode($report);
         // Cache::forget($hash);
 
         // if($this->isXlsxData($report)){
