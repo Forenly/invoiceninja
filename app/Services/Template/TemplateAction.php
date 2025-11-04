@@ -103,6 +103,7 @@ class TemplateAction implements ShouldQueue
             Expense::class => $resource->with('client'),
             Payment::class => $resource->with('invoices', 'client'),
             Client::class => $resource,
+            Expense::class => $resource->with('client', 'project', 'vendor', 'invoice'),
             default => $resource,
         };
 

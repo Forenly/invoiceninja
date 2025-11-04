@@ -12,24 +12,25 @@
 
 namespace App\Services\Pdf;
 
-use App\DataMapper\ClientSettings;
-use App\DataMapper\CompanySettings;
+use App\Models\Quote;
 use App\Models\Client;
+use App\Models\Credit;
+use App\Models\Design;
+use App\Models\Vendor;
 use App\Models\Company;
 use App\Models\Country;
-use App\Models\Credit;
-use App\Models\CreditInvitation;
-use App\Models\Currency;
-use App\Models\Design;
+use App\Models\Expense;
 use App\Models\Invoice;
-use App\Models\InvoiceInvitation;
+use App\Models\Currency;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderInvitation;
-use App\Models\Quote;
 use App\Models\QuoteInvitation;
-use App\Models\Vendor;
-use App\Utils\Traits\GeneratesCounter;
 use App\Utils\Traits\MakesHash;
+use App\Models\CreditInvitation;
+use App\Models\InvoiceInvitation;
+use App\DataMapper\ClientSettings;
+use App\DataMapper\CompanySettings;
+use App\Utils\Traits\GeneratesCounter;
+use App\Models\PurchaseOrderInvitation;
 
 class PdfMock
 {
@@ -168,6 +169,23 @@ class PdfMock
 
                 $entity->invitation->setRelation('company', $this->company);
                 break;
+            case 'expense':
+                /** @var \App\Models\Expense $entity */
+                // $entity = Expense::factory()->make();
+                // $entity->invoice = Invoice::factory()->make(); /** @phpstan-ignore-line */
+                // $entity->invoice->client = Client::factory()->make(['settings' => $settings]); //@phpstan-ignore-line
+                // $entity->invoice->invitation = InvoiceInvitation::factory()->make(); //@phpstan-ignore-line
+// $entity->invoice->client->setRelation('company', $this->company);
+                /** @var \App\Models\Invoice $entity */
+                $entity = Invoice::factory()->make();
+                $entity->client = Client::factory()->make(['settings' => $settings]); //@phpstan-ignore-line
+                $entity->client->setRelation('company', $this->company);
+                $entity->invitation = InvoiceInvitation::factory()->make(); //@phpstan-ignore-line
+                $entity->tax_map = collect([]);
+                $entity->total_tax_map = [];
+                $entity->invitation->company = $this->company;
+                return $entity;
+
             default:
                 $entity = false;
                 break;
