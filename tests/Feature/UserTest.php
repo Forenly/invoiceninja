@@ -147,6 +147,7 @@ class UserTest extends TestCase
 
         $data = $user->toArray();
 
+        nlog($data);
         $response = $this->withHeaders([
             'X-API-SECRET' => config('ninja.api_secret'),
             'X-API-TOKEN' => $company_token->token,
