@@ -235,26 +235,10 @@ class InvoiceTransformer extends BaseTransformer
             ];
         }
 
-        if(empty($line_items) && intval($transformed['amount']) != 0) {
-            $line_items[] = [
-                'quantity' => 1,
-                'cost' => $transformed['amount'],
-                'product_key' => '',
-                'notes' => 'Invoice Amount',
-                'discount' => 0,
-                'is_amount_discount' => false,
-                'tax_name1' => '',
-                'tax_rate1' => 0,
-                'tax_name2' => '',
-                'tax_rate2' => 0,
-                'tax_name3' => '',
-                'tax_rate3' => 0,
-                'custom_value1' => '',
-                'custom_value2' => '',
-                'custom_value3' => '',
-                'custom_value4' => '',
-                'type_id' => '1',
-            ];
+        /** Support minimal invoice creation with just an amount */
+        if(count($line_items) == 1 && intval($line_items[0]['cost']) == 0 && intval($line_items[0]['quantity']) == 0 && intval($transformed['amount']) != 0) {
+            $line_items[0]['quantity'] = 1;
+            $line_items[0]['cost'] = $transformed['amount'];
         }
 
         $transformed['line_items'] = $this->cleanItems($line_items);
