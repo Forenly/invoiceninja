@@ -112,7 +112,7 @@ class EntityLevel implements EntityLevelInterface
         $xslt = new \App\Services\EDocument\Standards\Validation\VerifactuDocumentValidator($xml);
         $xslt->validate();
         $errors = $xslt->getVerifactuErrors();
-        nlog($errors);
+        // nlog($errors);
 
         if (isset($errors['stylesheet']) && count($errors['stylesheet']) > 0) {
             $this->errors['invoice'] = array_merge($this->errors['invoice'], $errors['stylesheet']);
