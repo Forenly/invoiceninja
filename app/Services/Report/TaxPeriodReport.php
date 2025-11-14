@@ -46,6 +46,8 @@ class TaxPeriodReport extends BaseExport
 
     private bool $cash_accounting = false;
 
+    private bool $is_usa = false;
+
     /**
         @param array $input
         [
@@ -70,6 +72,8 @@ class TaxPeriodReport extends BaseExport
         $t->replace(Ninja::transformTranslations($this->company->settings));
 
         $this->spreadsheet = new Spreadsheet();
+
+        $this->is_usa = $this->company->country()->iso_3166_2 == 'US';
 
         return 
         $this->setAccountingType()
@@ -343,6 +347,20 @@ class TaxPeriodReport extends BaseExport
             ctrans('texts.notes')
         ];
 
+        $usa_headers = [
+            'State',
+            'State Tax Rate',
+            'State Tax Amount',
+            'County',
+            'County Tax Rate',
+            'County Tax Amount',
+            'City',
+            'City Tax Rate',
+            'City Tax Amount',
+            'District Tax Rate',
+            'District Tax Amount',
+        ];
+
         $invoice_item_headers = [
             ctrans('texts.invoice_number'),
             ctrans('texts.invoice_date'),
@@ -356,6 +374,10 @@ class TaxPeriodReport extends BaseExport
             ctrans('texts.tax_nexus'),
         ];
 
+        if($this->is_usa){
+            $invoice_headers = array_merge($invoice_headers, $usa_headers);
+            $invoice_item_headers = array_merge($invoice_item_headers, $usa_headers);
+        }
 
         $this->data['invoices'] = [$invoice_headers];
         $this->data['invoice_items'] = [$invoice_item_headers];
@@ -367,6 +389,18 @@ class TaxPeriodReport extends BaseExport
                 $state = $invoice->transaction_events()->where('event_id', $this->cash_accounting ? TransactionEvent::PAYMENT_CASH : TransactionEvent::INVOICE_UPDATED)->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')->first();
                 $adjustments = $invoice->transaction_events()->whereIn('event_id',[TransactionEvent::PAYMENT_REFUNDED, TransactionEvent::PAYMENT_DELETED])->whereBetween('period', [$this->start_date, $this->end_date])->get();
                 
+                $state_tax_amount = '';
+                $county_tax_amount = '';
+                $city_tax_amount = '';
+                $district_tax_amount = '';
+
+                if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+                    $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+                    $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+                    $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+                    $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+                }
+
                 $this->data['invoices'][] = [
                     $invoice->number,
                     $invoice->date,
@@ -375,9 +409,27 @@ class TaxPeriodReport extends BaseExport
                     $state->metadata->tax_report->tax_summary->total_taxes,
                     $state->metadata->tax_report->tax_summary->total_paid,
                     'payable',
+                    $this->is_usa ? $invoice->tax_data->geoState : '',
+                    $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+                    $state_tax_amount,
+                    $this->is_usa ? $invoice->tax_data->geoCounty : '',
+                    $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+                    $county_tax_amount,
+                    $this->is_usa ? $invoice->tax_data->geoCity : '',
+                    $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+                    $city_tax_amount,
+                    $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+                    $district_tax_amount,
                 ];
 
                 $_adjustments = [];
+
+                if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+                    $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+                    $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+                    $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+                    $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+                }
 
                 foreach($adjustments as $adjustment){
                     $_adjustments[] = [
@@ -388,6 +440,17 @@ class TaxPeriodReport extends BaseExport
                         $state->metadata->tax_report->tax_summary->total_taxes,
                         $state->metadata->tax_report->tax_summary->adjustment,
                         'adjustment',
+                        $this->is_usa ? $invoice->tax_data->geoState : '',
+                        $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+                        $state_tax_amount,
+                        $this->is_usa ? $invoice->tax_data->geoCounty : '',
+                        $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+                        $county_tax_amount,
+                        $this->is_usa ? $invoice->tax_data->geoCity : '',
+                        $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+                        $city_tax_amount,
+                        $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+                        $district_tax_amount,
                     ];
                 }
 
@@ -407,13 +470,9 @@ class TaxPeriodReport extends BaseExport
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($this->spreadsheet);
         $writer->save($tempFile);
 
-        // $writer->save('/home/david/ttx.xlsx');
-        // Read file content
         $fileContent = file_get_contents($tempFile);
 
-        // nlog($tempFile);
-        // Clean up temp file
-        // unlink($tempFile);
+        unlink($tempFile);
 
         return $fileContent;
 
