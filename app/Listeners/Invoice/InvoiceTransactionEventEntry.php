@@ -37,8 +37,11 @@ class InvoiceTransactionEventEntry
      * @param  Invoice  $invoice
      * @return void
      */
-    public function run(Invoice $invoice, ?string $force_period = null)
+    public function run(?Invoice $invoice, ?string $force_period = null)
     {
+        if(!$invoice)
+            return;
+        
         $this->setPaidRatio($invoice);
 
         $period = $force_period ?? now()->endOfMonth()->format('Y-m-d');
