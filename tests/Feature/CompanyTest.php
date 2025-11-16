@@ -48,6 +48,16 @@ class CompanyTest extends TestCase
         $this->makeTestData();
     }
 
+    public function testCompanyWebsite()
+    {
+        $settings = $this->company->settings;
+        $settings->website = 'http://google.com';
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $this->assertEquals('https://google.com', $this->company->present()->website());
+        $this->assertNotFalse(filter_var(str_replace(["https://","http://"], "", $this->company->present()->website()), FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME));
+    }
 
     public function testCompanyExpenseMailbox()
     {
