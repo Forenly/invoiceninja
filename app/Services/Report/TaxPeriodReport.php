@@ -75,14 +75,29 @@ class TaxPeriodReport extends BaseExport
 
         $this->is_usa = $this->company->country()->iso_3166_2 == 'US';
 
-        return $this->setAccountingType()
-                ->setCurrencyFormat()
-                ->calculateDateRange()
-                ->initializeData()
-                ->buildData()
-                ->writeToSpreadsheet()
-                ->getXlsFile();
+        return 
+                $this->boot()
+                    ->writeToSpreadsheet()
+                    ->getXlsFile();
 
+    }
+    
+    /**
+     * boot the main methods
+     * that initialize the report
+     *
+     * @return self
+     */
+    public function boot(): self
+    {
+
+        $this->setAccountingType()
+            ->setCurrencyFormat()
+            ->calculateDateRange()
+            ->initializeData()
+            ->buildData();
+
+            return $this;
     }
 
     private function setAccountingType(): self
@@ -108,16 +123,13 @@ class TaxPeriodReport extends BaseExport
             ->whereBetween('date', ['1970-01-01', now()->subMonth()->endOfMonth()->format('Y-m-d')])
             ->whereDoesntHave('transaction_events');
 
-            nlog($q->count(). " records to update");
-            
             $q->cursor()
             ->each(function($invoice){
 
-                if($invoice->status_id == Invoice::STATUS_SENT){
-                    nlog($invoice->id. " - ".$invoice->number);
-                    (new InvoiceTransactionEventEntry())->run($invoice, \Carbon\Carbon::parse($invoice->date)->endOfMonth()->format('Y-m-d'));
-                }
-                elseif(in_array($invoice->status_id, [Invoice::STATUS_PAID, Invoice::STATUS_PARTIAL])){
+                // if($invoice->status_id == Invoice::STATUS_SENT){
+                (new InvoiceTransactionEventEntry())->run($invoice, \Carbon\Carbon::parse($invoice->date)->endOfMonth()->format('Y-m-d'));
+                // }
+                if(in_array($invoice->status_id, [Invoice::STATUS_PAID, Invoice::STATUS_PARTIAL])){
 
                     //Harvest point in time records for cash payments.
                     \App\Models\Paymentable::where('paymentable_type', 'invoices')
@@ -144,13 +156,12 @@ class TaxPeriodReport extends BaseExport
 
     private function resolveQuery()
     {
-        nlog($this->start_date. " - ".$this->end_date);
-        nlog($this->company->id);
+        
         $query = Invoice::query()
             ->withTrashed()
             ->with('transaction_events')
-            ->where('company_id', $this->company->id)
-            ->where('is_deleted', 0);
+            ->where('company_id', $this->company->id);
+            // ->where('is_deleted', 0);
 
         if($this->cash_accounting) //accrual
         {
@@ -165,7 +176,7 @@ class TaxPeriodReport extends BaseExport
         else //cash
         {
             
-            $query->whereIn('status_id', [2,3,4])
+            $query->whereIn('status_id', [2,3,4,5])
                 ->whereHas('transaction_events', function ($query) {
                     $query->where('event_id', TransactionEvent::INVOICE_UPDATED)
                         ->whereBetween('period', [$this->start_date, $this->end_date]);
@@ -363,14 +374,15 @@ class TaxPeriodReport extends BaseExport
         $invoice_item_headers = [
             ctrans('texts.invoice_number'),
             ctrans('texts.invoice_date'),
-            ctrans('texts.invoice_total'),
-            ctrans('texts.paid'),
             ctrans('texts.tax_name'),
             ctrans('texts.tax_rate'),
             ctrans('texts.tax_amount'),
-            ctrans('texts.tax_paid'),
             ctrans('texts.taxable_amount'),
+            ctrans('texts.tax_amount_paid'),
+            ctrans('texts.tax_amount_remaining'),
+            ctrans('texts.status'),
             ctrans('texts.tax_nexus'),
+            ctrans('texts.tax_rate'),
         ];
 
         if($this->is_usa){
@@ -381,85 +393,306 @@ class TaxPeriodReport extends BaseExport
         $this->data['invoices'] = [$invoice_headers];
         $this->data['invoice_items'] = [$invoice_item_headers];
 
-        $query->cursor()
-            ->each(function($invoice){
+        $query->cursor()->each(function($invoice){
 
-                /** @var TransactionEvent $state */                
-                $state = $invoice->transaction_events()->where('event_id', $this->cash_accounting ? TransactionEvent::PAYMENT_CASH : TransactionEvent::INVOICE_UPDATED)->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')->first();
-                $adjustments = $invoice->transaction_events()->whereIn('event_id',[TransactionEvent::PAYMENT_REFUNDED, TransactionEvent::PAYMENT_DELETED])->whereBetween('period', [$this->start_date, $this->end_date])->get();
-                
-                $state_tax_amount = '';
-                $county_tax_amount = '';
-                $city_tax_amount = '';
-                $district_tax_amount = '';
+            // $state = $invoice->transaction_events()->where('event_id', $this->cash_accounting ? TransactionEvent::PAYMENT_CASH : TransactionEvent::INVOICE_UPDATED)->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')->first();
+            // $adjustments = $invoice->transaction_events()->whereIn('event_id',[TransactionEvent::PAYMENT_REFUNDED, TransactionEvent::PAYMENT_DELETED])->whereBetween('period', [$this->start_date, $this->end_date])->get();
+            
+            /**
+             * If tax_summary->status ==
+             * 
+             * delta: there was a change between this period and the previous period
+             * adjustment: there was a payment applied to the invoice
+             * cancelled: the invoice was cancelled
+             * deleted: the invoice was deleted
+             * updated: the invoice was updated
+             */
 
-                if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
-                    $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
-                    $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
-                    $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
-                    $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+                         
+            $invoice->transaction_events()->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')
+            ->cursor()
+            ->each(function($event) use ($invoice){
+            
+                /** @var TransactionEvent $event */   
+                switch($event->metadata->tax_report->tax_summary->status){
+                    case 'delta':
+                        $this->insertInvoiceDelta($event, $invoice);
+                        break;
+                    case 'adjustment':
+                        $this->insertInvoiceAdjustment($event, $invoice);
+                        break;
+                    case 'cancelled':
+                        $this->insertInvoiceCancelled($event, $invoice);
+                        break;
+                    case 'deleted':
+                        $this->insertInvoiceDeleted($event, $invoice);
+                        break;
+                    case 'updated':
+                        $this->insertInvoiceUpdated($event, $invoice);
+                        break;
                 }
-
-                $this->data['invoices'][] = [
-                    $invoice->number,
-                    $invoice->date,
-                    $invoice->amount,
-                    $state->metadata->tax_report->payment_history?->sum('amount') ?? 0,
-                    $state->metadata->tax_report->tax_summary->total_taxes,
-                    $state->metadata->tax_report->tax_summary->total_paid,
-                    'payable',
-                    $this->is_usa ? $invoice->tax_data->geoState : '',
-                    $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
-                    $state_tax_amount,
-                    $this->is_usa ? $invoice->tax_data->geoCounty : '',
-                    $this->is_usa ? $invoice->tax_data->countySalesTax : '',
-                    $county_tax_amount,
-                    $this->is_usa ? $invoice->tax_data->geoCity : '',
-                    $this->is_usa ? $invoice->tax_data->citySalesTax : '',
-                    $city_tax_amount,
-                    $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
-                    $district_tax_amount,
-                ];
-
-                $_adjustments = [];
-
-                if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
-                    $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
-                    $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
-                    $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
-                    $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
-                }
-
-                foreach($adjustments as $adjustment){
-                    $_adjustments[] = [
-                        $invoice->number,
-                        $invoice->date,
-                        $invoice->amount,
-                        $state->invoice_paid_to_date,
-                        $state->metadata->tax_report->tax_summary->total_taxes,
-                        $state->metadata->tax_report->tax_summary->adjustment,
-                        'adjustment',
-                        $this->is_usa ? $invoice->tax_data->geoState : '',
-                        $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
-                        $state_tax_amount,
-                        $this->is_usa ? $invoice->tax_data->geoCounty : '',
-                        $this->is_usa ? $invoice->tax_data->countySalesTax : '',
-                        $county_tax_amount,
-                        $this->is_usa ? $invoice->tax_data->geoCity : '',
-                        $this->is_usa ? $invoice->tax_data->citySalesTax : '',
-                        $city_tax_amount,
-                        $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
-                        $district_tax_amount,
-                    ];
-                }
-
-                $this->data['invoices'] = array_merge($this->data['invoices'], $_adjustments);
 
             });
+        });
 
-            return $this;
+        return $this;
+    }
+    
+    /**
+     * insertInvoiceUpdated
+     *
+     * record the full invoice amount and tax details for the period
+     * 
+     * @param  mixed $state
+     * @param  mixed $invoice
+     * @return void
+     */
+    private function insertInvoiceUpdated($state, $invoice)
+    {
+
+        $state_tax_amount = '';
+        $county_tax_amount = '';
+        $city_tax_amount = '';
+        $district_tax_amount = '';
+
+        if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+            $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+        }
+
+        $this->data['invoices'][] = [
+            $invoice->number,
+            $invoice->date,
+            $invoice->amount,
+            $state->metadata->tax_report->payment_history?->sum('amount') ?? 0,
+            $state->metadata->tax_report->tax_summary->total_taxes,
+            $state->metadata->tax_report->tax_summary->total_paid,
+            'payable',
+            $this->is_usa ? $invoice->tax_data->geoState : '',
+            $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            $state_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCounty : '',
+            $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+            $county_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCity : '',
+            $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+            $city_tax_amount,
+            $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+            $district_tax_amount,
+        ];
+
+        foreach($state->metadata->tax_report->tax_details as $tax){
+            $this->data['invoice_items'][] = [
+                $invoice->number,
+                $invoice->date,
+                $tax->tax_name,
+                $tax->tax_rate,
+                $tax->tax_amount,
+                $tax->taxable_amount,
+                $tax->tax_amount_paid,
+                $tax->tax_amount_remaining,
+                'payable',
+                $this->is_usa ? $invoice->tax_data->geoState : '',
+                $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            ];
+        }
+
+        
+    }
+    
+    /**
+     * insertInvoiceDelta
+     *
+     * record the differential change between the previous period and the current period
+     * 
+     * @param  mixed $state
+     * @param  mixed $invoice
+     * @return void
+     */
+    private function insertInvoiceDelta($state, $invoice){
+    
+        $state_tax_amount = '';
+        $county_tax_amount = '';
+        $city_tax_amount = '';
+        $district_tax_amount = '';
+
+        if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+            $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->tax_adjustment, 2);
+            $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->tax_adjustment, 2);
+            $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->tax_adjustment, 2);
+            $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->tax_adjustment, 2);
+        }
+
+        $this->data['invoices'][] = [
+            $invoice->number,
+            $invoice->date,
+            $invoice->metadata->tax_report->tax_summary->adjustment,
+            $state->metadata->tax_report->payment_history?->sum('amount') ?? 0,
+            $state->metadata->tax_report->tax_summary->tax_adjustment,
+            $state->metadata->tax_report->tax_summary->total_paid,
+            'payable',
+            $this->is_usa ? $invoice->tax_data->geoState : '',
+            $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            $state_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCounty : '',
+            $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+            $county_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCity : '',
+            $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+            $city_tax_amount,
+            $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+            $district_tax_amount,
+        ];
+    }
+    
+    /**
+     * insertInvoiceAdjustment
+     *
+     * record the payment applied to the invoice
+     * 
+     * @param  mixed $state
+     * @param  mixed $invoice
+     * @return void
+     */
+    private function insertInvoiceAdjustment($state, $invoice)
+    {
+
+        $state_tax_amount = '';
+        $county_tax_amount = '';
+        $city_tax_amount = '';
+        $district_tax_amount = '';
+
+        if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+            $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+            $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+            $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+            $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->adjustment, 2);
+        }
+
+        $this->data['invoices'][] = [
+            $invoice->number,
+            $invoice->date,
+            $invoice->amount,
+            $state->invoice_paid_to_date,
+            $state->metadata->tax_report->tax_summary->total_taxes,
+            $state->metadata->tax_report->tax_summary->adjustment,
+            'adjustment',
+            $this->is_usa ? $invoice->tax_data->geoState : '',
+            $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            $state_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCounty : '',
+            $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+            $county_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCity : '',
+            $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+            $city_tax_amount,
+            $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+            $district_tax_amount,
+        ];
+
+    }
+    
+    /**
+     * insertInvoiceCancelled
+     *
+     * record the invoice was cancelled, the reportable amount here is the 
+     * paid_to_date amount on the invoice.
+     * 
+     * @param  mixed $state
+     * @param  mixed $invoice
+     * @return void
+     */
+    private function insertInvoiceCancelled($state, $invoice)
+    {
+
+        $state_tax_amount = '';
+        $county_tax_amount = '';
+        $city_tax_amount = '';
+        $district_tax_amount = '';
+
+        if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+            $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * ($state->invoice_paid_to_date / $state->invoice_amount) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * ($state->invoice_paid_to_date / $state->invoice_amount) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * ($state->invoice_paid_to_date / $state->invoice_amount) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * ($state->invoice_paid_to_date / $state->invoice_amount) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+        }
+
+        $this->data['invoices'][] = [
+            $invoice->number,
+            $invoice->date,
+            $state->invoice_paid_to_date,
+            $state->metadata->tax_report->payment_history?->sum('amount') ?? 0,
+            ($state->invoice_paid_to_date / $state->invoice_amount) * $state->metadata->tax_report->tax_summary->total_taxes,
+            $state->metadata->tax_report->tax_summary->total_paid,
+            'payable',
+            $this->is_usa ? $invoice->tax_data->geoState : '',
+            $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            ($state->invoice_paid_to_date / $state->invoice_amount) * $state_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCounty : '',
+            $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+            ($state->invoice_paid_to_date / $state->invoice_amount) * $county_tax_amount,
+            $this->is_usa ? $invoice->tax_data->geoCity : '',
+            $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+            ($state->invoice_paid_to_date / $state->invoice_amount) * $city_tax_amount,
+            $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+            ($state->invoice_paid_to_date / $state->invoice_amount) * $district_tax_amount,
+        ];
+    }
+    
+    /**
+     * insertInvoiceDeleted
+     *
+     * record the invoice was deleted, the reportable amount here is the 
+     * negative of the invoice amount and tax details.
+     * 
+     * @param  mixed $state
+     * @param  mixed $invoice
+     * @return void
+     */
+    private function insertInvoiceDeleted($state, $invoice)
+    {
+    
+        $state_tax_amount = '';
+        $county_tax_amount = '';
+        $city_tax_amount = '';
+        $district_tax_amount = '';
+
+        if($this->is_usa && ($invoice->tax_data->taxSales ?? false)){
+            $state_tax_amount = round(($invoice->tax_data->stateSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $county_tax_amount = round(($invoice->tax_data->countySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $city_tax_amount = round(($invoice->tax_data->citySalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+            $district_tax_amount = round(($invoice->tax_data->districtSalesTax / $invoice->tax_data->taxSales) * $state->metadata->tax_report->tax_summary->total_paid, 2);
+        }
+
+        $this->data['invoices'][] = [
+            $invoice->number,
+            $invoice->date,
+            $invoice->amount * -1,
+            $state->metadata->tax_report->payment_history?->sum('amount') * -1,
+            $state->metadata->tax_report->tax_summary->total_taxes * -1,
+            $state->metadata->tax_report->tax_summary->total_paid * -1,
+            'deleted',
+            $this->is_usa ? $invoice->tax_data->geoState : '',
+            $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            $state_tax_amount * -1,
+            $this->is_usa ? $invoice->tax_data->geoCounty : '',
+            $this->is_usa ? $invoice->tax_data->countySalesTax : '',
+            $county_tax_amount * -1,
+            $this->is_usa ? $invoice->tax_data->geoCity : '',
+            $this->is_usa ? $invoice->tax_data->citySalesTax : '',
+            $city_tax_amount * -1,
+            $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
+            $district_tax_amount * -1,
+        ];
+
     }
 
+    public function getData()
+    {
+        return $this->data;
+    }
 
     public function getXlsFile()
     {

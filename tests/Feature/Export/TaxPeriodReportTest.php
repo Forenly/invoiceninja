@@ -22,6 +22,7 @@ use App\Utils\Traits\MakesHash;
 use App\Models\TransactionEvent;
 use App\DataMapper\CompanySettings;
 use App\Factory\InvoiceItemFactory;
+use App\Services\Report\TaxPeriodReport;
 use App\Services\Report\TaxSummaryReport;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use App\Listeners\Invoice\InvoiceTransactionEventEntry;
@@ -204,6 +205,22 @@ class TaxPeriodReportTest extends TestCase
         $this->assertEquals('2025-10-31', $invoice->due_date);
         $this->assertEquals(330, $invoice->balance);
         $this->assertEquals(30, $invoice->total_taxes);
+
+        $payload = [
+            'start_date' => '2025-10-01',
+            'end_date' => '2025-10-31',
+            'date_range' => 'custom',
+            'is_income_billed' => true,
+        ];
+
+        $pl = new TaxPeriodReport($this->company, $payload);
+        $data = $pl->boot()->getData();
+
+        $this->assertNotEmpty($data);
+
+        nlog($data);
+        
+
     }
     
 }

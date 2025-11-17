@@ -169,7 +169,7 @@ class InvoiceTransactionEventEntry
                 'tax_summary' => [
                     'total_taxes' => $invoice->total_taxes,
                     'total_paid' => $this->getTotalTaxPaid($invoice),
-                    'status' => 'adjustment',
+                    'status' => 'delta',
                     'adjustment' => round($invoice->amount - $previous_transaction_event->invoice_amount, 2),
                     'tax_adjustment' => round($invoice->total_taxes - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
                 ],
