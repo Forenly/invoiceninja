@@ -83,7 +83,13 @@ class AdminEmailMailable extends Mailable
         $attachments  = [];
 
         $attachments = collect($this->email_object->attachments)->map(function ($file) {
-            return Attachment::fromData(fn () => base64_decode($file['file']), $file['name']);
+
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime  = finfo_buffer($finfo, base64_decode($file['file']));
+            $mime = $mime ?: 'application/octet-stream';
+            finfo_close($finfo);
+
+            return Attachment::fromData(fn () => base64_decode($file['file']), $file['name'])->withMime($mime);
         });
 
         return $attachments->toArray();
