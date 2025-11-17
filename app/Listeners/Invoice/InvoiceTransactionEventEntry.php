@@ -44,7 +44,6 @@ class InvoiceTransactionEventEntry
                         ->orderBy('timestamp', 'desc')
                         ->first();
 
-
         if($event){
 
             $this->entry_type = 'delta';
@@ -67,7 +66,10 @@ class InvoiceTransactionEventEntry
             }
 
         }
-
+        elseif($invoice->is_deleted){
+            //If the invoice was created and deleted in the same period, we don't need to report it!!!
+            return;
+        }
         //Long running tasks may spill over into the next day therefore month!
         $period = $force_period ?? now()->endOfMonth()->subHours(5)->format('Y-m-d');
         
@@ -138,7 +140,12 @@ class InvoiceTransactionEventEntry
                                             ->orderBy('timestamp', 'desc')
                                             ->first();
 
+
+        $previous_tax_details = $previous_transaction_event->metadata->tax_report->tax_details;
+
         foreach ($taxes as $tax) {
+            $previousLine = $previous_tax_details[$tax['name']] ?? null;
+
             $tax_detail = [
                 'tax_name' => $tax['name'],
                 'tax_rate' => $tax['tax_rate'],
@@ -146,7 +153,12 @@ class InvoiceTransactionEventEntry
                 'tax_amount' => $this->calculateRatio($tax['total']),
                 'tax_amount_paid' => $this->calculateRatio($tax['total']),
                 'tax_amount_remaining' => 0,
+                'taxable_amount_adjustment' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) - ($previousLine['taxable_amount'] ?? 0),
+                'tax_amount_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine['tax_amount'] ?? 0),
+                'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine['tax_amount_paid'] ?? 0),
+                'tax_amount_remaining_adjustment' => 0,
             ];
+
             $details[] = $tax_detail;
         }
 
@@ -157,8 +169,9 @@ class InvoiceTransactionEventEntry
                 'tax_summary' => [
                     'total_taxes' => $invoice->total_taxes,
                     'total_paid' => $this->getTotalTaxPaid($invoice),
-                    'status' => 'updated',
-                    'adjustment' => round($invoice->amount - $previous_transaction_event->invoice_amount,2)
+                    'status' => 'adjustment',
+                    'adjustment' => round($invoice->amount - $previous_transaction_event->invoice_amount, 2),
+                    'tax_adjustment' => round($invoice->total_taxes - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
                 ],
             ],
         ]);

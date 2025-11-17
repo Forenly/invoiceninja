@@ -75,8 +75,7 @@ class TaxPeriodReport extends BaseExport
 
         $this->is_usa = $this->company->country()->iso_3166_2 == 'US';
 
-        return 
-        $this->setAccountingType()
+        return $this->setAccountingType()
                 ->setCurrencyFormat()
                 ->calculateDateRange()
                 ->initializeData()
@@ -104,7 +103,7 @@ class TaxPeriodReport extends BaseExport
     {
         $q = Invoice::withTrashed()
             ->where('company_id', $this->company->id)
-            ->where('is_deleted', 0)
+            // ->where('is_deleted', 0)
             ->whereIn('status_id', [2,3,4,5])
             ->whereBetween('date', ['1970-01-01', now()->subMonth()->endOfMonth()->format('Y-m-d')])
             ->whereDoesntHave('transaction_events');
