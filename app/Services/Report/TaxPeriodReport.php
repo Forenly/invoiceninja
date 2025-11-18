@@ -343,7 +343,7 @@ class TaxPeriodReport extends BaseExport
 
         $query = $this->resolveQuery();
 
-        nlog($query->count(). "records to iterate");
+        nlog($query->count(). " records to iterate");
         $this->data['invoices'] = [];
         $this->data['invoices'][] =
 
@@ -409,7 +409,14 @@ class TaxPeriodReport extends BaseExport
              */
 
                          
-            $invoice->transaction_events()->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')
+            $invoice->transaction_events()
+            ->when(!$this->cash_accounting, function($query){
+                $query->where('event_id', TransactionEvent::INVOICE_UPDATED);
+            })
+            ->when($this->cash_accounting, function($query){
+                $query->where('event_id', '!=', TransactionEvent::INVOICE_UPDATED);
+            })
+            ->whereBetween('period', [$this->start_date, $this->end_date])->orderBy('timestamp', 'desc')
             ->cursor()
             ->each(function($event) use ($invoice){
             
@@ -482,6 +489,7 @@ class TaxPeriodReport extends BaseExport
             $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
             $district_tax_amount,
         ];
+
 
         foreach($state->metadata->tax_report->tax_details as $tax){
             $this->data['invoice_items'][] = [

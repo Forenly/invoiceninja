@@ -233,6 +233,8 @@ class TaxPeriodReportTest extends TestCase
         $this->assertCount(1,$data['invoice_items']);
         
         $invoice->service()->markPaid()->save();
+        
+        (new InvoiceTransactionEventEntryCash())->run($invoice, '2025-10-01', '2025-10-31');
 
         $invoice->fresh();
         
@@ -246,8 +248,11 @@ class TaxPeriodReportTest extends TestCase
         $pl = new TaxPeriodReport($this->company, $payload);
         $data = $pl->boot()->getData();
         
-        $this->assertCount(2,$data['invoices']);
-        $this->assertCount(2,$data['invoice_items']);
+        nlog($invoice->transaction_events->toArray());
+
+        $this->assertCount(2, $invoice->transaction_events);
+        $this->assertCount(2, $data['invoices']);
+        $this->assertCount(2, $data['invoice_items']);
 
     }
     
