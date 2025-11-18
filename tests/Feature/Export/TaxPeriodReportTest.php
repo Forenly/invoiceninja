@@ -498,4 +498,9 @@ class TaxPeriodReportTest extends TestCase
 
     // Updated invoices with payments in the same period
     // Updated invoices with payments in the next period
+
+    //cash accounting.
+
+    // What happens when a payment is deleted?
+    // What happens when a paid invoice is deleted?
 }

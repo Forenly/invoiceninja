@@ -17,6 +17,10 @@ use App\Models\Invoice;
 use App\Models\TransactionEvent;
 use Illuminate\Support\Collection;
 use App\DataMapper\TransactionEventMetadata;
+/**
+ * Handles entries for invoices.
+ * Used for end of month aggregation of accrual accounting.
+ */
 class InvoiceTransactionEventEntry
 {
 

@@ -173,8 +173,10 @@ class PaymentTransactionEventEntry implements ShouldQueue
                 'tax_summary' => [
                     'total_taxes' => $invoice->total_taxes,
                     'total_paid' => $this->getTotalTaxPaid($invoice),
-                    'adjustment' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
+                    'tax_adjustment' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
                     'status' => 'adjustment',
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'adjustment' => 0,
                 ],
             ],
         ]);
@@ -197,7 +199,6 @@ class PaymentTransactionEventEntry implements ShouldQueue
 
         foreach ($taxes as $tax) {
 
-            
             $base_amount = $tax['base_amount'] ?? $calc->getNetSubtotal();
             
             if($this->invoice_adjustment > 0)
@@ -226,7 +227,9 @@ class PaymentTransactionEventEntry implements ShouldQueue
                 'tax_summary' => [
                     'total_taxes' => $invoice->total_taxes,
                     'total_paid' => $this->getTotalTaxPaid($invoice),
-                    'adjustment' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'adjustment' => 0,
+                    'tax_adjustment' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
                     'status' => 'adjustment',
                 ],
             ],
