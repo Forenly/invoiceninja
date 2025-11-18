@@ -157,7 +157,8 @@ class InvoiceTransactionEventEntry
                 'tax_amount_remaining' => 0,
                 'taxable_amount_adjustment' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) - ($previousLine->taxable_amount ?? 0),
                 'tax_amount_adjustment' => $tax['total'] - ($previousLine->tax_amount ?? 0),
-                'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine->tax_amount_paid ?? 0),
+                'tax_amount_paid_adjustment' => 0,
+                // 'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine->tax_amount_paid ?? 0),
                 'tax_amount_remaining_adjustment' => 0,
             ];
 

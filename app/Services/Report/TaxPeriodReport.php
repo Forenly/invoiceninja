@@ -553,6 +553,22 @@ class TaxPeriodReport extends BaseExport
             $this->is_usa ? $invoice->tax_data->districtSalesTax : '',
             $district_tax_amount,
         ];
+
+        foreach($state->metadata->tax_report->tax_details as $tax){
+            $this->data['invoice_items'][] = [
+                $invoice->number,
+                $invoice->date,
+                $tax->tax_name,
+                $tax->tax_rate,
+                $tax->tax_amount_adjustment,
+                $tax->taxable_amount_adjustment,
+                $tax->tax_amount_paid_adjustment,
+                $tax->tax_amount_remaining_adjustment,
+                'payable',
+                $this->is_usa ? $invoice->tax_data->geoState : '',
+                $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            ];
+        }
     }
     
     /**
