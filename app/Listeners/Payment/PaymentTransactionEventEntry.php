@@ -30,13 +30,12 @@ class PaymentTransactionEventEntry implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
-    use Queueable;
     use SerializesModels;
 
     public $tries = 1;
 
     public $delay = 9;
-    
+
     private float $paid_ratio;
 
     private Collection $payments;
@@ -64,6 +63,9 @@ class PaymentTransactionEventEntry implements ShouldQueue
         //payment vs refunded
         MultiDB::setDb($this->db);
 
+        if($this->payment->invoices()->count() == 0)
+            return;
+        
         $this->payments = $this->payment
                             ->invoices()
                             ->get()
