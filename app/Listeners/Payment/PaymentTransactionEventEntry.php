@@ -35,6 +35,8 @@ class PaymentTransactionEventEntry implements ShouldQueue
 
     public $tries = 1;
 
+    public $delay = 9;
+    
     private float $paid_ratio;
 
     private Collection $payments;
@@ -262,7 +264,7 @@ class PaymentTransactionEventEntry implements ShouldQueue
 
     public function middleware()
     {
-        return [(new WithoutOverlapping("payment_transaction_event_entry_".$this->payment->id.'_'.$this->db))->releaseAfter(10)->expireAfter(30)];
+        return [(new WithoutOverlapping("payment_transaction_event_entry_".$this->payment->id.'_'.$this->db))->dontRelease()];
     }
 
     public function failed(?\Throwable $exception)
