@@ -967,7 +967,7 @@ class Company extends BaseModel
         $timezone = $this->timezone();
 
         date_default_timezone_set('GMT');
-        $date = new \DateTime("now", new \DateTimeZone($timezone->name));
+        $date = new \DateTime("now", new \DateTimeZone($timezone->name ?? 'UTC'));
         $offset = $date->getOffset();
 
         return $offset;
@@ -986,7 +986,7 @@ class Company extends BaseModel
         $timezone = $this->timezone();
 
         date_default_timezone_set('GMT');
-        $date = new \DateTime("now", new \DateTimeZone($timezone->name));
+        $date = new \DateTime("now", new \DateTimeZone($timezone->name ?? 'UTC'));
         $offset -= $date->getOffset();
 
         $offset += ($entity_send_time * 3600);
