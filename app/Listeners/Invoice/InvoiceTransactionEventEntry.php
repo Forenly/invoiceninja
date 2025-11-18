@@ -129,6 +129,8 @@ class InvoiceTransactionEventEntry
      */
     private function calculateDeltaMetaData($invoice)
     {
+        $this->paid_ratio = 1;
+
         $calc = $invoice->calc();
 
         $details = [];
@@ -144,7 +146,7 @@ class InvoiceTransactionEventEntry
         $previous_tax_details = $previous_transaction_event->metadata->tax_report->tax_details;
 
         foreach ($taxes as $tax) {
-            $previousLine = $previous_tax_details[$tax['name']] ?? null;
+            $previousLine = collect($previous_tax_details)->where('tax_name', $tax['name'])->first() ?? null;
 
             $tax_detail = [
                 'tax_name' => $tax['name'],
@@ -153,28 +155,32 @@ class InvoiceTransactionEventEntry
                 'tax_amount' => $this->calculateRatio($tax['total']),
                 'tax_amount_paid' => $this->calculateRatio($tax['total']),
                 'tax_amount_remaining' => 0,
-                'taxable_amount_adjustment' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) - ($previousLine['taxable_amount'] ?? 0),
-                'tax_amount_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine['tax_amount'] ?? 0),
-                'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine['tax_amount_paid'] ?? 0),
+                'taxable_amount_adjustment' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) - ($previousLine->taxable_amount ?? 0),
+                'tax_amount_adjustment' => $tax['total'] - ($previousLine->tax_amount ?? 0),
+                'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine->tax_amount_paid ?? 0),
                 'tax_amount_remaining_adjustment' => 0,
             ];
 
             $details[] = $tax_detail;
         }
 
+        $this->setPaidRatio($invoice);
+
         return new TransactionEventMetadata([
             'tax_report' => [
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray() ?? [], //@phpstan-ignore-line
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes,
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'total_taxes' => $calc->getTotalTaxes(),
                     'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'delta',
-                    'adjustment' => round($invoice->amount - $previous_transaction_event->invoice_amount, 2),
-                    'tax_adjustment' => round($invoice->total_taxes - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
+                    'adjustment' => round($calc->getNetSubtotal() - $previous_transaction_event->metadata->tax_report->tax_summary->taxable_amount, 2),
+                    'tax_adjustment' => round($calc->getTotalTaxes() - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
                 ],
             ],
         ]);
+
     }
     
     /**
@@ -203,14 +209,18 @@ class InvoiceTransactionEventEntry
             $details[] = $tax_detail;
         }
 
+        //@todo what happens if this is triggered in the "NEXT FINANCIAL PERIOD?
         return new TransactionEventMetadata([
             'tax_report' => [
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray() ?? [], //@phpstan-ignore-line
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes,
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'total_taxes' => $calc->getTotalTaxes(),
                     'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'cancelled',
+                    // 'adjustment' => round($calc->getNetSubtotal() - $previous_transaction_event->metadata->tax_report->tax_summary->taxable_amount, 2),
+                    // 'tax_adjustment' => round($calc->getTotalTaxes() - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
                 ],
             ],
         ]);
@@ -248,7 +258,8 @@ class InvoiceTransactionEventEntry
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray(),
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes,
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'total_taxes' => $calc->getTotalTaxes(),
                     'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'deleted',
                 ],
@@ -291,7 +302,8 @@ class InvoiceTransactionEventEntry
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray(),
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes,
+                    'taxable_amount' => $calc->getNetSubtotal(),
+                    'total_taxes' => $calc->getTotalTaxes(),
                     'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'updated',
                 ],

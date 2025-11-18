@@ -17,6 +17,7 @@ namespace App\DataMapper\TaxReport;
  */
 class TaxSummary
 {
+    public float $taxable_amount;
     public float $total_taxes; // Tax collected and confirmed (ie. Invoice Paid)
     public float $total_paid; // Tax pending collection (Outstanding tax of balance owing)
     public string $status; // updated, deleted, cancelled, adjustment
@@ -25,6 +26,7 @@ class TaxSummary
 
     public function __construct(array $attributes = [])
     {
+        $this->taxable_amount = $attributes['taxable_amount'] ?? 0.0;
         $this->total_taxes = $attributes['total_taxes'] ?? 0.0;
         $this->total_paid = $attributes['total_paid'] ?? 0.0;
         $this->status = $attributes['status'] ?? 'updated';
@@ -35,6 +37,7 @@ class TaxSummary
     public function toArray(): array
     {
         return [
+            'taxable_amount' => $this->taxable_amount,
             'total_taxes' => $this->total_taxes,
             'total_paid' => $this->total_paid,
             'status' => $this->status,

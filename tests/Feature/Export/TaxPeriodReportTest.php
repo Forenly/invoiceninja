@@ -199,6 +199,7 @@ class TaxPeriodReportTest extends TestCase
 
         $transaction_event = $invoice->transaction_events()->first();
 
+        nlog($transaction_event->metadata->toArray());
         $this->assertNotNull($transaction_event);
         $this->assertEquals(330, $transaction_event->invoice_amount);
         $this->assertEquals('2025-10-01', $invoice->date);
@@ -248,12 +249,113 @@ class TaxPeriodReportTest extends TestCase
         $pl = new TaxPeriodReport($this->company, $payload);
         $data = $pl->boot()->getData();
         
-        nlog($invoice->transaction_events->toArray());
-
         $this->assertCount(2, $invoice->transaction_events);
         $this->assertCount(2, $data['invoices']);
         $this->assertCount(2, $data['invoice_items']);
 
+        $this->travelBack();
     }
     
+    
+    /**
+     * Test that we adjust appropriately across reporting period where an invoice amount has been both 
+     * increased and decreased, and assess that the adjustments are correct.
+     * 
+     * @return void
+     */
+    public function testInvoiceReportingOverMultiplePeriodsWithAccrualAccountingCheckAdjustments()
+    {
+
+        $this->buildData();
+
+        $this->travelTo(\Carbon\Carbon::createFromDate(2025, 10, 1)->startOfDay());
+
+        $line_items = [];
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1;
+        $item->cost = 300;
+        $item->type_id = 1;
+        $item->tax_name1 = 'GST';
+        $item->tax_rate1 = 10;
+
+        $line_items[] = $item;
+
+
+        $invoice = Invoice::factory()->create([
+            'client_id' => $this->client->id,
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'line_items' => $line_items,
+            'status_id' => Invoice::STATUS_DRAFT,
+            'discount' => 0,
+            'is_amount_discount' => false,
+            'uses_inclusive_taxes' => false,
+            'tax_name1' => '',
+            'tax_rate1' => 0,
+            'tax_name2' => '',
+            'tax_rate2' => 0,
+            'tax_name3' => '',
+            'tax_rate3' => 0,
+            'custom_surcharge1' => 0,
+            'custom_surcharge2' => 0,
+            'custom_surcharge3' => 0,
+            'custom_surcharge4' => 0,
+            'date' => now()->format('Y-m-d'),
+            'due_date' => now()->addDays(30)->format('Y-m-d'),
+        ]);
+
+        $invoice = $invoice->calc()->getInvoice();
+
+        $invoice->service()->markSent()->createInvitations()->save();
+
+        $invoice->fresh();
+
+        (new InvoiceTransactionEventEntry())->run($invoice);
+
+        $invoice->fresh();
+
+        $transaction_event = $invoice->transaction_events()->first();
+
+        $this->assertEquals('2025-10-31', $transaction_event->period->format('Y-m-d'));
+        $this->assertEquals(330, $transaction_event->invoice_amount);
+        $this->assertEquals(30, $transaction_event->metadata->tax_report->tax_summary->total_taxes);
+        $this->assertEquals(0, $transaction_event->invoice_paid_to_date);
+
+
+        $this->travelTo(\Carbon\Carbon::createFromDate(2025, 11, 5)->startOfDay());
+
+        $line_items = [];
+        $item = InvoiceItemFactory::create();
+        $item->quantity = 1;
+        $item->cost = 400;
+        $item->type_id = 1;
+        $item->tax_name1 = 'GST';
+        $item->tax_rate1 = 10;
+
+        $line_items[] = $item;
+
+        $invoice->line_items = $line_items;
+        $invoice = $invoice->calc()->getInvoice();
+        
+        $invoice->fresh();
+
+        (new InvoiceTransactionEventEntry())->run($invoice);
+
+        $transaction_event = $invoice->transaction_events()->orderBy('timestamp', 'desc')->first();
+
+        nlog($transaction_event->metadata);
+        $this->assertEquals('2025-11-30', $transaction_event->period->format('Y-m-d'));
+        $this->assertEquals(440, $transaction_event->invoice_amount);
+        $this->assertEquals("delta", $transaction_event->metadata->tax_report->tax_summary->status);
+        $this->assertEquals(40, $transaction_event->metadata->tax_report->tax_summary->total_taxes);
+        $this->assertEquals(100, $transaction_event->metadata->tax_report->tax_summary->adjustment);
+        $this->assertEquals(10, $transaction_event->metadata->tax_report->tax_summary->tax_adjustment);
+
+
+    }
+
+    public function invoiceReportingOverMultiplePeriodsWithCashAccountingCheckAdjustments()
+    {
+
+    }
 }
