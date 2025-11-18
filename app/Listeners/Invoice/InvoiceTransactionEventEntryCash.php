@@ -37,6 +37,9 @@ class InvoiceTransactionEventEntryCash
     public function run($invoice, $start_date, $end_date)
     {
 
+        if(!$invoice)
+            return;
+        
         $this->setPaidRatio($invoice);
         
         $this->payments = $invoice->payments->flatMap(function ($payment) use ($start_date, $end_date) {

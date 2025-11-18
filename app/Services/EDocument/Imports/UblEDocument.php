@@ -187,7 +187,7 @@ class UblEDocument extends AbstractService
         $expense = $repo->save($data, $expense);
 
 
-        if ($expense->company->account->hasFeature(\App\Models\Account::FEATURE_DOCUMENTS)) {
+        // if ($expense->company->account->hasFeature(\App\Models\Account::FEATURE_DOCUMENTS)) {
 
             foreach ($attachments as $attachment) {
 
@@ -204,10 +204,10 @@ class UblEDocument extends AbstractService
 
                 if ($document_data) {
                     $document = \App\Utils\TempFile::UploadedFileFromBase64($document_data, $doc_name, $mime_type);
-                    $this->saveDocument($document, $expense);
+                    $this->saveDocument($document, $expense, true);
                 }
             }
-        }
+        // }
 
         return $expense;
 

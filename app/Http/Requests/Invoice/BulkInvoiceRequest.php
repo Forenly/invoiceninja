@@ -76,15 +76,18 @@ class BulkInvoiceRequest extends Request
 
         /** @var \App\Models\User $user */
         $user = auth()->user();
+        $key = ($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key);
 
-        if (\Illuminate\Support\Facades\Cache::has($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key)) {
+        if (\Illuminate\Support\Facades\Cache::has($key)) {
             throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
         }
 
         if($this->input('ids', false)){
             $delay = $this->input('action', 'delete') == 'delete' ? (min(count($this->input('ids', 2)), 3)) : 1;
-            \Illuminate\Support\Facades\Cache::put(($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key), true, $delay);
+            \Illuminate\Support\Facades\Cache::put($key, true, $delay);
         }
+
+        $this->merge(['lock_key' => $key]);
     }
 
 }

@@ -96,7 +96,9 @@ class CheckACHStatus implements ShouldQueue
                 $pi = false;
 
                 try {
-                    $pi = $stripe->getPaymentIntent($p->transaction_reference);
+                    if(str_starts_with($p->transaction_reference, 'pi_')){
+                        $pi = $stripe->getPaymentIntent($p->transaction_reference);
+                    }
                 } catch (\Exception $e) {
 
                 }

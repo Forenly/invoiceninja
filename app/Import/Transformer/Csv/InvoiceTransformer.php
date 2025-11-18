@@ -30,9 +30,19 @@ class InvoiceTransformer extends BaseTransformer
      */
     public function transform($line_items_data)
     {
-        $invoice_data = reset($line_items_data);
 
-        if ($this->hasInvoice($invoice_data['invoice.number'])) {
+        if (!empty($line_items_data) && is_array(reset($line_items_data))) {
+            // Nested array (array of arrays)
+            $invoice_data = reset($line_items_data);
+        } else {
+            // Flat array
+            $invoice_data = $line_items_data;
+            $line_items_data = [$invoice_data];
+        }
+
+        // $invoice_data = reset($line_items_data);
+
+        if (isset($invoice_data['invoice.number']) && $this->hasInvoice($invoice_data['invoice.number'])) {
             throw new ImportException('Invoice number already exists');
         }
 
@@ -183,26 +193,10 @@ class InvoiceTransformer extends BaseTransformer
                 ],
             ];
         }
-        // elseif (
-        //     isset($transformed['amount']) &&
-        //     isset($transformed['balance']) &&
-        //     $transformed['amount'] != $transformed['balance']
-        // ) {
-        //     $transformed['payments'] = [
-        //         [
-        //             'date' => isset($invoice_data['payment.date'])
-        //                 ? $this->parseDate($invoice_data['payment.date'])
-        //                 : date('y-m-d'),
-        //             'transaction_reference' => $this->getString(
-        //                 $invoice_data,
-        //                 'payment.transaction_reference'
-        //             ),
-        //             'amount' => $transformed['amount'] - $transformed['balance'],
-        //         ],
-        //     ];
-        // }
+        
 
         $line_items = [];
+
         foreach ($line_items_data as $record) {
             $line_items[] = [
                 'quantity' => $this->getFloat($record, 'item.quantity'),
@@ -241,8 +235,14 @@ class InvoiceTransformer extends BaseTransformer
             ];
         }
 
-        $transformed['line_items'] = $this->cleanItems($line_items);
+        /** Support minimal invoice creation with just an amount */
+        if(count($line_items) == 1 && intval($line_items[0]['cost']) == 0 && intval($line_items[0]['quantity']) == 0 && intval($transformed['amount']) != 0) {
+            $line_items[0]['quantity'] = 1;
+            $line_items[0]['cost'] = $transformed['amount'];
+        }
 
+        $transformed['line_items'] = $this->cleanItems($line_items);
+        
         return $transformed;
     }
 }

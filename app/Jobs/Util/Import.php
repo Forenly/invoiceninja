@@ -1558,8 +1558,6 @@ class Import implements ShouldQueue
                     false
                 );
 
-                // $this->saveDocument($uploaded_file, $entity, $is_public = true);
-
                 $document = (new \App\Jobs\Util\UploadFile(
                     $uploaded_file,
                     \App\Jobs\Util\UploadFile::DOCUMENT,

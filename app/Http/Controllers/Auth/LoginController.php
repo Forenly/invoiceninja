@@ -630,8 +630,8 @@ class LoginController extends BaseController
         }
 
         $user = $account->default_company->owner();        
-        $user->email_verified_at = now();
-        $user->save();
+        // $user->email_verified_at = now();
+        // $user->save();
 
         Auth::login($user, false);
 

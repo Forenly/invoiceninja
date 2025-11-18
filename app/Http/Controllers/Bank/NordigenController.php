@@ -85,7 +85,7 @@ class NordigenController extends BaseController
         } catch (\Exception $e) {
             $debug = "{$e->getMessage()} ({$e->getCode()})";
 
-            nlog("Nordigen: Could not create an agreement with ${institution['name']}: {$debug}");
+            nlog("Nordigen: Could not create an agreement with {$institution['name']}: {$debug}");
 
             return $this->failed('eua-failure', $context, $company);
         }

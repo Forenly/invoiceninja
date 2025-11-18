@@ -93,12 +93,13 @@ class StoreInvoiceRequest extends Request
         $user = auth()->user();
 
         $client_id = is_string($this->input('client_id', '')) ? $this->input('client_id') : '';
+        $key = $this->ip()."|INVOICE|".$client_id."|".$user->company()->company_key;
 
-        if (\Illuminate\Support\Facades\Cache::has($this->ip()."|INVOICE|".$client_id."|".$user->company()->company_key)) {
+        if (\Illuminate\Support\Facades\Cache::has($key)) {
             usleep(200000);
         }
 
-        \Illuminate\Support\Facades\Cache::put($this->ip()."|INVOICE|".$client_id."|".$user->company()->company_key, 1);
+        \Illuminate\Support\Facades\Cache::put($key, 1);
 
         $input = $this->all();
 
@@ -165,6 +166,8 @@ class StoreInvoiceRequest extends Request
             $input['terms'] = str_replace("\n", "", $input['terms']);
         }
 
+        $input['lock_key'] = $key;
+        
         $this->replace($input);
     }
 }

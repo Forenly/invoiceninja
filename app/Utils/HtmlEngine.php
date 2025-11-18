@@ -493,7 +493,7 @@ class HtmlEngine
         $data['$country_2'] = ['value' => $locationData['country_code'] , 'label' => ctrans('texts.country')];
         $data['$email'] = ['value' => isset($this->contact) ? $this->contact->email : 'no contact email on record', 'label' => ctrans('texts.email')];
 
-        if (str_contains($data['$email']['value'], 'example.com')) {
+        if (str_contains($data['$email']['value'] ?? '', 'example.com')) {
             $data['$email'] = ['value' => '', 'label' => ctrans('texts.email')];
         }
 

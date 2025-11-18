@@ -29,7 +29,11 @@ class TaxDetail
     
     // Adjustment-specific fields (used when tax_status is "adjustment")
     public ?string $adjustment_reason; // "invoice_cancelled", "tax_rate_change", "exemption_applied", "correction"
-    
+    public float $taxable_amount_adjustment;
+    public float $tax_amount_adjustment;
+    public float $tax_amount_paid_adjustment;
+    public float $tax_amount_remaining_adjustment;
+
     public function __construct(array $attributes = [])
     {
         $this->tax_name = $attributes['tax_name'] ?? '';
@@ -41,10 +45,13 @@ class TaxDetail
         $this->tax_amount_paid = $attributes['tax_amount_paid'] ?? 0.0;
         $this->tax_amount_remaining = $attributes['tax_amount_remaining'] ?? 0.0;
         $this->tax_status = $attributes['tax_status'] ?? 'pending';
-     
         // Adjustment fields
         $this->adjustment_reason = $attributes['adjustment_reason'] ?? null;
-     
+        
+        $this->taxable_amount_adjustment = $attributes['taxable_amount_adjustment'] ?? 0.0;
+        $this->tax_amount_adjustment = $attributes['tax_amount_adjustment'] ?? 0.0;
+        $this->tax_amount_paid_adjustment = $attributes['tax_amount_paid_adjustment'] ?? 0.0;
+        $this->tax_amount_remaining_adjustment = $attributes['tax_amount_remaining_adjustment'] ?? 0.0;
     }
 
     public function toArray(): array
@@ -60,6 +67,10 @@ class TaxDetail
             'tax_amount_remaining' => $this->tax_amount_remaining,
             'tax_status' => $this->tax_status,
             'adjustment_reason' => $this->adjustment_reason,
+            'taxable_amount_adjustment' => $this->taxable_amount_adjustment,
+            'tax_amount_adjustment' => $this->tax_amount_adjustment,
+            'tax_amount_paid_adjustment' => $this->tax_amount_paid_adjustment,
+            'tax_amount_remaining_adjustment' => $this->tax_amount_remaining_adjustment,
         ];
 
         return $data;

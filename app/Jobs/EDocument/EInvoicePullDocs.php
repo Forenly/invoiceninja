@@ -134,21 +134,21 @@ class EInvoicePullDocs implements ShouldQueue
             if (strlen($document['html'] ?? '') > 5) {
 
                 $upload_document = TempFile::UploadedFileFromRaw($document['html'], "{$file_name}.html", 'text/html');
-                $this->saveDocument($upload_document, $expense);
+                $this->saveDocument($upload_document, $expense, true);
                 $upload_document = null;
             }
 
             if (strlen($document['original_base64_xml'] ?? '') > 5) {
 
                 $upload_document = TempFile::UploadedFileFromBase64($document['original_base64_xml'], "{$file_name}.xml", 'application/xml');
-                $this->saveDocument($upload_document, $expense);
+                $this->saveDocument($upload_document, $expense, true);
                 $upload_document = null;
             }
 
             foreach ($document['document']['invoice']['attachments'] as $attachment) {
 
                 $upload_document = TempFile::UploadedFileFromBase64($attachment['document'], $attachment['filename'], $attachment['mime_type']);
-                $this->saveDocument($upload_document, $expense);
+                $this->saveDocument($upload_document, $expense, true);
                 $upload_document = null;
 
             }

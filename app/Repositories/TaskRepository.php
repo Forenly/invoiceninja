@@ -255,7 +255,7 @@ class TaskRepository extends BaseRepository
 
             $start_time = time();
 
-            $log = array_merge($log, [[$start_time, 0]]);
+            $log = array_merge($log, [[$start_time, 0, "", true]]);
             $task->time_log = json_encode($log);
             $task->calculated_start_date = \Carbon\Carbon::createFromTimestamp($start_time)->addSeconds($task->company->utc_offset());
 
@@ -267,7 +267,7 @@ class TaskRepository extends BaseRepository
         $last = end($log);
 
         if (is_array($last) && $last[1] !== 0) { // this line is a disaster
-            $new = [time(), 0];
+            $new = [time(), 0, "", true];
 
             $log = array_merge($log, [$new]);
             $task->time_log = json_encode($log);

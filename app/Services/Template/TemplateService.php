@@ -571,6 +571,7 @@ class TemplateService
                 'purchase_orders' => $processed = $this->processPurchaseOrders($value),
                 'aging' => $processed = $value,
                 'unapplied' => $processed = $this->processPayments($value),
+                'expenses' => $processed = $this->processExpenses($value),
                 default => $processed = [],
             };
 
@@ -1127,6 +1128,7 @@ class TemplateService
                 'client' => $this->getClient($expense),
                 'vendor' => $this->getVendor($expense),
                 'project' => ($expense->project && !$nested) ? $this->transformProject($expense->project, true) : [],
+                'invoice' => $expense->invoice ? $this->processInvoice([$expense->invoice]) : [],
             ];
         })->toArray();
     }

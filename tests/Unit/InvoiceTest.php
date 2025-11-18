@@ -52,6 +52,38 @@ class InvoiceTest extends TestCase
         $this->invoice_calc = new InvoiceSum($this->invoice);
     }
 
+    public function testInvoiceCreationWithClientAndProjectDoesNotTriggerAnInvalidJsonPayloadException()
+    {
+        $data = [
+            "client_id" => $this->client->hashed_id,
+            "project_id" => $this->project->hashed_id,
+            "custom_value3" => "<FLIGHTREFERENCE>",
+            "line_items" => [
+                [
+                    "quantity" => 1,
+                    "cost" => 100,
+                    "product_key" => "<TASK_DESCRIPTION>",
+                    "notes" => "<TASK_NOTES>",
+                    "tax_name1" => "gst",
+                    "tax_rate1" => 18,
+                    "type_id" => "2",
+                    "tax_id" => "2"
+                ]
+            ],
+            "custom_surcharge1" => 4,
+            "custom_surcharge2" => 3,
+            "custom_surcharge3" => 2,
+            "custom_surcharge4" => 1
+        ];
+
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson('/api/v1/invoices', $data);
+
+        $response->assertStatus(200);
+    }
 
     public function testBulkInvoiceValidationRequestFailsWithMissingIds()
     {
