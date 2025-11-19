@@ -85,6 +85,7 @@ class PaymentTransactionEventEntry implements ShouldQueue
                 ->get()
                 ->filter(function($invoice){
                     //only insert adjustment entries if we are after the end of the month!!
+                    nlog(Carbon::parse($invoice->date)->endOfMonth()->isBefore(now()->addSeconds($this->payment->company->timezone_offset())));
                     return Carbon::parse($invoice->date)->endOfMonth()->isBefore(now()->addSeconds($this->payment->company->timezone_offset()));
                 })
                 ->each(function($invoice){

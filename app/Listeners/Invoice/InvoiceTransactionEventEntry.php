@@ -60,33 +60,27 @@ class InvoiceTransactionEventEntry
             
             if($invoice->is_deleted && $event->metadata->tax_report->tax_summary->status == 'deleted'){ 
                 // Invoice was previously deleted, and is still deleted... return early!!
-                 
                 return;
             }
             else if(in_array($invoice->status_id,[Invoice::STATUS_CANCELLED]) && $event->metadata->tax_report->tax_summary->status == 'cancelled'){
                 // Invoice was previously cancelled, and is still cancelled... return early!!
-                
                 return;
             }
             else if (!$invoice->is_deleted && $event->metadata->tax_report->tax_summary->status == 'deleted'){
                 //restored invoice must be reported!!!! _do not return early!!
-                
                 $this->entry_type = 'restored';
             }
             else if(in_array($invoice->status_id,[Invoice::STATUS_CANCELLED])){
-                // Need to ensure first time cancellations are reported.
-  
+                // Need to ensure first time cancellations are reported.  
                 // return; // Only return if BOTH amount AND status unchanged - for handling cancellations.
                 
-                return;
+                // return;
             }
             else if($invoice->is_deleted){
-                
                 
             }
             /** If the invoice hasn't changed its state... return early!! */
             else if(BcMath::comp($invoice->amount, $event->invoice_amount) == 0){
-                
                 return;
             }
 
@@ -178,13 +172,8 @@ class InvoiceTransactionEventEntry
                 'tax_rate' => $tax['tax_rate'],
                 'taxable_amount' => $tax['base_amount'] ?? $calc->getNetSubtotal(),
                 'tax_amount' => $this->calculateRatio($tax['total']),
-                'tax_amount_paid' => $this->calculateRatio($tax['total']),
-                'tax_amount_remaining' => 0,
                 'taxable_amount_adjustment' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) - ($previousLine->taxable_amount ?? 0),
                 'tax_amount_adjustment' => $tax['total'] - ($previousLine->tax_amount ?? 0),
-                'tax_amount_paid_adjustment' => 0,
-                // 'tax_amount_paid_adjustment' => $this->calculateRatio($tax['total']) - ($previousLine->tax_amount_paid ?? 0),
-                'tax_amount_remaining_adjustment' => 0,
             ];
 
             $details[] = $tax_detail;
@@ -199,7 +188,6 @@ class InvoiceTransactionEventEntry
                 'tax_summary' => [
                     'taxable_amount' => $calc->getNetSubtotal(),
                     'total_taxes' => $calc->getTotalTaxes(),
-                    'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'delta',
                     'adjustment' => round($calc->getNetSubtotal() - $previous_transaction_event->metadata->tax_report->tax_summary->taxable_amount, 2),
                     'tax_adjustment' => round($calc->getTotalTaxes() - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
@@ -223,14 +211,29 @@ class InvoiceTransactionEventEntry
 
         $taxes = array_merge($calc->getTaxMap()->merge($calc->getTotalTaxMap())->toArray());
 
+        //If there is a previous transaction event, we need to consider the taxable amount.
+        $previous_transaction_event = TransactionEvent::where('event_id', TransactionEvent::INVOICE_UPDATED)
+                                            ->where('invoice_id', $invoice->id)
+                                            ->orderBy('timestamp', 'desc')
+                                            ->first();
+
+        if($this->paid_ratio == 0){
+            // setup a 0/0 recorded
+        }
+        
+        //If there are no previous events, we setup a 0/0 record.
+
+        // If there is a previous event, it must have a payment history?
+        if($previous_transaction_event){
+            $previous_tax_details = $previous_transaction_event->metadata->tax_report->tax_details;
+        }
+
         foreach ($taxes as $tax) {
             $tax_detail = [
                 'tax_name' => $tax['name'],
                 'tax_rate' => $tax['tax_rate'],
-                'taxable_amount' => $tax['base_amount'] ?? $calc->getNetSubtotal(),
-                'tax_amount' => $this->calculateRatio($tax['total']),
-                'tax_amount_paid' => $this->calculateRatio($tax['total']),
-                'tax_amount_remaining' => 0,
+                'taxable_amount' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) * $this->paid_ratio,
+                'tax_amount' => ($tax['total'] * $this->paid_ratio),
             ];
             $details[] = $tax_detail;
         }
@@ -241,9 +244,8 @@ class InvoiceTransactionEventEntry
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray() ?? [], //@phpstan-ignore-line
                 'tax_summary' => [
-                    'taxable_amount' => $calc->getNetSubtotal(),
-                    'total_taxes' => $calc->getTotalTaxes(),
-                    'total_paid' => $this->getTotalTaxPaid($invoice),
+                    'taxable_amount' => $calc->getNetSubtotal() * $this->paid_ratio,
+                    'total_taxes' => $calc->getTotalTaxes() * $this->paid_ratio,
                     'status' => 'cancelled',
                     // 'adjustment' => round($calc->getNetSubtotal() - $previous_transaction_event->metadata->tax_report->tax_summary->taxable_amount, 2),
                     // 'tax_adjustment' => round($calc->getTotalTaxes() - $previous_transaction_event->metadata->tax_report->tax_summary->total_taxes,2)
@@ -273,8 +275,6 @@ class InvoiceTransactionEventEntry
                 'tax_rate' => $tax['tax_rate'],
                 'taxable_amount' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) * -1,
                 'tax_amount' => $tax['total'] * -1,
-                'tax_amount_paid' => $this->calculateRatio($tax['total']),
-                'tax_amount_remaining' => 0,
             ];
             $details[] = $tax_detail;
         }
@@ -286,7 +286,6 @@ class InvoiceTransactionEventEntry
                 'tax_summary' => [
                     'taxable_amount' => $calc->getNetSubtotal(),
                     'total_taxes' => $calc->getTotalTaxes(),
-                    'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'deleted',
                 ],
             ],
@@ -317,8 +316,6 @@ class InvoiceTransactionEventEntry
                 'tax_rate' => $tax['tax_rate'],
                 'taxable_amount' => $tax['base_amount'] ?? $calc->getNetSubtotal(),
                 'tax_amount' => $tax['total'],
-                'tax_amount_paid' => $this->calculateRatio($tax['total']),
-                'tax_amount_remaining' => $tax['total'] - $this->calculateRatio($tax['total']),
             ];
             $details[] = $tax_detail;
         }
@@ -330,7 +327,6 @@ class InvoiceTransactionEventEntry
                 'tax_summary' => [
                     'taxable_amount' => $calc->getNetSubtotal(),
                     'total_taxes' => $calc->getTotalTaxes(),
-                    'total_paid' => $this->getTotalTaxPaid($invoice),
                     'status' => 'updated',
                 ],
             ],
