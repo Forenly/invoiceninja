@@ -781,8 +781,7 @@ class TaxPeriodReportTest extends TestCase
         $pl = new TaxPeriodReport($this->company, $payload);
         $data = $pl->boot()->getData();
         
-        nlog($data);
-
+        // nlog($data);
         $this->assertCount(2, $data['invoices']);
 
         $invoice_report = $data['invoices'][1];
@@ -791,6 +790,16 @@ class TaxPeriodReportTest extends TestCase
         $this->assertEquals(-10, $invoice_report[4]);
         $this->assertEquals('adjustment', $invoice_report[6]);
 
+        $payload = [
+            'start_date' => '2025-10-01',
+            'end_date' => '2025-11-30',
+            'date_range' => 'custom',
+            'is_income_billed' => false, //cash
+        ];
+
+        $pl = new TaxPeriodReport($this->company, $payload);
+        $data = $pl->boot()->getData();
+        nlog($data);
     }
 
     //scenarios.

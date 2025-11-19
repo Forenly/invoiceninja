@@ -481,7 +481,7 @@ class TaxPeriodReport extends BaseExport
             $invoice->paid_to_date,
             // $state->metadata->tax_report->payment_history?->sum('amount') ?? 0,
             $state->metadata->tax_report->tax_summary->total_taxes,
-            $state->metadata->tax_report->tax_summary->total_paid,
+            $state->metadata->tax_report->tax_summary->taxable_amount,
             'payable',
             $this->is_usa ? $invoice->tax_data->geoState : '',
             $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
@@ -623,6 +623,22 @@ class TaxPeriodReport extends BaseExport
             $district_tax_amount,
         ];
 
+        foreach($state->metadata->tax_report->tax_details as $tax){
+            $this->data['invoice_items'][] = [
+                $invoice->number,
+                $invoice->date,
+                $tax->tax_name,
+                $tax->tax_rate,
+                $tax->tax_amount_adjustment,
+                $tax->taxable_amount_adjustment,
+                $tax->tax_amount_paid_adjustment,
+                $tax->tax_amount_remaining_adjustment,
+                'payable',
+                $this->is_usa ? $invoice->tax_data->geoState : '',
+                $this->is_usa ? $invoice->tax_data->stateSalesTax : '',
+            ];
+        }
+        
     }
     
     /**
