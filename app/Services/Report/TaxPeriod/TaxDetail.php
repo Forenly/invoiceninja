@@ -22,8 +22,8 @@ class TaxDetail
         public float $tax_rate,
         public float $taxable_amount,
         public float $tax_amount,
-        public float $tax_amount_adjustment = 0,
-        public float $taxable_amount_adjustment = 0,
+        public float $line_total = 0,
+        public float $total_tax = 0,
     ) {}
 
     /**
@@ -36,8 +36,8 @@ class TaxDetail
             tax_rate: $metadata->tax_rate,
             taxable_amount: $metadata->taxable_amount ?? 0,
             tax_amount: $metadata->tax_amount ?? 0,
-            tax_amount_adjustment: $metadata->tax_amount_adjustment ?? 0,
-            taxable_amount_adjustment: $metadata->taxable_amount_adjustment ?? 0,
+            line_total: $metadata->line_total ?? 0,
+            total_tax: $metadata->total_tax ?? 0,
         );
     }
 
@@ -85,13 +85,6 @@ class TaxDetail
         return round($this->taxable_amount * (1 - $payment_ratio), 2);
     }
 
-    /**
-     * Check if this detail represents an adjustment (delta/refund)
-     */
-    public function isAdjustment(): bool
-    {
-        return $this->tax_amount_adjustment != 0 || $this->taxable_amount_adjustment != 0;
-    }
 
     /**
      * Get effective tax rate as percentage string (e.g., "10%")
@@ -131,8 +124,8 @@ class TaxDetail
             'tax_rate' => $this->tax_rate,
             'taxable_amount' => $this->taxable_amount,
             'tax_amount' => $this->tax_amount,
-            'tax_amount_adjustment' => $this->tax_amount_adjustment,
-            'taxable_amount_adjustment' => $this->taxable_amount_adjustment,
+            'line_total' => $this->line_total,
+            'total_tax' => $this->total_tax,
         ];
     }
 }

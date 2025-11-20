@@ -117,11 +117,9 @@ class InvoiceTransactionEventEntryCash
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray(),
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes * $this->paid_ratio,
+                    'tax_amount' => $invoice->total_taxes * $this->paid_ratio,
                     'status' => 'updated',
                     'taxable_amount' => $calc->getNetSubtotal() * $this->paid_ratio,
-                    'adjustment' => 0,
-                    'tax_adjustment' => 0,
                 ],
             ],
         ]);

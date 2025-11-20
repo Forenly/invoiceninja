@@ -27,8 +27,9 @@ class TaxDetail
     
     // Adjustment-specific fields (used when tax_status is "adjustment")
     public ?string $adjustment_reason; // "invoice_cancelled", "tax_rate_change", "exemption_applied", "correction"
-    public float $taxable_amount_adjustment;
-    public float $tax_amount_adjustment;
+    public float $line_total;
+    public float $total_tax;
+    
   
     public function __construct(array $attributes = [])
     {
@@ -42,8 +43,8 @@ class TaxDetail
         // Adjustment fields
         $this->adjustment_reason = $attributes['adjustment_reason'] ?? null;
         
-        $this->taxable_amount_adjustment = $attributes['taxable_amount_adjustment'] ?? 0.0;
-        $this->tax_amount_adjustment = $attributes['tax_amount_adjustment'] ?? 0.0;
+        $this->line_total = $attributes['line_total'] ?? 0.0;
+        $this->total_tax = $attributes['total_tax'] ?? 0.0;
     }
 
     public function toArray(): array
@@ -57,8 +58,8 @@ class TaxDetail
             'tax_amount' => $this->tax_amount,
             'tax_status' => $this->tax_status,
             'adjustment_reason' => $this->adjustment_reason,
-            'taxable_amount_adjustment' => $this->taxable_amount_adjustment,
-            'tax_amount_adjustment' => $this->tax_amount_adjustment,
+            'line_total' => $this->line_total,
+            'total_tax' => $this->total_tax,
         ];
 
         return $data;

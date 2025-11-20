@@ -14,58 +14,41 @@ namespace App\Services\Report\TaxPeriod;
 
 /**
  * Data Transfer Object for tax summary information
+ *
+ * Represents the taxable amount and tax amount for an invoice in a specific period.
+ * The meaning of these values depends on the status:
+ *
+ * - 'updated': Full invoice tax liability (accrual) or paid tax (cash)
+ * - 'delta': Differential tax change from invoice updates
+ * - 'adjustment': Tax change from payment refunds/deletions
+ * - 'cancelled': Proportional tax on refunded/cancelled amount
+ * - 'deleted': Full tax reversal
+ * - 'reversed': Full tax reversal of credit note
  */
 class TaxSummary
 {
     public function __construct(
         public float $taxable_amount,
-        public float $total_taxes,
+        public float $tax_amount,
         public TaxReportStatus $status,
-        public float $adjustment = 0,
-        public float $tax_adjustment = 0,
     ) {
     }
 
     /**
      * Create from transaction event metadata
      */
-    public static function fromMetadata(object $metadata): self
+    public static function fromMetadata($metadata): self
     {
+        // Handle both object and array access
+        $taxable_amount = is_array($metadata) ? ($metadata['taxable_amount'] ?? 0) : ($metadata->taxable_amount ?? 0);
+        $tax_amount = is_array($metadata) ? ($metadata['tax_amount'] ?? $metadata['tax_adjustment'] ?? 0) : ($metadata->tax_amount ?? $metadata->tax_adjustment ?? 0);
+        $status = is_array($metadata) ? ($metadata['status'] ?? 'updated') : ($metadata->status ?? 'updated');
+
         return new self(
-            taxable_amount: $metadata->taxable_amount ?? 0,
-            total_taxes: $metadata->total_taxes ?? 0,
-            status: TaxReportStatus::from($metadata->status ?? 'updated'),
-            adjustment: $metadata->adjustment ?? 0,
-            tax_adjustment: $metadata->tax_adjustment ?? 0,
+            taxable_amount: $taxable_amount,
+            tax_amount: $tax_amount,
+            status: TaxReportStatus::from($status),
         );
-    }
-
-    /**
-     * Calculate total tax paid based on invoice payment ratio
-     *
-     * @param float $invoice_amount Total invoice amount
-     * @param float $invoice_paid_to_date Amount paid on invoice
-     * @return float Tax amount that has been paid
-     */
-    public function calculateTotalPaid(float $invoice_amount, float $invoice_paid_to_date): float
-    {
-        if ($invoice_amount == 0) {
-            return 0;
-        }
-
-        return round($this->total_taxes * ($invoice_paid_to_date / $invoice_amount), 2);
-    }
-
-    /**
-     * Calculate total tax remaining
-     *
-     * @param float $invoice_amount Total invoice amount
-     * @param float $invoice_paid_to_date Amount paid on invoice
-     * @return float Tax amount still outstanding
-     */
-    public function calculateTotalRemaining(float $invoice_amount, float $invoice_paid_to_date): float
-    {
-        return round($this->total_taxes - $this->calculateTotalPaid($invoice_amount, $invoice_paid_to_date), 2);
     }
 
     /**
@@ -87,10 +70,8 @@ class TaxSummary
     {
         return [
             'taxable_amount' => $this->taxable_amount,
-            'total_taxes' => $this->total_taxes,
+            'tax_amount' => $this->tax_amount,
             'status' => $this->status->value,
-            'adjustment' => $this->adjustment,
-            'tax_adjustment' => $this->tax_adjustment,
         ];
     }
 }

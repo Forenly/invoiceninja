@@ -171,8 +171,8 @@ class InvoiceTaxSummary implements ShouldQueue
                 // })
                 ->whereBetween('updated_at', [$startDateUtc, $endDateUtc])
                 ->cursor()
-                ->each(function (Invoice $invoice) {
-                    (new InvoiceTransactionEventEntry())->run($invoice);
+                ->each(function (Invoice $invoice) use ($endDate) {
+                    (new InvoiceTransactionEventEntry())->run($invoice, $endDate);
                 });
 
         Invoice::withTrashed()

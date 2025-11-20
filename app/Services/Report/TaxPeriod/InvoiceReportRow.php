@@ -40,7 +40,7 @@ class InvoiceReportRow
             ctrans('texts.invoice_date'),
             ctrans('texts.invoice_total'),
             ctrans('texts.paid'),
-            ctrans('texts.total_taxes'),
+            ctrans('texts.tax_amount'),
             ctrans('texts.taxable_amount'),
             ctrans('texts.notes'),
         ];
@@ -60,14 +60,14 @@ class InvoiceReportRow
         $this->row_data = [
             $this->invoice->number,
             $this->invoice->date,
-            $this->invoice->amount,
-            $this->invoice->paid_to_date,
-            $this->tax_summary->total_taxes,
+            $this->event->invoice_amount,
+            $this->event->invoice_paid_to_date,
+            $this->tax_summary->tax_amount,
             $this->tax_summary->taxable_amount,
             $this->tax_summary->status->label(),
         ];
 
-        $this->appendRegionalColumns($this->tax_summary->total_taxes);
+        $this->appendRegionalColumns($this->tax_summary->tax_amount);
 
         return $this->row_data;
     }
@@ -80,14 +80,14 @@ class InvoiceReportRow
         $this->row_data = [
             $this->invoice->number,
             $this->invoice->date,
-            $this->tax_summary->adjustment,
+            $this->event->invoice_amount,
             $this->event->metadata->tax_report->payment_history?->sum('amount') ?? 0,
-            $this->tax_summary->tax_adjustment,
+            $this->tax_summary->tax_amount,
             $this->tax_summary->taxable_amount,
             $this->tax_summary->status->label(),
         ];
 
-        $this->appendRegionalColumns($this->tax_summary->tax_adjustment);
+        $this->appendRegionalColumns($this->tax_summary->tax_amount);
 
         return $this->row_data;
     }
@@ -100,14 +100,14 @@ class InvoiceReportRow
         $this->row_data = [
             $this->invoice->number,
             $this->invoice->date,
-            $this->invoice->amount,
+            $this->event->invoice_amount,
             $this->event->invoice_paid_to_date,
-            $this->tax_summary->total_taxes,
-            $this->event->invoice_paid_to_date - $this->invoice->amount, // Negative adjustment amount
+            $this->tax_summary->tax_amount,
+            $this->tax_summary->taxable_amount, // Negative adjustment amount
             $this->tax_summary->status->label(),
         ];
 
-        $this->appendRegionalColumns($this->tax_summary->tax_adjustment);
+        $this->appendRegionalColumns($this->tax_summary->tax_amount);
 
         return $this->row_data;
     }
@@ -117,21 +117,17 @@ class InvoiceReportRow
      */
     public function buildCancelledRow(): array
     {
-        $paid_ratio = $this->event->invoice_amount > 0
-            ? $this->event->invoice_paid_to_date / $this->event->invoice_amount
-            : 0;
-
         $this->row_data = [
             $this->invoice->number,
             $this->invoice->date,
             $this->event->invoice_paid_to_date,
             $this->event->metadata->tax_report->payment_history?->sum('amount') ?? 0,
-            $paid_ratio * $this->tax_summary->total_taxes,
+            $this->tax_summary->tax_amount,
             $this->tax_summary->taxable_amount,
             $this->tax_summary->status->label(),
         ];
 
-        $this->appendRegionalColumns($paid_ratio * $this->tax_summary->total_taxes);
+        $this->appendRegionalColumns($this->tax_summary->tax_amount);
 
         return $this->row_data;
     }
@@ -146,12 +142,12 @@ class InvoiceReportRow
             $this->invoice->date,
             $this->invoice->amount * -1,
             ($this->event->metadata->tax_report->payment_history?->sum('amount') ?? 0) * -1,
-            $this->tax_summary->total_taxes * -1,
-            $this->tax_summary->taxable_amount * -1,
+            $this->tax_summary->tax_amount,
+            $this->tax_summary->taxable_amount,
             $this->tax_summary->status->label(),
         ];
 
-        $this->appendRegionalColumns($this->tax_summary->total_taxes * -1);
+        $this->appendRegionalColumns($this->tax_summary->tax_amount);
 
         return $this->row_data;
     }

@@ -71,7 +71,7 @@ class TaxPeriodReport extends BaseExport
 
     public function run()
     {
-        nlog($this->input);
+        // nlog($this->input);
         MultiDB::setDb($this->company->db);
         App::forgetInstance('translator');
         App::setLocale($this->company->locale());
@@ -120,8 +120,6 @@ class TaxPeriodReport extends BaseExport
     {
         $this->cash_accounting = $this->input['is_income_billed'] ? false : true;
 
-        nlog("IS CASH ACCOUNTING ? => {$this->cash_accounting}");
-
         return $this;
     }
 
@@ -135,16 +133,21 @@ class TaxPeriodReport extends BaseExport
      */
     private function initializeData(): self
     {
+
         $q = Invoice::withTrashed()
             ->where('company_id', $this->company->id)
             ->whereIn('status_id', [2,3,4,5,6])
-            ->whereBetween('date', ['1970-01-01', now()->subMonth()->endOfMonth()->format('Y-m-d')])
-            ->whereDoesntHave('transaction_events');
+            ->whereBetween('date', ['1970-01-01', $this->end_date])
+            // ->whereDoesntHave('transaction_events'); //filter by no transaction events for THIS month.
+            ->whereDoesntHave('transaction_events', function ($query) {
+                $query->where('period', $this->end_date);
+            });
 
         $q->cursor()
         ->each(function ($invoice) {
 
-            (new InvoiceTransactionEventEntry())->run($invoice, \Carbon\Carbon::parse($invoice->date)->endOfMonth()->format('Y-m-d'));
+            (new InvoiceTransactionEventEntry())->run($invoice, $this->end_date);
+
 
             if (in_array($invoice->status_id, [Invoice::STATUS_PAID, Invoice::STATUS_PARTIAL])) {
 
@@ -177,13 +180,21 @@ class TaxPeriodReport extends BaseExport
                         ->whereIn('metadata->tax_report->tax_summary->status', ['cancelled', 'deleted']);
                 });
 
-                nlog("end date = {$this->end_date} =>" . $ii->count());
-                
                 $ii->cursor()
                 ->each(function ($invoice) {
 
+                    // Iterate through each month between start_date and end_date
+                    // $current_date = Carbon::parse($this->start_date);
+                    // $end_date_carbon = Carbon::parse($this->end_date);
+
+                    // while ($current_date->lte($end_date_carbon)) {
+                    //     $last_day_of_month = $current_date->copy()->endOfMonth()->format('Y-m-d');
+                    //     (new InvoiceTransactionEventEntry())->run($invoice, $last_day_of_month);
+                    //     $current_date->addMonth();
+                    // }
+
                     (new InvoiceTransactionEventEntry())->run($invoice, $this->end_date);
-                    
+
                 });
 
         return $this;
@@ -385,8 +396,6 @@ class TaxPeriodReport extends BaseExport
 
         $query = $this->resolveQuery();
 
-        nlog($query->count(). " records to iterate");
-
         // Initialize with headers
         $this->data['invoices'] = [InvoiceReportRow::getHeaders($this->regional_calculator)];
         $this->data['invoice_items'] = [InvoiceItemReportRow::getHeaders($this->regional_calculator)];
@@ -427,7 +436,6 @@ class TaxPeriodReport extends BaseExport
     {
         $tax_summary = TaxSummary::fromMetadata($event->metadata->tax_report->tax_summary);
 
-        nlog($event->metadata->toArray());
         // Build and add invoice row
         $invoice_row_builder = new InvoiceReportRow(
             $invoice,

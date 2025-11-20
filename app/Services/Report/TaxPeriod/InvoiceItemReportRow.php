@@ -77,12 +77,12 @@ class InvoiceItemReportRow
             $this->invoice->date,
             $this->tax_detail->tax_name,
             $this->tax_detail->tax_rate,
-            $this->tax_detail->tax_amount_adjustment,
-            $this->tax_detail->taxable_amount_adjustment,
+            $this->tax_detail->tax_amount,
+            $this->tax_detail->taxable_amount,
             $this->status->label(),
         ];
 
-        return $this->appendRegionalColumns($row, $this->tax_detail->tax_amount_adjustment);
+        return $this->appendRegionalColumns($row, $this->tax_detail->tax_amount);
     }
 
     /**

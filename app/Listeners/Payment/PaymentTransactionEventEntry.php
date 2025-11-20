@@ -211,9 +211,9 @@ class PaymentTransactionEventEntry implements ShouldQueue
 
         $taxes = array_merge($calc->getTaxMap()->merge($calc->getTotalTaxMap())->toArray());
 
-        // For full refunds, use the paid ratio (amount paid / invoice amount)
-        // This gives us the correct tax adjustment
-        $ratio = $this->paid_ratio;
+        // Calculate refund ratio: refund_amount / invoice_amount
+        // This gives us the pro-rata portion of taxes to refund
+        $refund_ratio = $invoice->amount > 0 ? $this->invoice_adjustment / $invoice->amount : 0;
 
         foreach ($taxes as $tax) {
 
@@ -222,8 +222,8 @@ class PaymentTransactionEventEntry implements ShouldQueue
             $tax_detail = [
                 'tax_name' => $tax['name'],
                 'tax_rate' => $tax['tax_rate'],
-                'taxable_amount' => round($base_amount * $ratio, 2) * -1,
-                'tax_amount' => round($tax['total'] * $ratio, 2) * -1,
+                'taxable_amount' => round($base_amount * $refund_ratio, 2) * -1,
+                'tax_amount' => round($tax['total'] * $refund_ratio, 2) * -1,
                ];
             $details[] = $tax_detail;
         }
@@ -233,11 +233,9 @@ class PaymentTransactionEventEntry implements ShouldQueue
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray(),
                 'tax_summary' => [
-                    'total_taxes' => round(($invoice->total_taxes - $this->getTotalTaxPaid($invoice)) * $ratio, 2) * -1,
-                    'tax_adjustment' => round(($invoice->total_taxes - $this->getTotalTaxPaid($invoice)) * $ratio, 2) * -1,
+                    'tax_amount' => round($invoice->total_taxes * $refund_ratio, 2) * -1,
                     'status' => 'adjustment',
-                    'taxable_amount' => round($calc->getNetSubtotal() * $ratio, 2) * -1,
-                    'adjustment' => 0,
+                    'taxable_amount' => round($calc->getNetSubtotal() * $refund_ratio, 2) * -1,
                 ],
             ],
         ]);
@@ -278,10 +276,8 @@ class PaymentTransactionEventEntry implements ShouldQueue
                 'tax_details' => $details,
                 'payment_history' => $this->payments->toArray(),
                 'tax_summary' => [
-                    'total_taxes' => $invoice->total_taxes * -1,
+                    'tax_amount' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
                     'taxable_amount' => $calc->getNetSubtotal() * -1,
-                    'adjustment' => 0,
-                    'tax_adjustment' => round($invoice->total_taxes - $this->getTotalTaxPaid($invoice), 2) * -1,
                     'status' => 'adjustment',
                 ],
             ],

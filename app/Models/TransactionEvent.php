@@ -42,7 +42,7 @@ use App\DataMapper\TransactionEventMetadata;
  * @property float $credit_balance
  * @property float $credit_amount
  * @property int|null $credit_status
- * @property Carbon|null $period
+ * @property \Carbon\Carbon|null $period
  * @method static \Illuminate\Database\Eloquent\Builder|StaticModel company()
  * @method static \Illuminate\Database\Eloquent\Builder|StaticModel exclude($columns)
  * @mixin \Eloquent
