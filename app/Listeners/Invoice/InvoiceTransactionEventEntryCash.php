@@ -102,7 +102,7 @@ class InvoiceTransactionEventEntryCash
                 'tax_rate' => $tax['tax_rate'],
                 'taxable_amount' => ($tax['base_amount'] ?? $calc->getNetSubtotal()) * $this->paid_ratio,
                 'tax_amount' => $tax['total'] * $this->paid_ratio,
-                'line_total' => $tax['base_amount'],
+                'line_total' => ($tax['base_amount'] ?? $calc->getNetSubtotal()),
                 'total_tax' => $tax['total'],
                 'postal_code' => $invoice->client->postal_code,
             ];
