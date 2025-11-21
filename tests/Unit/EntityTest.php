@@ -37,6 +37,8 @@ class EntityTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     public $invoice;
 
     public $invoice_calc;

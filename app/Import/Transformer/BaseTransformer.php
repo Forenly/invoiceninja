@@ -140,6 +140,10 @@ class BaseTransformer
     public function getFrequency($frequency = RecurringInvoice::FREQUENCY_MONTHLY): int
     {
 
+        // if(is_string($frequency)){
+        //     $frequency = strtolower(trim($frequency));
+        // }
+        
         switch ($frequency) {
             case RecurringInvoice::FREQUENCY_DAILY:
             case 'daily':

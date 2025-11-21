@@ -541,11 +541,15 @@ class PeppolTest extends TestCase
                     [
                     'cbc:StartDate' => $invoice->date,
                     'cbc:EndDate' => $invoice->due_date ?? $invoice->date,
+                    'StartDate' => $invoice->date,
+                    'EndDate' => $invoice->due_date ?? $invoice->date,
                     ]
                 ]
             ]
         ];
         $invoice->save();
+
+        $this->assertNotNull($invoice->e_invoice->Invoice->InvoicePeriod[0]->StartDate); //@phpstan-ignore-line
 
         $repo = new InvoiceRepository();
         $invoice = $repo->save([], $invoice);
@@ -676,6 +680,8 @@ class PeppolTest extends TestCase
                         [
                             'cbc:StartDate' => $invoice->date,
                             'cbc:EndDate' => $invoice->due_date ?? $invoice->date,
+                            'StartDate' => $invoice->date,
+                            'EndDate' => $invoice->due_date ?? $invoice->date,
                         ]
                     ]
                 ]
@@ -723,6 +729,8 @@ class PeppolTest extends TestCase
                         [
                             'cbc:StartDate' => $invoice->date,
                             'cbc:EndDate' => $invoice->due_date ?? $invoice->date,
+                            'StartDate' => $invoice->date,
+                            'EndDate' => $invoice->due_date ?? $invoice->date,
                         ]
                     ]
                 ]

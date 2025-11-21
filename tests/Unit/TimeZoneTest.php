@@ -44,7 +44,7 @@ class TimeZoneTest extends TestCase
         'America/Santiago' => 'America/Santiago',
         'Canada/Newfoundland' => 'America/St_Johns',
         'America/Buenos_Aires' => 'America/Argentina/Buenos_Aires',
-        'America/Godthab' => 'America/Godthab',
+        'America/Godthab' => 'America/Nuuk',
         'America/Sao_Paulo' => 'America/Sao_Paulo',
         'Atlantic/Stanley' => 'Atlantic/Stanley',
         'Atlantic/Azores' => 'Atlantic/Azores',

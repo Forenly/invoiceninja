@@ -35,6 +35,8 @@ class SumTaxTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     public Response $response;
 
     public array $resp = [

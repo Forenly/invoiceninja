@@ -24,6 +24,8 @@ class ClientModelTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     protected function setUp(): void
     {
         parent::setUp();
