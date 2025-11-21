@@ -86,6 +86,7 @@ class ZugferdEDocument extends AbstractService
             ->setDocumentInformation()
             ->setPoNumber()
             ->setRoutingNumber()
+            ->setIdNumber()
             ->setDeliveryAddress()
             ->setDocumentTaxes()        // 1. First set taxes
             ->setPaymentMeans()         // 2. Then payment means
@@ -574,6 +575,23 @@ class ZugferdEDocument extends AbstractService
         return $this;
     }
 
+    private function setIdNumber(): self
+    {
+        $id_number = $this->company->getSetting('id_number');
+        
+        if (!empty($id_number) && str_contains($id_number, "/")) {
+            $id_number = trim($id_number);
+            
+            // BT-29: Seller identifier
+            $this->xdocument->addDocumentSellerGlobalId($id_number, "0088");
+            
+            // BT-32: Tax registration identifier
+            $this->xdocument->addDocumentSellerTaxRegistration("FC", $id_number);
+        }
+
+        return $this;
+    }
+
     //////////////////Getters//////////////////
     private function getDocumentNumber(): string
     {
@@ -603,6 +621,21 @@ class ZugferdEDocument extends AbstractService
     private function getDocumentLevelTaxRegistration(): string
     {
         return strlen($this->client->vat_number ?? '') > 1 ? "VA" : "FC";
+    }
+
+
+    private function getIdNumber(): ?string
+    {
+        return !empty($this->company->getSetting('id_number')) 
+            ? trim($this->company->getSetting('id_number')) 
+            : null;
+    }
+
+    private function getIdNumberRegistrationType(): ?string
+    {
+        return !empty($this->getIdNumber()) && str_contains($this->getIdNumber(), "/") 
+            ? "FC" 
+            : null;
     }
 
     private function getTaxType(string $tax_id): string
