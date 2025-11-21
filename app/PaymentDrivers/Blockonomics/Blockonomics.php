@@ -54,13 +54,13 @@ class Blockonomics implements LivewireMethodInterface
     public function getBTCAddress(): array
     {
         $api_key = $this->blockonomics->company_gateway->getConfigField('apiKey');
+        $company_key = $this->blockonomics->company_gateway->company->company_key;
 
         if (!$api_key) {
             return ['success' => false, 'message' => 'Please enter a valid API key'];
         }
 
-        // $params = config('ninja.environment') == 'development' ? '?reset=1' : '';
-        $url = 'https://www.blockonomics.co/api/new_address';
+        $url = 'https://www.blockonomics.co/api/new_address?match_callback=' . $company_key;
 
         $response = Http::withToken($api_key)
                         ->post($url, []);
