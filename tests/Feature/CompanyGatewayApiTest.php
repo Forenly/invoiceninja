@@ -33,6 +33,8 @@ class CompanyGatewayApiTest extends TestCase
     use MakesHash;
     use DatabaseTransactions;
     use MockAccountData;
+
+    public $faker;
     use CompanyGatewayFeesAndLimitsSaver;
 
     protected function setUp(): void

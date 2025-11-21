@@ -70,6 +70,8 @@ use App\Repositories\RecurringInvoiceRepository;
 use App\Factory\InvoiceToRecurringInvoiceFactory;
 use App\Repositories\CreditRepository;
 
+use Faker\Generator;
+
 /**
  * Class MockAccountData.
  */
@@ -78,126 +80,132 @@ trait MockAccountData
     use MakesHash;
     use GeneratesCounter;
 
-    public $credit_calc;
+    public mixed $credit_calc = null;
+
+    public $invoice_calc;
+
+    public $quote_calc;
+
+    public $recurring_invoice_calc;
 
     /**
-     * @var
+     * @var Project|null
      */
     public $project;
 
     /**
-     * @var
+     * @var Account|null
      */
     public $account;
 
     /**
-     * @var
+     * @var Company|null
      */
     public $company;
 
     /**
-     * @var
+     * @var User|null
      */
     public $user;
 
     /**
-     * @var
+     * @var Client|null
      */
     public $client;
 
     /**
-     * @var
+     * @var CompanyToken|string|null
      */
     public $token;
 
     /**
-     * @var
+     * @var RecurringExpense|null
      */
     public $recurring_expense;
 
     /**
-     * @var
+     * @var RecurringQuote|null
      */
     public $recurring_quote;
 
     /**
-     * @var \App\Models\Credit
+     * @var Credit|null
      */
     public $credit;
 
     /**
-     * @var \App\Models\Invoice
+     * @var \App\Models\Invoice|null
      */
     public $invoice;
 
     /**
-     * @var
+     * @var Quote|null
      */
     public $quote;
 
     /**
-     * @var
+     * @var Vendor|null
      */
     public $vendor;
 
     /**
-     * @var
+     * @var Expense|null
      */
     public $expense;
 
     /**
-     * @var
+     * @var Task|null
      */
     public $task;
 
     /**
-     * @var
+     * @var TaskStatus|null
      */
     public $task_status;
 
     /**
-     * @var
+     * @var ExpenseCategory|null
      */
     public $expense_category;
 
     /**
-     * @var
+     * @var \App\Models\CompanyUser|null
      */
     public $cu;
 
     /**
-     * @var
+     * @var BankIntegration|null
      */
     public $bank_integration;
 
     /**
-     * @var
+     * @var BankTransaction|null
      */
     public $bank_transaction;
 
     /**
-     * @var
+     * @var BankTransactionRule|null
      */
     public $bank_transaction_rule;
 
 
     /**
-     * @var
+     * @var Payment|null
      */
     public $payment;
 
     /**
-     * @var
+     * @var TaxRate|null
      */
     public $tax_rate;
 
     /**
-     * @var
+     * @var Scheduler|null
      */
     public $scheduler;
 
     /**
-     * @var
+     * @var \App\Models\PurchaseOrder|null
      */
     public $purchase_order;
 

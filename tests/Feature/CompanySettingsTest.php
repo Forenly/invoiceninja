@@ -31,6 +31,8 @@ class CompanySettingsTest extends TestCase
     use MakesHash;
     use DatabaseTransactions;
     use MockAccountData;
+
+    public $faker;
     // use RefreshDatabase;
 
     public function setUp(): void

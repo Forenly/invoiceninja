@@ -35,6 +35,8 @@ class RelationExistsTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     private $models = [
         Invoice::class,
         Client::class,

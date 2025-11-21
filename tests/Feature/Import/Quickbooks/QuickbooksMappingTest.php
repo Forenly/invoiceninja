@@ -41,7 +41,7 @@ class QuickbooksMappingTest extends TestCase
         parent::setUp();
 
 
-        if (config('ninja.testvars.travis') !== false) {
+        if (config('ninja.testvars.travis') !== false || !config('services.quickbooks.client_id')) {
             $this->markTestSkipped('Skip test for GH Actions');
         }
 

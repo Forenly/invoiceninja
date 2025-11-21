@@ -26,6 +26,8 @@ class InvoiceStatusTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     public $invoice;
 
     public $invoice_calc;

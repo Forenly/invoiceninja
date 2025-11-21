@@ -34,6 +34,8 @@ class CsvImportTest extends TestCase
     use MakesHash;
     use MockAccountData;
 
+    public $faker;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -132,6 +134,11 @@ class CsvImportTest extends TestCase
         $csv_importer->import('recurring_invoice');
 
         $this->assertTrue($base_transformer->hasRecurringInvoice('54'));
+
+        $this->assertTrue($base_transformer->hasRecurringInvoice('781'));
+
+        $r = \App\Models\RecurringInvoice::where('number', '781')->first();
+        $this->assertEquals(\App\Models\RecurringInvoice::FREQUENCY_ANNUALLY, $r->frequency_id);
 
     }
 

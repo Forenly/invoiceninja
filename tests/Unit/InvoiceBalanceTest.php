@@ -27,6 +27,8 @@ class InvoiceBalanceTest extends TestCase
 {
     use MockAccountData;
 
+    public $faker;
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -55,6 +55,8 @@ trait SavesDocuments
 
     public function saveDocument($document, $entity, $force_save = false)
     {
+        $is_public = true;
+        
         if ($entity instanceof Company) {
             $account = $entity->account;
             $company = $entity;

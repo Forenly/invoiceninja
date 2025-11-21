@@ -33,6 +33,8 @@ class InvoiceTest extends TestCase
     use MockAccountData;
     use DatabaseTransactions;
 
+    public $faker;
+
     public $invoice;
 
     public $invoice_calc;
@@ -455,6 +457,7 @@ class InvoiceTest extends TestCase
             'settings' => $c_settings,
         ]);
 
+       
         $this->assertEquals(0, $c->balance);
 
         $item = InvoiceItemFactory::create();
