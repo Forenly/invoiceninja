@@ -129,7 +129,13 @@ class RebuildElasticIndexes extends Command
         }
 
         $indexName = $this->searchableModels[$modelClass];
-        $recordCount = $modelClass::count();
+        
+        try {
+            $recordCount = $modelClass::count();
+        } catch (\Exception $e) {
+            $this->warn("Could not count records: " . $e->getMessage());
+            $recordCount = 0;
+        }
 
         $this->newLine();
         $this->info("Rebuilding {$modelName}");
@@ -172,7 +178,12 @@ class RebuildElasticIndexes extends Command
 
         foreach ($this->searchableModels as $modelClass => $indexName) {
             $modelName = class_basename($modelClass);
-            $recordCount = $modelClass::count();
+            
+            try {
+                $recordCount = $modelClass::count();
+            } catch (\Exception $e) {
+                $recordCount = 0;
+            }
 
             $this->line("• {$modelName}");
             $this->line("  Index: {$indexName}");
@@ -190,30 +201,60 @@ class RebuildElasticIndexes extends Command
         $client = $this->getElasticsearchClient();
 
         try {
-            // Step 1: Drop the index
+            // Step 1: Drop the index (with safe existence check)
             $this->line("  [1/3] Dropping index {$indexName}...");
-            if ($client->indices()->exists(['index' => $indexName])) {
-                $client->indices()->delete(['index' => $indexName]);
-                $this->info("    ✓ Index dropped");
-            } else {
-                $this->line("    - Index does not exist (will be created)", 'comment');
+            
+            try {
+                $indexExists = $client->indices()->exists(['index' => $indexName]);
+                
+                if ($indexExists) {
+                    try {
+                        $client->indices()->delete(['index' => $indexName]);
+                        $this->info("    ✓ Index dropped");
+                    } catch (\Exception $deleteException) {
+                        $this->warn("    ⚠ Failed to delete index: " . $deleteException->getMessage());
+                        $this->line("    - Continuing with migration...", 'comment');
+                    }
+                } else {
+                    $this->line("    - Index does not exist (will be created)", 'comment');
+                }
+            } catch (\Exception $existsException) {
+                $this->warn("    ⚠ Could not check index existence: " . $existsException->getMessage());
+                $this->line("    - Continuing with migration...", 'comment');
             }
 
             // Step 2: Run migration for this specific index
             $this->line("  [2/3] Running elastic migration...");
-            // Note: elastic:migrate recreates all indexes, but only the dropped one will be created
-            Artisan::call('elastic:migrate', [], $this->getOutput());
-            $this->info("    ✓ Migration completed");
+            
+            try {
+                // Note: elastic:migrate recreates all indexes, but only the dropped one will be created
+                Artisan::call('elastic:migrate', [], $this->getOutput());
+                $this->info("    ✓ Migration completed");
+            } catch (\Exception $migrateException) {
+                $this->error("    ✗ Migration failed: " . $migrateException->getMessage());
+                return false;
+            }
 
             // Step 3: Import data
             $this->line("  [3/3] Importing {$modelName} data...");
-            $recordCount = $modelClass::count();
+            
+            try {
+                $recordCount = $modelClass::count();
+            } catch (\Exception $countException) {
+                $this->warn("    ⚠ Could not count records: " . $countException->getMessage());
+                $recordCount = 0;
+            }
 
             if ($recordCount > 0) {
-                Artisan::call('scout:import', [
-                    'model' => $modelClass,
-                ], $this->getOutput());
-                $this->info("    ✓ Imported {$recordCount} records");
+                try {
+                    Artisan::call('scout:import', [
+                        'model' => $modelClass,
+                    ], $this->getOutput());
+                    $this->info("    ✓ Imported {$recordCount} records");
+                } catch (\Exception $importException) {
+                    $this->error("    ✗ Import failed: " . $importException->getMessage());
+                    return false;
+                }
             } else {
                 $this->line("    - No records to import", 'comment');
             }
@@ -221,7 +262,8 @@ class RebuildElasticIndexes extends Command
             return true;
 
         } catch (\Exception $e) {
-            $this->error("    ✗ Error: " . $e->getMessage());
+            $this->error("    ✗ Unexpected error: " . $e->getMessage());
+            $this->line("    Stack trace: " . $e->getTraceAsString());
             return false;
         }
     }
