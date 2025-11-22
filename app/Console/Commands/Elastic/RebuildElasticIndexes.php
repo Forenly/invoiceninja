@@ -163,8 +163,7 @@ class RebuildElasticIndexes extends Command
      */
     protected function getElasticsearchClient()
     {
-        $hosts = config('elastic.client.hosts', ['localhost:9200']);
-        return ClientBuilder::create()->setHosts($hosts)->build();
+        return ClientBuilder::fromConfig(config('elastic.client.connections.default'));
     }
 
     /**
