@@ -19055,7 +19055,16 @@ components:
           readOnly: true
         settings:
           $ref: '#/components/schemas/ClientSettings'
+        classification:
+          description: 'Classification or category label for organizational purposes'
+          type: string
+          example: 'VIP'
+        public_notes:
+          description: 'Notes that are visible to the client'
+          type: string
+          example: 'These are public notes visible to clients'
       type: object
+
     Quote:
       properties:
         id:
@@ -19274,7 +19283,29 @@ components:
           description: 'The client location id that this invoice relates to'
           type: string
           example: Opnel5aKBz
+        design_id:
+          description: 'The unique identifier of the design template used for this quote'
+          type: string
+          example: Opnel5aKBz
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        project_id:
+          description: 'The unique identifier of the project associated with this quote'
+          type: string
+          example: Opnel5aKBz
+        subscription_id:
+          description: 'The unique identifier of the subscription associated with this quote'
+          type: string
+          example: Opnel5aKBz
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this quote'
+          type: string
+          example: Opnel5aKBz
       type: object
+
     InvoiceRequest:
       required:
         - client_id        
@@ -19934,8 +19965,68 @@ components:
           description: 'Boolean flag indicating if taxes are charged on the fourth custom surcharge amount'
           type: boolean
           example: true
+        backup:
+          description: 'Backup data or file reference for this purchase order'
+          type: string
+          example: 'backup_data.json'
+        client_id:
+          description: 'The unique identifier of the client associated with this purchase order'
+          type: string
+          example: Opnel5aKBz
+        currency_id:
+          description: 'The unique identifier of the currency'
+          type: string
+          example: '1'
+        design_id:
+          description: 'The unique identifier of the design template used for this purchase order'
+          type: string
+          example: Opnel5aKBz
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        invoice_id:
+          description: 'The unique identifier of the related invoice'
+          type: string
+          example: Opnel5aKBz
+        location_id:
+          description: 'The unique identifier of the location'
+          type: string
+          example: Opnel5aKBz
+        po_number:
+          description: 'The purchase order number'
+          type: string
+          example: 'PO-2024-001'
+        project_id:
+          description: 'The unique identifier of the project associated with this purchase order'
+          type: string
+          example: Opnel5aKBz
+        recurring_id:
+          description: 'The unique identifier of the recurring schedule'
+          type: string
+          example: Opnel5aKBz
+        reminder1_sent:
+          description: 'Timestamp when the first reminder was sent'
+          type: number
+          format: integer
+          example: 1234567890
+        reminder2_sent:
+          description: 'Timestamp when the second reminder was sent'
+          type: number
+          format: integer
+          example: 1234567890
+        reminder3_sent:
+          description: 'Timestamp when the third reminder was sent'
+          type: number
+          format: integer
+          example: 1234567890
+        reminder_last_sent:
+          description: 'Timestamp when the last reminder was sent'
+          type: number
+          format: integer
+          example: 1234567890
       type: object
-
 
     InvoiceInvitation:
       properties:
@@ -20086,7 +20177,12 @@ components:
           format: integer
           example: '134341234234'
           readOnly: true
+        send_email:
+          description: 'Flag indicating whether to send emails to this contact'
+          type: boolean
+          example: true
       type: object
+
     ClientGatewayToken:
       properties:
         id:
@@ -20645,9 +20741,30 @@ components:
           description: "The ID of the legal entity associated with the company"
           type: integer
           example: 1234
+        convert_rate_to_client:
+          description: 'Flag indicating whether to convert rates to the client currency'
+          type: boolean
+          example: true
+        e_invoicing_token:
+          description: 'Authentication token for e-invoicing services'
+          type: string
+          example: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
+        enable_shop_api:
+          description: 'Flag indicating whether the shop API is enabled'
+          type: boolean
+          example: true
+        markdown_email_enabled:
+          description: 'Flag indicating whether markdown formatting is enabled in emails'
+          type: boolean
+          example: true
+        use_comma_as_decimal_place:
+          description: 'Flag indicating whether to use comma as decimal separator instead of period'
+          type: boolean
+          example: true
         settings:
           $ref: '#/components/schemas/CompanySettings'
       type: object
+
     CompanyLedger:
       properties:
         entity_id:
@@ -20904,8 +21021,47 @@ components:
           description: 'The client location id that this invoice relates to'
           type: string
           example: Opnel5aKBz
+        auto_bill:
+          description: 'Auto-billing configuration setting'
+          type: string
+          example: 'always'
+        auto_bill_enabled:
+          description: 'Flag indicating whether auto-billing is enabled'
+          type: boolean
+          example: true
+        design_id:
+          description: 'The unique identifier of the design template used for this recurring invoice'
+          type: string
+          example: Opnel5aKBz
+        due_date_days:
+          description: 'Number of days until the due date'
+          type: integer
+          example: 30
+        e_invoice:
+          description: 'E-invoice configuration and data'
+          type: object
+          additionalProperties: true
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        next_send_date_client:
+          description: 'The next scheduled send date for the client'
+          type: string
+          format: date
+          example: '2024-12-31'
+        project_id:
+          description: 'The unique identifier of the project associated with this recurring invoice'
+          type: string
+          example: Opnel5aKBz
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this recurring invoice'
+          type: string
+          example: Opnel5aKBz
       type: object
       
+
     PurchaseOrderRequest:
       required:
         - vendor_id
@@ -21100,8 +21256,42 @@ components:
           description: 'The payment number - is a unique alpha numeric number per payment per company'
           type: string
           example: PAY_101
+        category_id:
+          description: 'The unique identifier of the payment category'
+          type: string
+          example: Opnel5aKBz
+        custom_value1:
+          description: 'Custom field for storing additional information'
+          type: string
+          example: 'Payment reference 123'
+        custom_value2:
+          description: 'Custom field for storing additional information'
+          type: string
+          example: 'Approved by John'
+        custom_value3:
+          description: 'Custom field for storing additional information'
+          type: string
+          example: 'Urgent payment'
+        custom_value4:
+          description: 'Custom field for storing additional information'
+          type: string
+          example: 'Q1 2024'
+        exchange_currency_id:
+          description: 'The unique identifier of the exchange currency'
+          type: string
+          example: '2'
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        idempotency_key:
+          description: 'Unique key to ensure idempotent payment processing'
+          type: string
+          example: 'key_1234567890abcdef'
       type: object
     
+
     Credit:
       properties:
         id:
@@ -21329,7 +21519,29 @@ components:
           description: 'The client location id that this invoice relates to'
           type: string
           example: Opnel5aKBz
+        design_id:
+          description: 'The unique identifier of the design template used for this credit'
+          type: string
+          example: Opnel5aKBz
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        project_id:
+          description: 'The unique identifier of the project associated with this credit'
+          type: string
+          example: Opnel5aKBz
+        subscription_id:
+          description: 'The unique identifier of the subscription associated with this credit'
+          type: string
+          example: Opnel5aKBz
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this credit'
+          type: string
+          example: Opnel5aKBz
       type: object
+
     Subscription:
       properties:
         id:
@@ -23556,7 +23768,25 @@ components:
           description: 'The client location id that this invoice relates to'
           type: string
           example: Opnel5aKBz
+        design_id:
+          description: 'The unique identifier of the design template used for this invoice'
+          type: string
+          example: Opnel5aKBz
+        e_invoice:
+          description: 'E-invoice configuration and data'
+          type: object
+          additionalProperties: true
+        exchange_rate:
+          description: 'The exchange rate used for currency conversion'
+          type: number
+          format: float
+          example: 1.0
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this invoice'
+          type: string
+          example: Opnel5aKBz
       type: object
+
     ClientRequest:
       required:
         - contacts
@@ -25291,7 +25521,24 @@ components:
           type: string
           example: '123456'
           readOnly: true
+        oauth_user_refresh_token:
+          description: 'OAuth refresh token for the user'
+          type: string
+          example: 'refresh_token_abc123'
+        oauth_user_token:
+          description: 'OAuth access token data for the user'
+          type: object
+          additionalProperties: true
+        shopify_user_id:
+          description: 'The unique identifier of the Shopify user'
+          type: string
+          example: '123456789'
+        user_logged_in_notification:
+          description: 'Flag indicating whether to send login notifications'
+          type: boolean
+          example: true
       type: object
+
     CompanyUser:
       properties:
         permissions:
@@ -25550,7 +25797,60 @@ components:
           type: number
           format: integer
           example: '1434342123'
+        calculate_tax_by_amount:
+          description: 'Flag indicating whether to calculate tax based on amount rather than percentage'
+          type: boolean
+          example: true
+        category_id:
+          description: 'The unique identifier of the expense category'
+          type: string
+          example: Opnel5aKBz
+        currency_id:
+          description: 'The unique identifier of the currency'
+          type: string
+          example: '1'
+        next_send_date_client:
+          description: 'The next scheduled send date for the client'
+          type: string
+          format: date
+          example: '2024-12-31'
+        number:
+          description: 'The unique number assigned to this recurring expense'
+          type: string
+          example: 'RE-0001'
+        project_id:
+          description: 'The unique identifier of the project associated with this recurring expense'
+          type: string
+          example: Opnel5aKBz
+        tax_amount1:
+          description: 'The amount of the first tax'
+          type: number
+          format: float
+          example: 10.00
+        tax_amount2:
+          description: 'The amount of the second tax'
+          type: number
+          format: float
+          example: 5.00
+        tax_amount3:
+          description: 'The amount of the third tax'
+          type: number
+          format: float
+          example: 2.50
+        transaction_id:
+          description: 'The unique identifier of the transaction'
+          type: string
+          example: 'txn_1234567890'
+        uses_inclusive_taxes:
+          description: 'Flag indicating whether taxes are included in the price'
+          type: boolean
+          example: true
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this recurring expense'
+          type: string
+          example: Opnel5aKBz
       type: object
+
     ClientContact:
       properties:
         id:
@@ -25940,7 +26240,51 @@ components:
           type: number
           format: integer
           example: '1434342123'
+        calculate_tax_by_amount:
+          description: 'Flag indicating whether to calculate tax based on amount rather than percentage'
+          type: boolean
+          example: true
+        category_id:
+          description: 'The unique identifier of the expense category'
+          type: string
+          example: Opnel5aKBz
+        number:
+          description: 'The unique number assigned to this expense'
+          type: string
+          example: 'EXP-0001'
+        purchase_order_id:
+          description: 'The unique identifier of the associated purchase order'
+          type: string
+          example: Opnel5aKBz
+        tax_amount1:
+          description: 'The amount of the first tax'
+          type: number
+          format: float
+          example: 10.00
+        tax_amount2:
+          description: 'The amount of the second tax'
+          type: number
+          format: float
+          example: 5.00
+        tax_amount3:
+          description: 'The amount of the third tax'
+          type: number
+          format: float
+          example: 2.50
+        transaction_id:
+          description: 'The unique identifier of the transaction'
+          type: string
+          example: 'txn_1234567890'
+        uses_inclusive_taxes:
+          description: 'Flag indicating whether taxes are included in the price'
+          type: boolean
+          example: true
+        vendor_id:
+          description: 'The unique identifier of the vendor associated with this expense'
+          type: string
+          example: Opnel5aKBz
       type: object
+
     Task:
       properties:
         id:
@@ -26050,7 +26394,28 @@ components:
           format: integer
           example: '1434342123'
           readOnly: true
+        hash:
+          description: 'Unique hash identifier for this task'
+          type: string
+          example: 'a1b2c3d4e5f6'
+        meta:
+          description: 'Metadata associated with this task'
+          type: object
+          additionalProperties: true
+        status_id:
+          description: 'The unique identifier of the task status'
+          type: string
+          example: Opnel5aKBz
+        status_order:
+          description: 'Sort order for status display'
+          type: integer
+          example: 1
+        status_sort_order:
+          description: 'Alternative sort order for status'
+          type: integer
+          example: 1
       type: object
+
 
     FeesAndLimits:
       properties:
@@ -26253,7 +26618,20 @@ components:
           type: string
           example: 'Bob the vendor'
           readOnly: true
+        is_tax_exempt:
+          description: 'Flag indicating whether the vendor is exempt from taxes'
+          type: boolean
+          example: false
+        public_notes:
+          description: 'Notes that are visible to the vendor'
+          type: string
+          example: 'These are public notes visible to vendors'
+        routing_id:
+          description: 'The routing identifier for e-invoicing'
+          type: string
+          example: '0088:12345678901'
       type: object
+
 tags:
   - name: auth
     x-displayName: Authentication

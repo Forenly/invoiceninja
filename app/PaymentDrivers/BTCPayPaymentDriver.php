@@ -98,7 +98,7 @@ class BTCPayPaymentDriver extends BaseDriver
         $btcpayRep = json_decode($webhook_payload);
 
         if ($btcpayRep == null) {
-            throw new PaymentFailed('Empty data');
+            return response()->noContent();
         }
 
         if (empty($btcpayRep->invoiceId)) {

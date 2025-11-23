@@ -20,14 +20,16 @@ use App\Models\SystemLog;
 use App\Libraries\MultiDB;
 use Illuminate\Bus\Queueable;
 use App\Jobs\Util\SystemLogger;
+use App\Utils\Traits\MakesHash;
 use Illuminate\Queue\SerializesModels;
+use Turbo124\Beacon\Facades\LightLogs;
 use App\Repositories\ActivityRepository;
 use Illuminate\Queue\InteractsWithQueue;
+use App\DataMapper\Analytics\VerifactuLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Services\EDocument\Standards\Verifactu;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
-use App\Utils\Traits\MakesHash;
 
 class SendToAeat implements ShouldQueue
 {
@@ -113,6 +115,7 @@ class SendToAeat implements ShouldQueue
         $response = $verifactu->send($envelope);
 
         nlog($response);
+        LightLogs::create(new VerifactuLog(html: $invoice->number, json: $response))->batch();
 
         $message = '';
         if (isset($response['errors'][0]['message'])) {
@@ -169,6 +172,8 @@ class SendToAeat implements ShouldQueue
 
         nlog($response);
 
+        LightLogs::create(new VerifactuLog(html: $invoice->number,json: $response))->batch();
+        
         $message = '';
 
         if ($response['success']) {
@@ -202,7 +207,8 @@ class SendToAeat implements ShouldQueue
 
     public function failed($exception = null)
     {
-        nlog($exception);
+        if($exception)
+            nlog($exception);
     }
 
     private function writeActivity(Invoice $invoice, int $activity_id, string $notes = ''): void
