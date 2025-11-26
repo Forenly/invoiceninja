@@ -66,6 +66,30 @@ class TaskApiValidationTest extends TestCase
         ]);
     }
 
+    public function testTimeLogValidation()
+    {
+        $data = [
+            'client_id' => $this->testClient->hashed_id,
+            'description' => 'Test Task Description',
+            'time_log' => json_encode([
+                [
+                    "billable" => true,
+                    "date" => "2025-10-31",
+                    "end_time" => "16:00:00",
+                    "start_time" => "08:00:00"
+                ]
+            ]),
+        ];
+
+        $response = $this->withHeaders([
+            'X-API-SECRET' => config('ninja.api_secret'),
+            'X-API-TOKEN' => $this->token,
+        ])->postJson("/api/v1/tasks", $data);
+
+        $response->assertStatus(422);
+        nlog($response->json());
+        
+    }
     // ==================== VALID PAYLOADS (200 STATUS) ====================
 
     public function testCreateTaskWithValidPayloadReturns200()

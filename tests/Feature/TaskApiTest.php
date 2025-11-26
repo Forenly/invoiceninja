@@ -49,7 +49,7 @@ class TaskApiTest extends TestCase
         Model::reguard();
     }
 
-    private function checkTimeLog(array $log): bool
+    private function checkTimeLog(array $log)
     {
         if (count($log) == 0) {
             return true;
