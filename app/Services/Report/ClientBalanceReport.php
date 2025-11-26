@@ -124,6 +124,7 @@ class ClientBalanceReport extends BaseExport
 
         // Build rows using pre-fetched data
         foreach ($clients as $client) {
+            /** @var \App\Models\Client $client */
             $this->csv->insertOne($this->buildRowOptimized($client));
         }
 
@@ -167,6 +168,7 @@ class ClientBalanceReport extends BaseExport
             ->select('client_id')
             ->selectRaw('COUNT(*) as invoice_count')
             ->selectRaw('SUM(balance) as total_balance')
+            ->where('company_id', $this->company->id)
             ->whereIn('client_id', $clientIds)
             ->whereIn('status_id', [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL])
             ->where('is_deleted', 0)
@@ -180,8 +182,8 @@ class ClientBalanceReport extends BaseExport
 
         $data = [];
         foreach ($results as $row) {
-            $data[$row->client_id] = [
-                'count' => $row->invoice_count,
+            $data[$row->client_id] = [ // @phpstan-ignore-line
+                'count' => $row->invoice_count, // @phpstan-ignore-line
                 'balance' => $row->total_balance ?? 0,
             ];
         }
