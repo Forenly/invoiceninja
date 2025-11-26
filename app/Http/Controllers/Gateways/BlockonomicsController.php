@@ -34,25 +34,5 @@ class BlockonomicsController extends Controller
         return response()->json(['error' => 'Unable to fetch BTC price'], 500);
     }
 
-    public function getQRCode(Request $request)
-    {
-        $qr_string = $request->query('qr_string');
-        $svg = $this->getPaymentQrCodeRaw($qr_string);
-        return response($svg)->header('Content-Type', 'image/svg+xml');
-    }
 
-    private function getPaymentQrCodeRaw($qr_string)
-    {
-
-        $renderer = new ImageRenderer(
-            new RendererStyle(150, margin: 0),
-            new SvgImageBackEnd()
-        );
-        $writer = new Writer($renderer);
-
-        $qr = $writer->writeString($qr_string, 'utf-8');
-
-        return $qr;
-
-    }
 }
