@@ -94,7 +94,8 @@ class ClientBalanceReport extends BaseExport
 
         $query = $this->filterByUserPermissions($query);
 
-        $query->orderBy('balance', 'desc')
+        $query->where('balance', '!=', 0)
+            ->orderBy('balance', 'desc')
             ->cursor()
             ->each(function ($client) {
                 /** @var \App\Models\Client $client */
