@@ -164,6 +164,7 @@ class ARSummaryReport extends BaseExport
                 
                 // Build rows from cached data
                 foreach ($clientChunk as $client) {
+                    /** @var \App\Models\Client $client */
                     $this->csv->insertOne($this->buildRowOptimized($client, $agingData));
                 }
                 
