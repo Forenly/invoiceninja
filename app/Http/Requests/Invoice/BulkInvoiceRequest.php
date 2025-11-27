@@ -12,10 +12,12 @@
 
 namespace App\Http\Requests\Invoice;
 
+use App\Utils\Ninja;
 use App\Models\Invoice;
 use App\Http\Requests\Request;
-use App\Utils\Traits\Invoice\ActionsInvoice;
 use App\Utils\Traits\MakesHash;
+use Illuminate\Support\Facades\Redis;
+use App\Utils\Traits\Invoice\ActionsInvoice;
 use App\Exceptions\DuplicatePaymentException;
 
 class BulkInvoiceRequest extends Request
@@ -78,9 +80,18 @@ class BulkInvoiceRequest extends Request
         $user = auth()->user();
         $key = ($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key);
 
-        if (\Illuminate\Support\Facades\Cache::has($key)) {
+        if(Ninja::isHosted()) {
+            if (!Redis::connection('sentinel-cache')->set($key, 1, 'NX', 'EX', 1)) { //atomic locks!
+
+                // Redis::del('my-lock-key');  // instantly removes it
+
+                throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
+            }
+        }
+        else if (\Illuminate\Support\Facades\Cache::has($key)) {
             throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
         }
+
 
         if($this->input('ids', false)){
             $delay = $this->input('action', 'delete') == 'delete' ? (min(count($this->input('ids', 2)), 3)) : 1;
