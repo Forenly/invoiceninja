@@ -19,40 +19,32 @@ class Atomic
 {
     public static function set($key, $value = true, $ttl = 1)
     {
-        if (Ninja::isHosted()) {
-            try {
-                return Redis::connection('sentinel-cache')->set($key, $value, 'NX', 'EX', $ttl);
-            } catch (\Throwable) {
-                return Cache::add($key, $value, $ttl);
-            }
-        }
+        $new_ttl = now()->addSeconds($ttl);
 
-        return Cache::add($key, $value, $ttl);
+        try {
+            return Redis::connection('sentinel-cache')->set($key, $value, 'NX', 'EX', $new_ttl);
+        } catch (\Throwable) {
+            return Cache::add($key, $value, $new_ttl);
+        }
+    
     }
 
     public static function get($key)
     {
-        if (Ninja::isHosted()) {
-            try {
-                return Redis::connection('sentinel-cache')->get($key);
-            } catch (\Throwable) {
-                return Cache::get($key);
-            }
+        try {
+            return Redis::connection('sentinel-cache')->get($key);
+        } catch (\Throwable) {
+            return Cache::get($key);
         }
 
-        return Cache::get($key);
     }
 
     public static function del($key)
     {
-        if (Ninja::isHosted()) {
-            try {
-                return Redis::connection('sentinel-cache')->del($key);
-            } catch (\Throwable) {
-                return Cache::forget($key);
-            }
+        try {
+            return Redis::connection('sentinel-cache')->del($key);
+        } catch (\Throwable) {
+            return Cache::forget($key);
         }
-
-        return Cache::forget($key);
     }
 }
