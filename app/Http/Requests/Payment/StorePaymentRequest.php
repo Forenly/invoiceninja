@@ -14,6 +14,7 @@ namespace App\Http\Requests\Payment;
 
 use App\Exceptions\DuplicatePaymentException;
 use App\Http\Requests\Request;
+use App\Helpers\Cache\Atomic;
 use App\Http\ValidationRules\Credit\CreditsSumRule;
 use App\Http\ValidationRules\Credit\ValidCreditsRules;
 use App\Http\ValidationRules\Payment\ValidInvoicesRules;
@@ -86,7 +87,8 @@ class StorePaymentRequest extends Request
 
         $hash = $this->ip()."|".$hash_key."|".$client_id."|".$user->company()->company_key;
 
-        if (\Illuminate\Support\Facades\Cache::has($hash)) {
+        // Atomic lock: returns false if key already exists (request in progress)
+        if (!Atomic::set($hash, true, 1)) {
             throw new DuplicatePaymentException('Duplicate request.', 429);
         }
 
@@ -97,8 +99,6 @@ class StorePaymentRequest extends Request
         if ($this->file('file') instanceof \Illuminate\Http\UploadedFile) {
             $this->files->set('file', [$this->file('file')]);
         }
-
-        \Illuminate\Support\Facades\Cache::put($hash, true, 1);
 
         $invoices_total = 0;
         $credits_total = 0;

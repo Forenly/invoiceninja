@@ -122,4 +122,87 @@ class AtomicCacheLockTest extends TestCase
         // Cleanup
         Cache::forget($key);
     }
+
+    /**
+     * Test that payment requests with same hash are blocked.
+     */
+    public function test_duplicate_payment_request_blocked()
+    {
+        // Simulate payment request hash
+        $invoiceIds = ['inv_001', 'inv_002'];
+        $clientId = 'client_123';
+        $ip = '127.0.0.1';
+        $companyKey = 'test_company';
+        
+        $hashKey = implode(',', $invoiceIds);
+        $hash = $ip . "|" . $hashKey . "|" . $clientId . "|" . $companyKey;
+
+        // First payment request should succeed
+        $result1 = Atomic::set($hash, true, 1);
+        $this->assertTrue($result1, 'First payment request should succeed');
+
+        // Duplicate payment request with same invoices should fail
+        $result2 = Atomic::set($hash, true, 1);
+        $this->assertFalse($result2, 'Duplicate payment request should be blocked');
+
+        // Cleanup
+        Atomic::del($hash);
+    }
+
+    /**
+     * Test that different invoice combinations generate different keys.
+     */
+    public function test_different_invoice_combinations_generate_different_keys()
+    {
+        $ip = '127.0.0.1';
+        $clientId = 'client_123';
+        $companyKey = 'test_company';
+
+        // First payment: invoices A and B
+        $hash1 = $ip . "|" . implode(',', ['inv_A', 'inv_B']) . "|" . $clientId . "|" . $companyKey;
+        
+        // Second payment: invoices C and D
+        $hash2 = $ip . "|" . implode(',', ['inv_C', 'inv_D']) . "|" . $clientId . "|" . $companyKey;
+
+        // Both should succeed (different keys)
+        $result1 = Atomic::set($hash1, true, 1);
+        $this->assertTrue($result1, 'First payment should succeed');
+
+        $result2 = Atomic::set($hash2, true, 1);
+        $this->assertTrue($result2, 'Second payment with different invoices should succeed');
+
+        // But duplicate of first should fail
+        $result3 = Atomic::set($hash1, true, 1);
+        $this->assertFalse($result3, 'Duplicate of first payment should fail');
+
+        // Cleanup
+        Atomic::del($hash1);
+        Atomic::del($hash2);
+    }
+
+    /**
+     * Test that lock cleanup allows subsequent requests.
+     */
+    public function test_lock_cleanup_allows_subsequent_requests()
+    {
+        $hash = 'payment-hash-' . uniqid();
+
+        // First request succeeds
+        $result1 = Atomic::set($hash, true, 1);
+        $this->assertTrue($result1);
+
+        // Second request fails (duplicate)
+        $result2 = Atomic::set($hash, true, 1);
+        $this->assertFalse($result2);
+
+        // Cleanup (simulating controller cleanup after payment created)
+        Atomic::del($hash);
+
+        // Third request should succeed after cleanup
+        $result3 = Atomic::set($hash, true, 1);
+        $this->assertTrue($result3, 'Request should succeed after lock cleanup');
+
+        // Cleanup
+        Atomic::del($hash);
+    }
 }
