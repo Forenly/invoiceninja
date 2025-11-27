@@ -16,9 +16,9 @@ use App\Utils\Ninja;
 use App\Models\Invoice;
 use App\Http\Requests\Request;
 use App\Utils\Traits\MakesHash;
-use Illuminate\Support\Facades\Redis;
 use App\Utils\Traits\Invoice\ActionsInvoice;
 use App\Exceptions\DuplicatePaymentException;
+use App\Helpers\Cache\Atomic;
 
 class BulkInvoiceRequest extends Request
 {
@@ -80,22 +80,12 @@ class BulkInvoiceRequest extends Request
         $user = auth()->user();
         $key = ($this->ip()."|".$this->input('action', 0)."|".$user->company()->company_key);
 
-        if(Ninja::isHosted()) {
-            if (!Redis::connection('sentinel-cache')->set($key, 1, 'NX', 'EX', 1)) { //atomic locks!
+        // Calculate TTL: 1 second base, or up to 3 seconds for delete actions
+        $delay = $this->input('action', 'delete') == 'delete' ? (min(count($this->input('ids', [])), 3)) : 1;
 
-                // Redis::del('my-lock-key');  // instantly removes it
-
-                throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
-            }
-        }
-        else if (\Illuminate\Support\Facades\Cache::has($key)) {
+        // Atomic lock: returns false if key already exists (request in progress)
+        if (!Atomic::set($key, true, $delay)) {
             throw new DuplicatePaymentException('Action still processing, please wait. ', 429);
-        }
-
-
-        if($this->input('ids', false)){
-            $delay = $this->input('action', 'delete') == 'delete' ? (min(count($this->input('ids', 2)), 3)) : 1;
-            \Illuminate\Support\Facades\Cache::put($key, true, $delay);
         }
 
         $this->merge(['lock_key' => $key]);
