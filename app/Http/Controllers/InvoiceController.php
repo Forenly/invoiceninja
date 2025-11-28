@@ -412,7 +412,14 @@ class InvoiceController extends BaseController
             return $request->disallowUpdate();
         }
 
-        if ($invoice->isLocked()) {
+        if($invoice->company->verifactuEnabled() && $request->input('paid') == 'true'){
+
+            $invoice->service()
+                    ->triggeredActions($request);
+
+            return $this->itemResponse($invoice->fresh());
+        }
+        elseif ($invoice->isLocked()) {
             return response()->json(['message' => '', 'errors' => ['number' => ctrans('texts.locked_invoice')]], 422);
         }
 
