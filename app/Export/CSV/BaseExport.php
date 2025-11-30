@@ -1739,13 +1739,15 @@ $products = str_getcsv($this->input['product_key'], ',', "'");
 
         $data = [
             "{$model_string}s" => $query->get(),
-            "start_date" => $this->start_date,
-            "end_date" => $this->end_date,
+            // "start_date" => $this->start_date,
+            // "end_date" => $this->end_date,
         ];
         
         $ts = new TemplateService($template);
         $ts->setCompany($this->company);
         $ts->addGlobal(['currency_code' => $this->company->currency()->code]);
+        $ts->twig->addGlobal('start_date', $this->start_date);
+        $ts->twig->addGlobal('end_date', $this->end_date);
         $ts->build($data);
 
         return $ts->getPdf();
