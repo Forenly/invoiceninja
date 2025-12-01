@@ -412,7 +412,7 @@ class InvoiceController extends BaseController
             return $request->disallowUpdate();
         }
 
-        if($invoice->company->verifactuEnabled() && $request->input('paid') == 'true'){
+        if(($invoice->isLocked() || $invoice->company->verifactuEnabled()) && $request->input('paid') == 'true'){
 
             $invoice->service()
                     ->triggeredActions($request);
