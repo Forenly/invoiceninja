@@ -26,8 +26,6 @@ class ClientGatewayTokenApiTest extends TestCase
     use MakesHash;
     use DatabaseTransactions;
     use MockAccountData;
-
-    protected $faker;
     protected CompanyGateway $cg;
 
     protected function setUp(): void
@@ -41,9 +39,6 @@ class ClientGatewayTokenApiTest extends TestCase
         if (! config('ninja.testvars.stripe')) {
             $this->markTestSkipped('Skip test no company gateways installed');
         }
-
-        $this->faker = \Faker\Factory::create();
-
         Model::reguard();
 
         $this->makeTestData();

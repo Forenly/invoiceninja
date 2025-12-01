@@ -33,7 +33,7 @@ class EntityLevel implements EntityLevelInterface
         // 'state',
         // 'postal_code',
         // 'vat_number',
-        'country_id',
+        // 'country_id',
     ];
 
     private array $company_settings_fields = [
@@ -206,9 +206,12 @@ class EntityLevel implements EntityLevelInterface
             //     $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
             // }
 
-        } elseif (empty($client->vat_number)) {
-            $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
-        }
+       
+    
+        } 
+        // elseif (empty($client->vat_number)) {
+        //     $errors[] = ['field' => 'vat_number', 'label' => ctrans("texts.vat_number")];
+        // }
 
 
         return $errors;

@@ -5663,6 +5663,9 @@ $lang = array(
     'invoice_period' => 'Hóa đơn Period',
     'invoice_period_help' => 'Xác định khoảng thời gian cung cấp dịch vụ.',
     'paused_recurring_invoice_helper' => 'Thận trọng! Khi khởi động lại Định kỳ Hóa đơn , hãy đảm bảo ngày gửi tiếp theo là trong tương lai.',
+    'thank_you_for_feedback' => 'Cảm ơn phản hồi của bạn!',
+    'use_legacy_editor' => 'Sử dụng Legacy Wysiwyg Editor',
+    'use_legacy_editor_help' => 'Sử dụng trình soạn thảo TinyMCE.',
 );
 
 return $lang;

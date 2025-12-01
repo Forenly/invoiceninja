@@ -29,8 +29,6 @@ class CompanyGatewayTest extends TestCase
 {
     use MockAccountData;
     use DatabaseTransactions;
-
-    public $faker;
     // use RefreshDatabase;
 
     protected function setUp(): void

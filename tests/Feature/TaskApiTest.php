@@ -34,8 +34,6 @@ class TaskApiTest extends TestCase
     use DatabaseTransactions;
     use MockAccountData;
 
-    private $faker;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -43,8 +41,6 @@ class TaskApiTest extends TestCase
         $this->makeTestData();
 
         Session::start();
-
-        $this->faker = \Faker\Factory::create();
 
         Model::reguard();
     }

@@ -40,15 +40,9 @@ class UserTest extends TestCase
     use MockAccountData;
 
     private $default_email = 'attach@gmail.com';
-
-    public $faker;
-
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->faker = \Faker\Factory::create();
-
         $this->withoutMiddleware(
             ThrottleRequests::class,
             PasswordProtection::class

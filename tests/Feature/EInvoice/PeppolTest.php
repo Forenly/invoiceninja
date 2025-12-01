@@ -48,10 +48,6 @@ class PeppolTest extends TestCase
     use MockAccountData;
 
     protected int $iterations = 10;
-
-
-    public $faker;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -182,6 +178,169 @@ class PeppolTest extends TestCase
         $invoice->setRelation('company', $company);
 
         return compact('company', 'client', 'invoice');
+    }
+
+
+    public function testBeToBeWithSpecialLineItemConfiguration()
+    {
+
+        $settings = CompanySettings::defaults();
+        $settings->address1 = 'Dudweilerstr. 34b';
+        $settings->city = 'Ost Alessa';
+        $settings->state = 'Bayern';
+        $settings->postal_code = '98060';
+        $settings->vat_number = 'BE923356489';
+        $settings->id_number = '991-00110-12';
+        $settings->country_id = '56';
+        $settings->currency_id = '3';
+
+        $einvoice = new \InvoiceNinja\EInvoice\Models\Peppol\Invoice();
+
+        $fib = new FinancialInstitutionBranch();
+        $fib->ID = "DEUTDEMMXXX"; //BIC
+        // $fib->Name = 'Deutsche Bank';
+
+        $pfa = new PayeeFinancialAccount();
+        $id = new \InvoiceNinja\EInvoice\Models\Peppol\IdentifierType\ID();
+        $id->value = 'DE89370400440532013000';
+        $pfa->ID = $id;
+        $pfa->Name = 'PFA-NAME';
+
+        $pfa->FinancialInstitutionBranch = $fib;
+
+        $pm = new PaymentMeans();
+        $pm->PayeeFinancialAccount = $pfa;
+
+        $pmc = new \InvoiceNinja\EInvoice\Models\Peppol\CodeType\PaymentMeansCode();
+        $pmc->value = '30';
+
+        $pm->PaymentMeansCode = $pmc;
+
+        $einvoice->PaymentMeans[] = $pm;
+
+        $stub = new \stdClass();
+        $stub->Invoice = $einvoice;
+
+        $company = Company::factory()->create([
+            'account_id' => $this->account->id,
+            'settings' => $settings,
+            'e_invoice' => $stub,
+        ]);
+
+        $cu = CompanyUserFactory::create($this->user->id, $company->id, $this->account->id);
+        $cu->is_owner = true;
+        $cu->is_admin = true;
+        $cu->is_locked = false;
+        $cu->save();
+
+        $client_settings = ClientSettings::defaults();
+        $client_settings->currency_id = '3';
+
+        $client = Client::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'name' => 'German Client Name',
+            'address1' => 'Kinderhausen 96b',
+            'address2' => 'Apt. 842',
+            'city' => 'Süd Jessestadt',
+            'state' => 'Bayern',
+            'postal_code' => '33323',
+            'country_id' => 56,
+            'routing_id' => 'ABC1234',
+            'settings' => $client_settings,
+            'vat_number' => 'BE173655434',
+        ]);
+
+            $item = new InvoiceItem();
+            $item->product_key = "Product Key";
+            $item->notes = "Product Description";
+            $item->cost = 795;
+            $item->quantity = 13.5;
+            $item->discount = 0;
+            $item->is_amount_discount = false;
+            $item->tax_rate1 = 21;
+            $item->tax_name1 = 'TVA';
+
+            $item2 = new InvoiceItem();
+            $item2->product_key = "Product Key 2";
+            $item2->notes = "Product Description 2";
+            $item2->cost = 795;
+            $item2->quantity = 2;
+            $item2->discount = 0;
+            $item2->is_amount_discount = false;
+            $item2->tax_rate1 = 21;
+            $item2->tax_name1 = 'TVA';
+
+        $invoice = Invoice::factory()->create([
+            'company_id' => $company->id,
+            'user_id' => $this->user->id,
+            'client_id' => $client->id,
+            'discount' => 0,
+            'uses_inclusive_taxes' => false,
+            'status_id' => 1,
+            'tax_rate1' => 0,
+            'tax_name1' => '',
+            'tax_rate2' => 0,
+            'tax_rate3' => 0,
+            'tax_name2' => '',
+            'tax_name3' => '',
+            'line_items' => [$item, $item2],
+            'number' => 'DE-'.rand(1000, 100000),
+            'date' => now()->format('Y-m-d'),
+            'due_date' => now()->addDays(30)->format('Y-m-d'),
+            'is_amount_discount' => false,
+        ]);
+
+        $invoice = $invoice->calc()->getInvoice();
+
+        $repo = new InvoiceRepository();
+        $invoice = $repo->save([], $invoice);
+
+        $invoice->service()->markSent()->save();
+
+        $this->assertEquals(14910.23, $invoice->amount);
+        $this->assertEquals(2587.73, $invoice->total_taxes);
+
+        $peppol = new Peppol($invoice);
+        $peppol->setInvoiceDefaults();
+        $peppol->run();
+
+        $be_invoice = $peppol->getInvoice();
+
+        $this->assertNotNull($be_invoice);
+
+        $e = new EInvoice();
+        $xml = $e->encode($be_invoice, 'xml');
+
+        $this->assertNotNull($xml);
+
+        $errors = $e->validate($be_invoice);
+
+        if (count($errors) > 0) {
+            nlog($xml);
+            nlog($errors);
+        }
+
+        $this->assertCount(0, $errors);
+
+        $xml = $peppol->toXml();
+
+        try {
+            $processor = new \Saxon\SaxonProcessor();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('saxon not installed');
+        }
+
+        $validator = new XsltDocumentValidator($xml);
+        $validator->validate();
+
+        if (count($validator->getErrors()) > 0) {
+            nlog($xml);
+            nlog($validator->getErrors());
+        }
+
+        $this->assertCount(0, $validator->getErrors());
+
     }
 
     public function testInvoicePeriodValidation()

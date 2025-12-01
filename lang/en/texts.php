@@ -5666,6 +5666,8 @@ $lang = array(
     'thank_you_for_feedback' => 'Thank you for your feedback!',
     'use_legacy_editor' => 'Use Legacy Wysiwyg Editor',
     'use_legacy_editor_help' => 'Use the TinyMCE editor.',
+    'enable_e_invoice_received_notification' => 'Enable E-Invoice Received Notification',
+    'enable_e_invoice_received_notification_help' => 'Receive an email notification when a new E-Invoice is received.',
 );
 
 return $lang;

@@ -533,12 +533,12 @@ class ARSummaryReportOptimizationTest extends TestCase
         $this->assertLessThan($currentTime, $optimizedTime, 'Optimized should be faster');
         
         $speedup = $currentTime / $optimizedTime;
-        dump([
-            'clients' => 50,
-            'current_time' => round($currentTime, 4) . 's',
-            'optimized_time' => round($optimizedTime, 4) . 's',
-            'speedup' => round($speedup, 2) . 'x',
-        ]);
+        // dump([
+        //     'clients' => 50,
+        //     'current_time' => round($currentTime, 4) . 's',
+        //     'optimized_time' => round($optimizedTime, 4) . 's',
+        //     'speedup' => round($speedup, 2) . 'x',
+        // ]);
     }
 
     /**

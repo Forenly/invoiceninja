@@ -3,12 +3,16 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
-use App\Models\Account;
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\Company;
 use App\Models\User;
+use App\Models\Client;
+use App\Models\Account;
+use App\Models\Company;
+use App\Models\Invoice;
+use App\Utils\TruthSource;
+use Illuminate\Support\Str;
+use App\DataMapper\CompanySettings;
 use App\Services\Report\ARSummaryReport;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
@@ -26,15 +30,63 @@ class ARSummaryReportServiceTest extends TestCase
     {
         parent::setUp();
         
-        $this->account = Account::factory()->create();
-        
-        $this->company = Company::factory()->create([
-            'account_id' => $this->account->id,
+        $this->account = Account::factory()->create([
+            'hosted_client_count' => 1000,
+            'hosted_company_count' => 1000,
         ]);
-        
+
+        $this->account->num_users = 3;
+        $this->account->save();
+
         $this->user = User::factory()->create([
             'account_id' => $this->account->id,
+            'confirmation_code' => 'xyz123',
+            'email' => \Illuminate\Support\Str::random(32)."@example.com",
         ]);
+
+        $settings = CompanySettings::defaults();
+        $settings->client_online_payment_notification = false;
+        $settings->client_manual_payment_notification = false;
+
+        $this->company = Company::factory()->create([
+            'account_id' => $this->account->id,
+            'settings' => $settings,
+        ]);
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
+        $this->user->companies()->attach($this->company->id, [
+            'account_id' => $this->account->id,
+            'is_owner' => 1,
+            'is_admin' => 1,
+            'is_locked' => 0,
+            'notifications' => \App\DataMapper\CompanySettings::notificationDefaults(),
+            'settings' => null,
+        ]);
+
+        $company_token = new \App\Models\CompanyToken();
+        $company_token->user_id = $this->user->id;
+        $company_token->company_id = $this->company->id;
+        $company_token->account_id = $this->account->id;
+        $company_token->name = 'test token';
+        $company_token->token = \Illuminate\Support\Str::random(64);
+        $company_token->is_system = true;
+
+        $company_token->save();
+
+        $truth = app()->make(\App\Utils\TruthSource::class);
+        $truth->setCompanyUser($this->user->company_users()->first());
+        $truth->setCompanyToken($company_token);
+        $truth->setUser($this->user);
+        $truth->setCompany($this->company);
+
+
+        $this->withoutMiddleware(
+            ThrottleRequests::class
+        );
+
+        $this->withoutExceptionHandling();
     }
 
     /**
@@ -65,7 +117,7 @@ class ARSummaryReportServiceTest extends TestCase
         $csv = $report->run();
 
         $this->assertNotEmpty($csv);
-        $this->assertStringContainsString('aged_receivable_summary_report', $csv);
+        $this->assertStringContainsString('Aged Receivable Summary Report', $csv);
         $this->assertStringContainsString($client->present()->name(), $csv);
     }
 
@@ -183,6 +235,6 @@ class ARSummaryReportServiceTest extends TestCase
         $csv = $report->run();
 
         $this->assertNotEmpty($csv);
-        $this->assertStringContainsString('aged_receivable_summary_report', $csv);
+        $this->assertStringContainsString('Aged Receivable Summary Report', $csv);
     }
 }

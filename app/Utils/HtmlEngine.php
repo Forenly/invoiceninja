@@ -824,7 +824,7 @@ class HtmlEngine
 
     private function getVerifactuQrCode()
     {
-        if(!($this->entity instanceof \App\Models\Invoice) || !$this->entity->verifactuEnabled() || strlen($this->entity->backup->guid ?? '') < 2 || $this->entity->backup->guid == 'exempt') {
+        if(!($this->entity instanceof \App\Models\Invoice) || !$this->company->verifactuEnabled() || strlen($this->entity->backup->guid ?? '') < 2 || $this->entity->backup->guid == 'exempt') {
             return '';
         }
 

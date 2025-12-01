@@ -5662,6 +5662,9 @@ Développe automatiquement la section des notes dans le tableau de produits pour
     'invoice_period' => 'Période de facturation',
     'invoice_period_help' => 'Définit la période durant laquelle les services ont été fournis.',
     'paused_recurring_invoice_helper' => 'Attention ! Lors du redémarrage d\'une facture récurrente, assurez-vous que la prochaine date d\'envoi soit dans le futur.',
+    'thank_you_for_feedback' => 'Merci pour vos commentaires !',
+    'use_legacy_editor' => 'Utiliser l\'éditeur classique Wysiwyg',
+    'use_legacy_editor_help' => 'Utiliser l\'éditeur TinyMCE.',
 );
 
 return $lang;

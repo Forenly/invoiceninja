@@ -31,8 +31,6 @@ class TaskApiValidationTest extends TestCase
     use MakesHash;
     use DatabaseTransactions;
     use MockAccountData;
-
-    private $faker;
     private Client $testClient;
     private Project $testProject;
     private User $testUser;
@@ -44,9 +42,6 @@ class TaskApiValidationTest extends TestCase
         $this->makeTestData();
 
         Session::start();
-
-        $this->faker = \Faker\Factory::create();
-
         Model::reguard();
 
         // Create test data

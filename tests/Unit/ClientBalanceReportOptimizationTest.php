@@ -265,13 +265,6 @@ class ClientBalanceReportOptimizationTest extends TestCase
         $this->assertLessThan(50, $queryCount, "Expected < 50 queries (optimized), got {$queryCount}");
         $this->assertNotEmpty($output);
 
-        // Log performance metrics for comparison
-        echo "\nPerformance Metrics (Optimized):\n";
-        echo "  Clients: {$clientCount}\n";
-        echo "  Queries: {$queryCount}\n";
-        echo "  Time: " . number_format($executionTime, 3) . "s\n";
-        echo "  Legacy queries: ~" . ($clientCount * 2) . "\n";
-        echo "  Improvement: " . round(($clientCount * 2) / max($queryCount, 1), 1) . "x\n";
     }
 
     /**

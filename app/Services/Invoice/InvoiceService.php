@@ -720,12 +720,14 @@ class InvoiceService
          *
          */
         /** New Invoice - F1 Type */
-        if (empty($this->invoice->client->vat_number) || !in_array($this->invoice->client->country->iso_3166_2, (new \App\DataMapper\Tax\BaseRule())->eu_country_codes)) {
+        // if (empty($this->invoice->client->vat_number) || !in_array($this->invoice->client->country->iso_3166_2, (new \App\DataMapper\Tax\BaseRule())->eu_country_codes)) {
 
-            $this->invoice->backup->guid = 'exempt';
-            $this->invoice->saveQuietly();
-            return $this;
-        } elseif ($new_model && $this->invoice->amount >= 0) {
+        //     $this->invoice->backup->guid = 'exempt';
+        //     $this->invoice->saveQuietly();
+        //     return $this;
+        // } else
+        
+        if ($new_model && $this->invoice->amount >= 0) {
             $this->invoice->backup->document_type = 'F1';
             $this->invoice->backup->adjustable_amount = (new \App\Services\EDocument\Standards\Verifactu($this->invoice))->run()->registro_alta->calc->getTotal();
             $this->invoice->backup->parent_invoice_number = $this->invoice->number;

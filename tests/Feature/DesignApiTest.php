@@ -38,17 +38,11 @@ class DesignApiTest extends TestCase
     use MockAccountData;
 
     public $id;
-
-    public $faker;
-
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->makeTestData();
-
-        $this->faker = \Faker\Factory::create();
-
     }
 
     public function testSelectiveDefaultDesignUpdatesInvoice()

@@ -197,6 +197,5 @@ class PaymentNotification implements ShouldQueue
 
         curl_setopt_array($curl, $opts);
         curl_exec($curl);
-        curl_close($curl);
     }
 }

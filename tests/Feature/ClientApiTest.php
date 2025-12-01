@@ -41,8 +41,6 @@ class ClientApiTest extends TestCase
     use MockAccountData;
     use ClientGroupSettingsSaver;
 
-    public $faker;
-
     public $settings;
 
     protected function setUp(): void
@@ -50,10 +48,6 @@ class ClientApiTest extends TestCase
         parent::setUp();
 
         $this->makeTestData();
-
-        Session::start();
-
-        $this->faker = \Faker\Factory::create();
 
         Model::reguard();
     }
@@ -1200,8 +1194,7 @@ class ClientApiTest extends TestCase
         $response->assertStatus(200);
 
         $arr = $response->json();
-
-        nlog($arr);
+        
         $this->assertEquals('3', $arr['data']['settings']['language_id']);
     }
 

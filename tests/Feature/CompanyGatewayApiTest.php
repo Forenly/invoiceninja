@@ -33,8 +33,6 @@ class CompanyGatewayApiTest extends TestCase
     use MakesHash;
     use DatabaseTransactions;
     use MockAccountData;
-
-    public $faker;
     use CompanyGatewayFeesAndLimitsSaver;
 
     protected function setUp(): void
@@ -44,9 +42,6 @@ class CompanyGatewayApiTest extends TestCase
         $this->makeTestData();
 
         Session::start();
-
-        $this->faker = \Faker\Factory::create();
-
         Model::reguard();
     }
 
