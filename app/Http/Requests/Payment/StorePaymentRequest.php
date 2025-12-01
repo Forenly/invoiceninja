@@ -71,7 +71,7 @@ class StorePaymentRequest extends Request
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $invoices = $this->input('invoices', []);
+            $invoices = $this->input('invoices') ?? [];
             $clientId = $this->input('client_id');
             $invCollection = Invoice::withTrashed()
                 ->whereIn('id', array_column($invoices, 'invoice_id'))
