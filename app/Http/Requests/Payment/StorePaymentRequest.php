@@ -84,6 +84,11 @@ class StorePaymentRequest extends Request
                     continue;
                 }
 
+                if (!array_key_exists('invoice_id', $invoice)) {
+                    $validator->errors()->add("invoices.{$index}.invoice_id", ctrans('texts.invoice_id') . ' required');
+                    continue;
+                }
+
                 // Find invoice
                 $inv = $invCollection->firstWhere('id', $invoice['invoice_id']);
 
