@@ -225,6 +225,9 @@ class UpdateClientRequest extends Request
     {
         $account = $this->client->company->account;
 
+        // Do not allow a user to force pdf variables on the client settings.
+        unset($settings['pdf_variables']);
+
         if (! $account->isFreeHostedClient()) {
             return $settings;
         }
