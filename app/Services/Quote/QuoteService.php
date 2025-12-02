@@ -37,9 +37,9 @@ class QuoteService
         $this->quote = $quote;
     }
 
-    public function location(): array
+    public function location(bool $set_countries = true): array
     {
-        return (new LocationData($this->quote))->run();
+        return (new LocationData($this->quote))->run($set_countries);
     }
 
     public function createInvitations()

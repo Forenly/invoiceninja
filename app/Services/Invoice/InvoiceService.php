@@ -622,11 +622,11 @@ class InvoiceService
         return $this;
     }
 
-    public function location(): array
+    public function location(bool $set_countries = true): array
     {
-        return (new LocationData($this->invoice))->run();
+        return (new LocationData($this->invoice))->run($set_countries);
     }
-
+    
     public function workFlow()
     {
         if ($this->invoice->status_id == Invoice::STATUS_PAID && $this->invoice->client->getSetting('auto_archive_invoice')) {
