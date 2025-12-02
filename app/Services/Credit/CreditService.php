@@ -35,9 +35,9 @@ class CreditService
         $this->credit = $credit;
     }
 
-    public function location(): array
+    public function location(bool $set_countries = true): array
     {
-        return (new LocationData($this->credit))->run();
+        return (new LocationData($this->credit))->run($set_countries);
     }
 
     public function getCreditPdf($invitation)
