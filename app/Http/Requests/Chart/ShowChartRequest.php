@@ -26,7 +26,7 @@ class ShowChartRequest extends Request
      */
     public function authorize(): bool
     {
-        /**@var \App\Models\User auth()->user */
+        /** @var \App\Models\User auth()->user */
         $user = auth()->user();
 
         return $user->isAdmin() || $user->hasPermission('view_dashboard');
