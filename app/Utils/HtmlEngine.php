@@ -208,8 +208,15 @@ class HtmlEngine
         $data['$location.custom3'] = &$data['$location3'];
         $data['$location.custom4'] = &$data['$location4'];
 
-        if ($this->entity_string == 'invoice' || $this->entity_string == 'recurring_invoice') {        
-            $data['$entity'] = ['value' => ctrans('texts.invoice'), 'label' => ctrans('texts.invoice')];
+        if ($this->entity_string == 'invoice' || $this->entity_string == 'recurring_invoice') {    
+            
+            if($this->client->peppolSendingEnabled() && $this->entity->amount < 0) {
+                $data['$entity'] = ['value' => ctrans('texts.credit'), 'label' => ctrans('texts.credit')];
+            }
+            else {
+                $data['$entity'] = ['value' => ctrans('texts.invoice'), 'label' => ctrans('texts.invoice')];
+            }
+            
             $data['$number'] = ['value' => $this->entity->number ?: ' ', 'label' => ctrans('texts.invoice_number')];
             $data['$invoice'] = ['value' => $this->entity->number ?: ' ', 'label' => ctrans('texts.invoice_number')];
             $data['$number_short'] = ['value' => $this->entity->number ?: ' ', 'label' => ctrans('texts.invoice_number_short')];

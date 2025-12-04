@@ -113,8 +113,10 @@ class PaymentNotification implements ShouldQueue
                 //new check, IF the payment is on a recurring invoice AND the user had notifications disabled for recurring invoices. then we disable the notification for this payment.
                 $disabled_recurring_invoice_notifications = $this->findUserEntityNotificationType($payment, $company_user,['disable_recurring_payment_notification']);
 
-                if ($payment->invoices->first()->recurring_id && (array_search('mail', $disabled_recurring_invoice_notifications) !== false)) {
-                continue;
+                $invoice = $payment->invoices->first();
+
+                if ($invoice && $invoice->recurring_id && (array_search('mail', $disabled_recurring_invoice_notifications) !== false)) {
+                    continue;
                 }
 
                 $nmo = new NinjaMailerObject();

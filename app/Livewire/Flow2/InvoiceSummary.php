@@ -30,6 +30,8 @@ class InvoiceSummary extends Component
 
     public $isReady = false;
 
+    public $_key;
+
     #[On(self::CONTEXT_READY)]
     public function onContextReady(): void
     {
@@ -39,7 +41,7 @@ class InvoiceSummary extends Component
 
     public function mount()
     {
-        $_context = $this->getContext();
+        $_context = $this->getContext($this->_key);
 
         if (!empty($_context)) {
             $this->isReady = true;
@@ -49,7 +51,7 @@ class InvoiceSummary extends Component
 
     private function loadContextData(): void
     {
-        $_context = $this->getContext();
+        $_context = $this->getContext($this->_key);
 
         if (empty($_context)) {
             return;
@@ -76,7 +78,7 @@ class InvoiceSummary extends Component
     public function downloadDocument($invoice_hashed_id)
     {
 
-        $_context = $this->getContext();
+        $_context = $this->getContext($this->_key);
 
         $invitation_id = $_context['invitation_id'];
 
@@ -98,7 +100,7 @@ class InvoiceSummary extends Component
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        $_context = $this->getContext();
+        $_context = $this->getContext($this->_key);
 
         $contact = $_context['contact'] ?? auth()->guard('contact')->user();
 

@@ -52,6 +52,30 @@ class ClientApiTest extends TestCase
         Model::reguard();
     }
 
+    public function testPdfVariablesUnset()
+    {
+        $data = [
+            'name' => 'name of client',
+            'settings' => [
+                'pdf_variables' => 'xx',
+                'currency_id' => '2'
+            ],
+        ];
+
+
+        $response = $this->withHeaders([
+            'X-API-TOKEN' => $this->token,
+        ])->putJson("/api/v1/clients/".$this->client->hashed_id, $data)
+        ->assertStatus(200);
+
+        $arr = $response->json();
+
+        $this->assertEquals("2", $arr['data']['settings']['currency_id']);
+        $this->assertArrayNotHasKey('pdf_variables', $arr['data']['settings']);
+
+
+    }
+
     public function testBulkUpdates()
     {
         Client::factory()->count(3)->create([

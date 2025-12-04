@@ -324,7 +324,7 @@ class NinjaMailerJob implements ShouldQueue
      */
     private function entityEmailFailed($message): void
     {
-        $class = get_class($this->nmo->entity);
+        $class = $this->nmo->entity ? get_class($this->nmo->entity) : false;
 
         switch ($class) {
             case Invoice::class:

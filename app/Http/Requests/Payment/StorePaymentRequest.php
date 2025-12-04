@@ -71,7 +71,7 @@ class StorePaymentRequest extends Request
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $invoices = $this->input('invoices', []);
+            $invoices = $this->input('invoices') ?? [];
             $clientId = $this->input('client_id');
             $invCollection = Invoice::withTrashed()
                 ->whereIn('id', array_column($invoices, 'invoice_id'))
@@ -81,6 +81,11 @@ class StorePaymentRequest extends Request
                 // Check amount exists (if not caught by basic rules)
                 if (!array_key_exists('amount', $invoice)) {
                     $validator->errors()->add("invoices.{$index}.amount", ctrans('texts.amount') . ' required');
+                    continue;
+                }
+
+                if (!array_key_exists('invoice_id', $invoice)) {
+                    $validator->errors()->add("invoices.{$index}.invoice_id", ctrans('texts.invoice_id') . ' required');
                     continue;
                 }
 
