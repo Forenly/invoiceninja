@@ -67,7 +67,7 @@ jobs:
             --memory=512Mi \
             --cpu=1 \
             --max-instances=10 \
-            --set-env-vars="APP_ENV=production,APP_DEBUG=false,APP_URL=https://invoiceninja-kshh7mvhla-ew.a.run.app,DB_CONNECTION=mysql,DB_HOST=35.202.251.187,DB_PORT=3306,DB_DATABASE=ninja,DB_USERNAME=ninja" \
+            --set-env-vars="APP_ENV=production,APP_DEBUG=false,APP_URL=https://invoiceninja-kshh7mvhla-ew.a.run.app,REQUIRE_HTTPS=true,TRUSTED_PROXIES=*,DB_CONNECTION=mysql,DB_HOST=35.202.251.187,DB_PORT=3306,DB_DATABASE=ninja,DB_USERNAME=ninja" \
             --set-secrets="APP_KEY=invoiceninja-app-key:latest,DB_PASSWORD=invoiceninja-db-password:latest"
 
       - name: Get Cloud Run URL
