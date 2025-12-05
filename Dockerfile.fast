@@ -14,6 +14,12 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/http.d/default.conf
 COPY supervisord.conf /etc/supervisord.conf
 
+# Fix permissions for storage and cache directories
+RUN chown -R www-data:www-data /var/www/app/storage \
+    && chown -R www-data:www-data /var/www/app/bootstrap/cache \
+    && chmod -R 775 /var/www/app/storage \
+    && chmod -R 775 /var/www/app/bootstrap/cache
+
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
 
