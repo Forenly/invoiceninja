@@ -20,8 +20,12 @@ RUN chown -R www-data:www-data /var/www/app/storage \
     && chmod -R 775 /var/www/app/storage \
     && chmod -R 775 /var/www/app/bootstrap/cache
 
+# Copy and setup startup script
+COPY start-cloudrun.sh /start-cloudrun.sh
+RUN chmod +x /start-cloudrun.sh
+
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
 
-# Start supervisor to run both PHP-FPM and Nginx
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Start with cache clearing script
+CMD ["/start-cloudrun.sh"]
