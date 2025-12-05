@@ -6,6 +6,14 @@ Bu repository, [Invoice Ninja](https://github.com/invoiceninja/invoiceninja) (a�
 
 **Live Demo:** https://invoiceninja-kshh7mvhla-ew.a.run.app
 
+## ✅ Son Başarılı Deployment
+
+**Commit:** `b53ee31` - Add REQUIRE_HTTPS and TRUSTED_PROXIES env vars
+- HTTPS yönlendirme sorunu çözüldü
+- Trusted proxies konfigürasyonu eklendi
+- Laravel cache temizleme otomasyonu eklendi
+- Servis başarıyla çalışıyor: https://invoiceninja-kshh7mvhla-ew.a.run.app
+
 ## 🚀 Hızlı Başlangıç
 
 ```bash
