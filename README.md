@@ -1,14 +1,40 @@
 # Invoice Ninja Cloud Run Deployment
 
-This repository contains Docker configuration and GitHub Actions workflow to deploy Invoice Ninja to Google Cloud Run.
+Bu repository, [Invoice Ninja](https://github.com/invoiceninja/invoiceninja) (açık kaynaklı faturalama ve CRM uygulaması) için Google Cloud Run deployment konfigürasyonunu içerir.
 
-## Architecture
+**Kaynak Proje:** https://github.com/invoiceninja/invoiceninja
 
-- **Dockerfile.fast**: Optimized Dockerfile that extends the official Invoice Ninja image with Nginx and Supervisor
-- **nginx.conf**: Nginx configuration for reverse proxy
-- **default.conf**: Nginx server block configuration
-- **supervisord.conf**: Supervisor configuration to run PHP-FPM and Nginx together
-- **php-fpm.conf**: PHP-FPM pool configuration
+**Live Demo:** https://invoiceninja-kshh7mvhla-ew.a.run.app
+
+## 🚀 Hızlı Başlangıç
+
+```bash
+# 1. Repository'yi clone edin
+git clone https://github.com/Forenly/invoiceninja.git
+cd invoiceninja
+
+# 2. Detaylı kurulum için SETUP.md dosyasına bakın
+cat SETUP.md
+
+# 3. GitHub'a push yapın - otomatik deploy başlayacak
+git push origin main
+```
+
+## 📋 Gereksinimler
+
+- Google Cloud Platform hesabı
+- GitHub hesabı
+- gcloud CLI
+- Docker (yerel test için)
+
+## 🏗️ Mimari
+
+- **Dockerfile.fast**: Official Invoice Ninja image'a Nginx ve Supervisor ekleyen optimize edilmiş Dockerfile
+- **nginx.conf**: Reverse proxy için Nginx konfigürasyonu
+- **default.conf**: Nginx server block konfigürasyonu
+- **supervisord.conf**: PHP-FPM ve Nginx'i birlikte çalıştıran Supervisor konfigürasyonu
+- **php-fpm.conf**: PHP-FPM pool konfigürasyonu
+- **start-cloudrun.sh**: Container başlangıç scripti (cache temizleme)
 
 ## GitHub Actions Setup
 
