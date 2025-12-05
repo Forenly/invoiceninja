@@ -1,0 +1,118 @@
+# Multi-stage build for optimized Invoice Ninja on Cloud Run
+FROM alpine:3.20 AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    php82 \
+    php82-fpm \
+    php82-bcmath \
+    php82-ctype \
+    php82-curl \
+    php82-dom \
+    php82-fileinfo \
+    php82-gd \
+    php82-gmp \
+    php82-iconv \
+    php82-intl \
+    php82-mbstring \
+    php82-mysqli \
+    php82-opcache \
+    php82-openssl \
+    php82-pdo \
+    php82-pdo_mysql \
+    php82-session \
+    php82-simplexml \
+    php82-sodium \
+    php82-tokenizer \
+    php82-xml \
+    php82-xmlwriter \
+    php82-zip \
+    php82-zlib \
+    php82-pecl-redis \
+    nginx \
+    supervisor \
+    curl \
+    git
+
+# Create symlink for php
+RUN ln -sf /usr/bin/php82 /usr/bin/php
+
+# Set working directory
+WORKDIR /var/www/app
+
+# Clone Invoice Ninja
+RUN git clone --depth 1 --branch v5-stable https://github.com/invoiceninja/invoiceninja.git . && \
+    rm -rf .git
+
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install PHP dependencies (production only, no dev dependencies)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Remove composer after installation
+RUN rm /usr/local/bin/composer
+
+# Final stage - minimal runtime image
+FROM alpine:3.20
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    php82 \
+    php82-fpm \
+    php82-bcmath \
+    php82-ctype \
+    php82-curl \
+    php82-dom \
+    php82-fileinfo \
+    php82-gd \
+    php82-gmp \
+    php82-iconv \
+    php82-intl \
+    php82-mbstring \
+    php82-mysqli \
+    php82-opcache \
+    php82-openssl \
+    php82-pdo \
+    php82-pdo_mysql \
+    php82-session \
+    php82-simplexml \
+    php82-sodium \
+    php82-tokenizer \
+    php82-xml \
+    php82-xmlwriter \
+    php82-zip \
+    php82-zlib \
+    php82-pecl-redis \
+    nginx \
+    supervisor
+
+# Create symlink for php
+RUN ln -sf /usr/bin/php82 /usr/bin/php
+
+# Create necessary directories
+RUN mkdir -p /var/www/app \
+    /run/nginx \
+    /var/log/nginx \
+    /run/php
+
+# Copy application from builder
+COPY --from=builder /var/www/app /var/www/app
+
+# Copy configuration files
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY default.conf /etc/nginx/http.d/default.conf
+COPY php-fpm.conf /etc/php82/php-fpm.d/www.conf
+COPY supervisord.conf /etc/supervisord.conf
+
+# Set permissions
+RUN chown -R nginx:nginx /var/www/app/storage \
+    && chown -R nginx:nginx /var/www/app/bootstrap/cache \
+    && chmod -R 775 /var/www/app/storage \
+    && chmod -R 775 /var/www/app/bootstrap/cache
+
+# Expose port 8080 for Cloud Run
+EXPOSE 8080
+
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

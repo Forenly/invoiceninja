@@ -1,0 +1,24 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Credentials and secrets
+*.key
+*.pem
+*.json
+credentials/
+secrets/
+
+# Docker
+.dockerignore
+
+# Build artifacts
+build/
+dist/

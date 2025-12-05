@@ -1,0 +1,31 @@
+steps:
+  # Build the container image for linux/amd64 platform
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--platform=linux/amd64'
+      - '-f'
+      - 'Dockerfile.fast'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:cloudrun-fast'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:${SHORT_SHA}'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:latest'
+      - '.'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja'
+
+images:
+  - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:cloudrun-fast'
+  - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:${SHORT_SHA}'
+  - 'europe-west1-docker.pkg.dev/${PROJECT_ID}/invoiceninja/invoiceninja:latest'
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
